@@ -5,6 +5,7 @@
 import { NextResponse } from "next/server";
 import { loadExceptionStore } from "@/lib/exceptions/store";
 import { parseRaise } from "@/lib/exceptions/raise";
+import { raiseOnce } from "@/lib/exceptions/resolve";
 import type { ExceptionsResponse } from "@/lib/exceptions/types";
 
 export const runtime = "nodejs";
@@ -32,10 +33,8 @@ export async function POST(req: Request) {
   const parsed = parseRaise((body as { item?: unknown } | null)?.item);
   if (!parsed.ok) return NextResponse.json({ status: "error", message: parsed.message }, { status: 400, headers: noStore });
   try {
-    const store = await loadExceptionStore();
-    const item = store.raiseException(parsed.input);
-    await store.flush();
-    return NextResponse.json({ status: "ok", item, open: store.openCount() }, { headers: noStore });
+    const { item, open } = await raiseOnce(parsed.input);
+    return NextResponse.json({ status: "ok", item, open }, { headers: noStore });
   } catch (e) {
     console.error(`[exceptions] raise failed: ${e instanceof Error ? e.message : String(e)}`);
     return NextResponse.json({ status: "error", message: "Could not save the item (see server log)." }, { status: 500, headers: noStore });

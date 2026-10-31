@@ -1,7 +1,8 @@
 // POST /api/exceptions/<id> { action: "approve" | "reject" | "edit", note?, value? } → ResolveResponse
 // Resolving the last open item of a run finishes the run. Outbound items only ever run the dry-run transport.
 import { NextResponse } from "next/server";
-import { loadExceptionStore, ExceptionError } from "@/lib/exceptions/store";
+import { ExceptionError, loadExceptionStore } from "@/lib/exceptions/store";
+import { resolveOnce } from "@/lib/exceptions/resolve";
 import type { ResolveResponse } from "@/lib/exceptions/types";
 import { moveStage, userName } from "@/lib/deals/stages";
 
@@ -29,13 +30,11 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   if (typeof action !== "string" || !ACTIONS.has(action)) return NextResponse.json({ status: "error", message: "action must be approve, reject or edit" } satisfies ResolveResponse, { status: 400, headers: NO_STORE });
   const str = (v: unknown) => (typeof v === "string" ? v : undefined);
   try {
-    const store = await loadExceptionStore();
-    const { item, run } = store.resolveException(id, action as "approve" | "reject" | "edit", { note: str(body?.note), value: str(body?.value) });
-    await store.flush();
+    const { item, run, open } = await resolveOnce(id, action as "approve" | "reject" | "edit", { note: str(body?.note), value: str(body?.value) });
     // A person approved (or entered) a value for this deal: a Sourced deal moves to Screening, owned by that person.
     const domain = item.subject?.domain;
     if (domain && action !== "reject") await moveStage({ domain, name: item.subject?.name, stage: "screening", by: userName() ?? "you", actor: "user", forwardOnly: true, note: `Approved in Review: ${item.title}` }).catch((e: unknown) => console.error(`[stages] ${domain}: ${e instanceof Error ? e.message : String(e)}`));
-    return NextResponse.json({ status: "ok", item, run, open: store.openCount() } satisfies ResolveResponse, { headers: NO_STORE });
+    return NextResponse.json({ status: "ok", item, run, open } satisfies ResolveResponse, { headers: NO_STORE });
   } catch (e) {
     if (e instanceof ExceptionError) return NextResponse.json({ status: "error", message: e.message } satisfies ResolveResponse, { status: e.status, headers: NO_STORE });
     console.error(`[exceptions] resolve ${id} failed: ${e instanceof Error ? e.message : String(e)}`);

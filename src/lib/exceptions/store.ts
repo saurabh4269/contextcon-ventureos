@@ -75,6 +75,7 @@ export function createExceptionStore(opts: StoreOptions = {}) {
   function load(): State {
     if (state) return state;
     state = { version: 1, items: opts.initial ? [...opts.initial.items] : [], runs: opts.initial ? [...opts.initial.runs] : [] };
+    if (opts.initial) heal(state);
     if (file && !opts.initial) {
       try {
         const raw = JSON.parse(fs.readFileSync(file, "utf8")) as Partial<State>;
@@ -103,6 +104,25 @@ export function createExceptionStore(opts: StoreOptions = {}) {
     if (opts.info) return opts.info();
     if (file && !writeError) return { kind: "file", path: path.relative(process.cwd(), file) || file, note: `Stored in a JSON file on this server (${path.basename(file)}) because no database is configured (DATABASE_URL is unset). Single server only.` };
     return { kind: "memory", note: `Kept in server memory only${writeError ? ` (file write failed: ${writeError})` : ""}; no database is configured (DATABASE_URL is unset), so items are lost on restart.` };
+  }
+
+  /** A run's item list and status follow from its items. Requests that loaded the queue at the same time each wrote
+   *  their own copy of the run, so the last writer could leave a run "waiting" with nothing open (or without an item a
+   *  concurrent request raised): recompute both from the items on load. */
+  function heal(s: State) {
+    for (const run of s.runs) {
+      const mine = s.items.filter((x) => x.runId === run.id);
+      const ids = new Set(mine.map((x) => x.id));
+      run.exceptionIds = [...new Set([...run.exceptionIds.filter((id) => ids.has(id)), ...mine.map((x) => x.id)])];
+      const open = mine.some((x) => x.status === "open");
+      if (open) {
+        if (run.status !== "waiting_on_person") run.status = "waiting_on_person";
+        delete run.finishedAt;
+      } else if (mine.length) {
+        if (run.status !== "finished") run.status = "finished";
+        if (!run.finishedAt) run.finishedAt = mine.map((x) => x.resolution?.at ?? x.createdAt).sort().pop() ?? now().toISOString();
+      }
+    }
   }
 
   function finishIfDone(s: State, runId: string | null) {
@@ -274,15 +294,10 @@ export async function loadExceptionStore(docs: DocStore = docStore()): Promise<L
 
 /** Seam for agent loops: raise one item and store it. */
 export async function raiseException(input: RaiseInput): Promise<ExceptionItem> {
-  const s = await loadExceptionStore();
-  const item = s.raiseException(input);
-  await s.flush();
-  return item;
+  return (await (await import("./resolve")).raiseOnce(input)).item;
 }
 /** Seam for the Review page / API: resolve one item and store it. */
 export async function resolveException(id: string, action: ExceptionAction, opts?: { note?: string; value?: string; by?: string }) {
-  const s = await loadExceptionStore();
-  const r = s.resolveException(id, action, opts);
-  await s.flush();
-  return r;
+  const { item, run } = await (await import("./resolve")).resolveOnce(id, action, opts);
+  return { item, run };
 }
