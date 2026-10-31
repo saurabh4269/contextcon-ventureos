@@ -80,11 +80,19 @@ with experience) · job search 0.75 (0.03/row, limit 25) · web search 1 · comp
 = **5.56 credits**. Repeats are served from the response cache (0 credits).
 
 ### `GET /api/live/company?domain=` → `{status:"ok", company, identify, enrich}` | `{status:"no_match", domain, identify}` (identify 0 + enrich 2)
-### `GET /api/live/people?companyId=` → `LiveCall<{ total, people: LivePerson[] }>` (founders; ≈0.23/row, limit 5)
+### `GET /api/live/people?companyId=` (or `domain=` / `company=`) → `LiveCall<{ total, people: LivePerson[] }>` (founders; ≈0.23/row, limit 5)
 ### `GET /api/live/person?linkedin=https://www.linkedin.com/in/<handle>` → `{status:"ok", person, call}` | `{status:"no_match", linkedinUrl, call}` (1 credit)
-### `GET /api/live/jobs?companyId=` → `LiveCall<{ total, listings[], byCategory[] }>` (0.03/row, limit 25)
-### `GET /api/live/news?q=&mention=` → `LiveCall<{ query, results[] }>` (1 credit). Results not mentioning `mention` are dropped (live web results for short names are noisy).
-### `GET /api/live/comps?companyId=&q=` → `LiveCall<LiveComp[]>` (ranked company search, target excluded)
+### `GET /api/live/jobs?companyId=` (or `domain=` / `company=`) → `LiveCall<{ total, listings[], byCategory[] }>` (0.03/row, limit 25)
+### `GET /api/live/news?q=&mention=` (or `domain=` / `company=`) → `LiveCall<{ query, results[] }>` (1 credit). Results not mentioning `mention` are dropped (live web results for short names are noisy). A domain is resolved to the company name (identify, 0) and searched as `"<name>"` with `mention=<name>`; a plain name is searched directly.
+### `GET /api/live/comps?companyId=&q=` (or `domain=` / `company=`, `q` optional) → `LiveCall<LiveComp[]>` (ranked company search, target excluded). Without `q` the description comes from identify + enrich (+2 credits, `enrich` call included).
+
+`domain=` / `company=` (a domain, URL or company name in any script, ≤ 200 chars) on people/jobs/comps/news: messy input is
+normalised (case, whitespace, scheme/`www.`/path, invisible characters, IDN → punycode) and resolved with
+`/company/identify` (0 credits); the response is the route's usual body plus `resolved: { companyId, name, domain, via:
+"domain"|"name", identify }`. Never guessed: a name is accepted only when exactly one candidate has that exact name;
+otherwise HTTP 200 `{ status: "no_match"|"ambiguous", input, message, suggestions: [{ companyId, name, domain,
+confidence }], calls }` (an unknown domain gets "did you mean" suggestions from a name identify on its first label).
+A broken domain (`strpe..com`, `stripe,com`) is a 400 `{ status:"error", message, suggestion: "strpe.com" }`.
 
 ### `GET /api/deals/:id/numbers`
 

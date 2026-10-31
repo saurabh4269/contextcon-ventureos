@@ -32,6 +32,7 @@ export function failureResponse(f: LiveFailure) {
   return NextResponse.json(f, { status: f.status === "not_connected" ? 503 : 502 });
 }
 
-export function badRequest(message: string) {
-  return NextResponse.json({ status: "error", message }, { status: 400 });
+/** 400 body; `suggestion` (e.g. "strpe.com" for "strpe..com") is offered, never applied. */
+export function badRequest(message: string, suggestion?: string) {
+  return NextResponse.json({ status: "error", message, ...(suggestion ? { suggestion } : {}) }, { status: 400 });
 }
