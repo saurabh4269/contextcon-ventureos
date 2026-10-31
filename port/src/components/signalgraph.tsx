@@ -491,7 +491,7 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
   /** Distance from the bottom of the signals list to the hub's centre line: the tile centres on it so the bundle runs level. */
   align?: number;
 }) {
-  const f = d.fit, delta = score - f.base.value, pct = (v: number) => `${Math.max(0, Math.min(100, v))}%`;
+  const f = d.fit, un = f.unscored, delta = un ? 0 : score - f.base.value, pct = (v: number) => `${Math.max(0, Math.min(100, v))}%`;
   const rec = f.recommendation;
   const pending = !failed && !loading && T !== Infinity && T < S.decide;
   const tileRef = useRef<HTMLDivElement>(null);
@@ -505,7 +505,7 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
     <div data-sg="fit" className="relative flex flex-col rounded-[20px] bg-white px-4 pt-3.5 pb-4" style={{ boxShadow: "var(--dd-e2)" }}>
       <div data-sg="fit-list">
         <div className="flex items-baseline justify-between"><span className="text-[14px] font-medium text-ink">Signals into fit</span><span className="tnum text-[12px] text-zinc-500">{f.contributions.filter((k) => landed(k.id) > 0).length}/{f.contributions.length}</span></div>
-        <div className="mt-1.5 flex items-center justify-between border-b border-zinc-100 pb-1 text-[11.5px] text-zinc-500"><span className="truncate">{f.base.label}</span><span className="tnum ml-3 w-9 shrink-0 text-center font-medium text-zinc-700">{f.base.value}</span></div>
+        <div className="mt-1.5 flex items-center justify-between border-b border-zinc-100 pb-1 text-[11.5px] text-zinc-500"><span className="truncate">{f.base.label}</span><span className="tnum ml-3 w-9 shrink-0 text-center font-medium text-zinc-700">{un ? "—" : f.base.value}</span></div>
         {f.contributions.map((k) => {
           const u = landed(k.id), up = k.weight > 0, ev = k.source ?? pathOf(d, k.call, k.chip);
           return (
@@ -521,22 +521,22 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
         })}
       </div>
 
-      <div ref={tileRef} data-sg="tile" className="relative overflow-hidden rounded-[16px] px-4 pt-3 pb-2.5 text-white"
+      <div ref={tileRef} data-sg="tile" title={un?.reason} className="relative overflow-hidden rounded-[16px] px-4 pt-3 pb-2.5 text-white"
         style={{ marginTop: shift, background: "linear-gradient(150deg,#c46a2e 0%,#9c440f 48%,#6e2c07 100%)", boxShadow: `inset 0 1px 0 rgba(255,255,255,.25), inset 0 0 0 1px rgba(255,255,255,.08), 0 14px 32px -12px rgba(156,68,15,${0.35 + heat * 0.35}), 0 0 ${16 + heat * 22}px -6px rgba(214,120,60,${0.25 + heat * 0.4})` }}>
         <span aria-hidden className="absolute -top-10 -right-8 size-32 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(255,214,170,.45), transparent)" }} />
-        <div className="relative flex items-center justify-between"><span className="text-[11px] font-medium tracking-[.08em] text-[#ffd9bd] uppercase">{f.label}</span>{decided > 0 && <span style={{ opacity: decided }} className={cx("inline-flex h-6 items-center rounded-full px-2.5 text-[12px] font-medium", BAND[fitBand(score)])}>{f.bands[fitBand(score)]}</span>}</div>
+        <div className="relative flex items-center justify-between"><span className="text-[11px] font-medium tracking-[.08em] text-[#ffd9bd] uppercase">{f.label}</span>{decided > 0 && !un && <span style={{ opacity: decided }} className={cx("inline-flex h-6 items-center rounded-full px-2.5 text-[12px] font-medium", BAND[fitBand(score)])}>{f.bands[fitBand(score)]}</span>}</div>
         <div className="relative mt-1 flex items-end gap-1.5">
-          <span className="numeral text-[46px] leading-[0.95]">{score}</span>
-          <span className="mb-1.5 text-[12px] text-white/60">/ 100</span>
+          <span className="numeral text-[46px] leading-[0.95]">{un ? "—" : score}</span>
+          {!un && <span className="mb-1.5 text-[12px] text-white/60">/ 100</span>}
           {delta !== 0 && <span className="tnum mb-2 ml-auto rounded-full bg-white/12 px-2 py-[2px] text-[10.5px] font-medium ring-1 ring-white/20">{delta > 0 ? "+" : "−"}{Math.abs(delta)} from signals</span>}
         </div>
-        <div className="relative mt-2 flex items-center gap-2.5">
+        {un ? <p className="relative mt-2 line-clamp-3 text-[11px] leading-[15px] text-white/80">{un.reason}</p> : <div className="relative mt-2 flex items-center gap-2.5">
           <div className="relative h-1 flex-1 rounded-full bg-white/20">
             <div className="absolute inset-y-0 left-0 rounded-full bg-white" style={{ width: pct(score) }} />
             <span className="absolute -top-1 h-3 w-px bg-white/80" style={{ left: pct(f.threshold.value) }} />
           </div>
           <span className="tnum shrink-0 text-[10.5px] whitespace-nowrap text-white/70">{f.threshold.label} {f.threshold.value}</span>
-        </div>
+        </div>}
       </div>
 
       <div className="mt-auto pt-3">

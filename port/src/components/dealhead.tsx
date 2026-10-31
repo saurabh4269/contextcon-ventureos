@@ -42,7 +42,7 @@ export function DealHead({ h, primary, walled }: { h: DealHeader; primary: React
       {h.metrics && (
         <dl className="mt-4 ml-[54px] flex min-w-0 items-stretch overflow-hidden">
           {h.metrics.map((m, i) => (
-            <div key={m.id} title={m.sub ? `${m.label}: ${m.value} · ${m.sub}` : undefined} className={cx("min-w-0 shrink-0", i > 0 && "ml-5 border-l border-zinc-200/80 pl-5 @max-[1040px]/main:ml-4 @max-[1040px]/main:pl-4")}>
+            <div key={m.id} title={m.hint ?? (m.sub ? `${m.label}: ${m.value} · ${m.sub}` : undefined)} className={cx("min-w-0 shrink-0", i > 0 && "ml-5 border-l border-zinc-200/80 pl-5 @max-[1040px]/main:ml-4 @max-[1040px]/main:pl-4")}>
               <dt className="text-[12px] text-zinc-500">{m.label}</dt>
               <dd className={cx("tnum mt-0.5 flex items-center gap-1.5 text-[13.5px] font-medium whitespace-nowrap", m.tone === "rust" ? "text-rust" : m.tone === "ok" ? "text-ok" : "text-ink")}>
                 {m.tone === "rust" && <span className="size-1.5 rounded-full bg-rust" />}

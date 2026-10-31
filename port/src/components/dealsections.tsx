@@ -29,11 +29,11 @@ function Card({ title, right, children, className, i = 1 }: { title?: ReactNode;
 function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "rust" }) {
   return <div className="min-w-0"><div className="text-[12px] text-zinc-500">{label}</div><div className={cx("numeral mt-1 text-[28px] leading-none", tone === "rust" && "text-rust")}>{value}</div>{sub && <div className="mt-1.5 truncate text-[12px] text-zinc-500">{sub}</div>}</div>;
 }
-function StatRow({ stats }: { stats: { id: string; label: string; value: string; sub?: string }[] }) {
+function StatRow({ stats }: { stats: { id: string; label: string; value: string; sub?: string; hint?: string }[] }) {
   return (
     <Card i={1}>
       <div className="grid gap-5" style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0,1fr))` }}>
-        {stats.map((s, i) => <div key={s.id} className={cx(i > 0 && "border-l border-zinc-100 pl-5")}><Stat label={s.label} value={s.value} sub={s.sub} /></div>)}
+        {stats.map((s, i) => <div key={s.id} title={s.hint} className={cx(i > 0 && "border-l border-zinc-100 pl-5")}><Stat label={s.label} value={s.value} sub={s.sub} /></div>)}
       </div>
     </Card>
   );
@@ -98,7 +98,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
         {head}
         <Rise i={1} className="mt-5 grid grid-cols-4 gap-3 @max-[1040px]/main:grid-cols-2">
           {s.kpis.map((k) => (
-            <div key={k.id} className={cx(CARD, "p-4")}>
+            <div key={k.id} title={k.hint} className={cx(CARD, "p-4")}>
               <div className="flex items-center gap-1.5 text-[12px] text-zinc-500"><span className="truncate">{k.label}</span>{k.verified && <span title="Verified against source" className="ml-auto grid size-4 shrink-0 place-items-center rounded-full bg-ok-50 text-ok"><Check className="size-2.5" strokeWidth={3} /></span>}</div>
               <div className="numeral mt-2 text-[30px] leading-none">{k.value}</div>
               <div className="mt-1.5 truncate text-[12px] text-zinc-500">{k.sub}</div>
@@ -107,7 +107,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
           ))}
         </Rise>
         <div className="grid grid-cols-2 gap-4 @max-[1040px]/main:grid-cols-1">
-          <Card title="Thesis fit" right={<span className="tnum text-[12px] text-zinc-500">{s.thesis.filter((t) => t.ok).length} of {s.thesis.length}</span>} i={2}>
+          {s.thesis.length > 0 && <Card title="Thesis fit" right={<span className="tnum text-[12px] text-zinc-500">{s.thesis.filter((t) => t.ok).length} of {s.thesis.length}</span>} i={2}>
             <div className="flex flex-wrap gap-2">
               {s.thesis.map((t) => (
                 <span key={t.id} className={cx("inline-flex h-7 items-center gap-1.5 rounded-full pr-3 pl-1.5 text-[12.5px]", t.ok ? "bg-zinc-50 text-zinc-700 ring-1 ring-zinc-200/80" : "bg-rust-50 text-rust ring-1 ring-rust/15")}>
@@ -115,7 +115,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
                 </span>
               ))}
             </div>
-          </Card>
+          </Card>}
           <Card title="Company" i={2}>
             <dl className="-my-1.5 divide-y divide-zinc-100">
               {s.facts.map((f) => <div key={f.k} className="flex items-center justify-between gap-4 py-[7px] text-[13px]"><dt className="shrink-0 text-zinc-500">{f.k}</dt><dd className="min-w-0 truncate text-right font-medium">{f.v}</dd></div>)}
@@ -140,12 +140,12 @@ export function DealSectionView({ s }: { s: DealSection }) {
                 <div key={p.id} className="row-hover grid h-[60px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_164px] items-center gap-x-4 border-t border-zinc-100 px-5 text-[13px] first-of-type:border-0">
                   {p.href ? <Link href={p.href} title={`Open ${p.name}`} className="group/p flex min-w-0 items-center gap-3">{name}</Link> : <span className="flex min-w-0 items-center gap-3">{name}</span>}
                   <span className="min-w-0"><span className="block truncate text-zinc-700">{p.prev}</span><span className="tnum block truncate text-[12px] text-zinc-500">{p.tenure}</span></span>
-                  <span><StagePill tone={p.check.ok ? "ok" : "warn"}>{p.check.label}</StagePill></span>
+                  <span title={p.hint}><StagePill tone={p.check.ok ? "ok" : "warn"}>{p.check.label}</StagePill></span>
                 </div>
               );
             })}
           </Card>
-          <Card title="Headcount by function" right={<>{s.hiring.series.map((x, i) => <span key={x.id} className="inline-flex items-center gap-1.5 text-[12px] text-zinc-500"><span className={cx("size-2 rounded-[3px]", shade[i])} />{x.label}</span>)}</>} i={3}>
+          {months.length > 0 && <Card title="Headcount by function" right={<>{s.hiring.series.map((x, i) => <span key={x.id} className="inline-flex items-center gap-1.5 text-[12px] text-zinc-500"><span className={cx("size-2 rounded-[3px]", shade[i])} />{x.label}</span>)}</>} i={3}>
             <div className="flex items-end gap-4" style={{ height: 172 }}>
               {months.map((m, i) => (
                 <div key={m} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1.5">
@@ -157,7 +157,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
                 </div>
               ))}
             </div>
-          </Card>
+          </Card>}
         </>
       );
     }
@@ -188,7 +188,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
       return (
         <>
           {head}
-          <Card title="Market size" i={1}>
+          {s.sizes.length > 0 && <Card title="Market size" i={1}>
             <div className="space-y-3.5">
               {s.sizes.map((x, i) => (
                 <div key={x.id} className="grid grid-cols-[44px_minmax(0,1fr)_64px] items-center gap-3">
@@ -201,7 +201,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
                 </div>
               ))}
             </div>
-          </Card>
+          </Card>}
           <Card title="Comparables" right={<span className="text-[12px] text-zinc-500">Run-rate multiple at last round</span>} i={2} className="p-0 pt-5">
             <div className="px-5"><div className={cx("grid grid-cols-[minmax(0,1.6fr)_92px_88px_64px] items-center gap-x-3", TH)}><span>Company</span><span>Stage</span><span className="text-right">Raised</span><span className="text-right">Multiple</span></div></div>
             {s.comps.map((c) => (
