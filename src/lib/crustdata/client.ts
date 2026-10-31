@@ -28,6 +28,8 @@ export type CrustdataClientOptions = {
   cache?: ResponseCache;
   /** Per-route circuit breaker (tests inject one with a small threshold). */
   breaker?: CircuitBreaker;
+  /** Backoff sleep override (tests pass a no-op so retries run instantly). */
+  sleep?: (ms: number) => Promise<void>;
   /** Called once per live network call (not for cache hits). Never receives the API key. */
   onLiveCall?: (e: { method: string; path: string; status: "ok" | "error"; creditsUsed: string | null; latencyMs: number; error?: string }) => void;
 };
@@ -43,6 +45,7 @@ export class CrustdataClient {
   private readonly cache?: ResponseCache;
   private readonly onLiveCall?: CrustdataClientOptions["onLiveCall"];
   private readonly breaker: CircuitBreaker;
+  private readonly sleep?: (ms: number) => Promise<void>;
 
   constructor(opts: CrustdataClientOptions = {}) {
     const key = (opts.apiKey ?? process.env.CRUSTDATA_API_KEY)?.trim();
@@ -52,6 +55,7 @@ export class CrustdataClient {
     this.cache = opts.cache;
     this.onLiveCall = opts.onLiveCall;
     this.breaker = opts.breaker ?? new CircuitBreaker();
+    this.sleep = opts.sleep;
   }
 
   get baseUrl() {
@@ -89,7 +93,7 @@ export class CrustdataClient {
         path,
         { method, ...(body === undefined ? {} : { body: JSON.stringify(body) }) },
         this.limiter,
-        { timeoutMs, retries, fetchImpl: this.fetchImpl, breaker: this.breaker },
+        { timeoutMs, retries, fetchImpl: this.fetchImpl, breaker: this.breaker, sleep: this.sleep },
       );
       const latencyMs = Date.now() - t0;
       this.onLiveCall?.({ method, path, status: "ok", creditsUsed, latencyMs });
