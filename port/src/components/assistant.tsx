@@ -7,6 +7,7 @@
  */
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowUp, Square, Plus, Sparkles, X, SquarePen, Check, ChevronRight, ChevronDown, CornerDownRight, Maximize2, Mic, TrendingUp, Inbox, Mail, Hourglass, FileText, Users, Scale, Search, Workflow, History, CircleSlash, CalendarClock, MessageSquare } from "lucide-react";
 import { AnimatePresence, motion, type Transition } from "framer-motion";
 import { ROUTES } from "../routes";
@@ -376,8 +377,13 @@ function anchorLastQuestion(root: HTMLElement | null, scroller?: HTMLElement | n
   if (scroller) scroller.scrollTop = Math.max(0, q.offsetTop - 16);
   else q.scrollIntoView({ block: "start" });
 }
-export function AssistantDock({ data, onSuggestion, onSend, onClose, top, expandHref }: { data: AssistantData; expandHref?: string; onSuggestion?: (action: string) => void; onSend?: (text: string) => void; onClose?: () => void; /** v3.2 · optional block under the header, e.g. LiveRail */ top?: ReactNode }) {
+export function AssistantDock({ data, onSuggestion: onSuggestionProp, onSend: onSendProp, onClose, top, expandHref }: { data: AssistantData; expandHref?: string; onSuggestion?: (action: string) => void; onSend?: (text: string) => void; onClose?: () => void; /** v3.2 · optional block under the header, e.g. LiveRail */ top?: ReactNode }) {
   const ask = useAsk();
+  // No assistant model wired by the host: a question (or suggestion) runs the deterministic Sourcing agent at /agent.
+  const router = useRouter();
+  const toAgent = (t: string) => { ask?.setOpen(false); router.push(`/agent?q=${encodeURIComponent(t)}`); };
+  const onSend = onSendProp ?? toAgent;
+  const onSuggestion = onSuggestionProp ?? toAgent;
   const empty = data.messages.length === 0;
   const thinking = data.messages[data.messages.length - 1]?.thinking;
   const { liveId, followDelay } = useStream(data);

@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowUp, Check, CircleAlert, CircleDashed, Copy, Download, Loader2, Square, Volume2, X, ArrowUpRight } from "lucide-react";
 import { Page, TopBar } from "@port/components/shell";
 import { CompanyLogo, cx } from "@port/components/ui";
+import { Mascot, type MascotMood } from "@port/components/brand/mascot";
 import { AGENT_EXAMPLES } from "@/lib/sourcing/examples";
 import { toCsv, toMarkdown, fmtFunding } from "@/lib/sourcing/export";
 import { WINDOW_MONTHS, type Interpretation } from "@/lib/sourcing/parse";
@@ -100,20 +101,22 @@ export function AgentScreen() {
           ))}
         </div>
 
+        {state.status === "idle" && <Intro />}
+
         {state.status !== "idle" && (
           <div className="mt-7">
             {plan && <Understood items={plan.interpretation} ignored={plan.ignored} />}
-            {state.status === "refused" && <Notice tone="warn" title="Nothing to search on" body={state.message ?? ""} />}
-            {state.status === "redirect" && state.redirect && <Notice tone="ok" title={`Opening ${state.redirect.label}`} body={state.redirect.reason} action={<Link className="font-medium text-rust underline-offset-2 hover:underline" href={state.redirect.href}>Open now</Link>} />}
-            {state.status === "error" && <Notice tone="err" title={state.errorKind === "not_connected" ? "Crustdata not connected" : "The run failed"} body={state.message ?? ""} action={state.errorKind === "not_connected" ? <Link className="font-medium text-rust" href="/settings?section=connectors">Connectors</Link> : <button type="button" className="font-medium text-rust" onClick={() => go(state.q)}>Try again</button>} />}
-            {state.status === "stopped" && <Notice tone="warn" title="Stopped" body="The run was stopped before it finished. Rows shown so far are real, but incomplete." />}
+            {state.status === "refused" && <Notice tone="warn" mood="sorry" title="Nothing to search on" body={state.message ?? ""} />}
+            {state.status === "redirect" && state.redirect && <Notice tone="ok" mood="happy" title={`Opening ${state.redirect.label}`} body={state.redirect.reason} action={<Link className="font-medium text-rust underline-offset-2 hover:underline" href={state.redirect.href}>Open now</Link>} />}
+            {state.status === "error" && <Notice tone="err" mood="sorry" title={state.errorKind === "not_connected" ? "Crustdata not connected" : "The run failed"} body={state.message ?? ""} action={state.errorKind === "not_connected" ? <Link className="font-medium text-rust" href="/settings?section=connectors">Connectors</Link> : <button type="button" className="font-medium text-rust" onClick={() => go(state.q)}>Try again</button>} />}
+            {state.status === "stopped" && <Notice tone="warn" mood="sorry" title="Stopped" body="The run was stopped before it finished. Rows shown so far are real, but incomplete." />}
 
             {(plan || state.steps.length > 1) && (
               <div className="mt-5 grid gap-5 lg:grid-cols-[264px_minmax(0,1fr)]">
                 <Trace steps={state.steps} running={running} />
                 <div className="min-w-0">
                   {state.summary && <Summary state={state} />}
-                  {state.rows.length > 0 ? <Results rows={state.rows} running={running} /> : running ? <Skeleton /> : state.status === "done" ? <Notice tone="warn" title="No companies matched" body={state.summary?.sentence ?? ""} /> : null}
+                  {state.rows.length > 0 ? <Results rows={state.rows} running={running} /> : running ? <Skeleton /> : state.status === "done" ? <Notice tone="warn" mood="sorry" title="No companies matched" body={state.summary?.sentence ?? ""} /> : null}
                   {state.dropped.length > 0 && <DroppedList items={state.dropped} />}
                 </div>
               </div>
@@ -343,7 +346,12 @@ function Field({ k, children, wide }: { k: string; children: React.ReactNode; wi
   return <div className={cx("min-w-0", wide && "col-span-2")}><div className="text-[10.5px] tracking-[0.04em] text-zinc-400 uppercase">{k}</div><div className="mt-0.5">{children}</div></div>;
 }
 function Skeleton() {
-  return <div className="space-y-2">{[0, 1, 2].map((i) => <div key={i} className="h-14 animate-pulse rounded-2xl bg-zinc-100/80" />)}</div>;
+  return (
+    <div className="space-y-2" aria-busy="true">
+      <div className="flex items-center gap-3 px-1 pb-1 text-[13px] text-zinc-500"><Mascot size={48} mood="thinking" />Searching and verifying on Crustdata…</div>
+      {[0, 1, 2].map((i) => <div key={i} className="h-14 animate-pulse rounded-2xl bg-zinc-100/80" />)}
+    </div>
+  );
 }
 function DroppedList({ items }: { items: { name: string; domain?: string; reason: string }[] }) {
   return (
@@ -353,12 +361,38 @@ function DroppedList({ items }: { items: { name: string; domain?: string; reason
     </details>
   );
 }
-function Notice({ tone, title, body, action }: { tone: "ok" | "warn" | "err"; title: string; body: string; action?: React.ReactNode }) {
+function Notice({ tone, title, body, action, mood }: { tone: "ok" | "warn" | "err"; title: string; body: string; action?: React.ReactNode; mood?: MascotMood }) {
   return (
-    <div data-testid="agent-notice" data-tone={tone} className={cx("mt-4 rounded-2xl border p-4", tone === "err" ? "border-[#e8c4bf] bg-[#fdf5f4]" : tone === "warn" ? "border-[#eadfbf] bg-[#fbf8ef]" : "border-zinc-200 bg-white")}>
-      <div className="serif text-[18px]">{title}</div>
-      <p className="mt-1 text-[13px] text-zinc-600">{body}</p>
-      {action && <div className="mt-2 text-[13px]">{action}</div>}
+    <div data-testid="agent-notice" data-tone={tone} className={cx("mt-4 flex items-start gap-3 rounded-2xl border p-4", tone === "err" ? "border-[#e8c4bf] bg-[#fdf5f4]" : tone === "warn" ? "border-[#eadfbf] bg-[#fbf8ef]" : "border-zinc-200 bg-white")}>
+      {mood && <Mascot size={48} mood={mood} className="-mt-1 shrink-0" />}
+      <div className="min-w-0">
+        <div className="serif text-[18px]">{title}</div>
+        <p className="mt-1 text-[13px] text-zinc-600">{body}</p>
+        {action && <div className="mt-2 text-[13px]">{action}</div>}
+      </div>
     </div>
+  );
+}
+/** Before the first run: what the agent does, in order, and which Crustdata endpoint each step calls. */
+function Intro() {
+  const steps: [string, string][] = [
+    ["Read the request", "deterministic parser, no LLM: every filter shows the words it came from"],
+    ["Search", "POST /company/search, relaxing one constraint at a time if too few match (never padded)"],
+    ["Verify", "POST /company/enrich: headcount growth recomputed from the monthly series"],
+    ["Founders", "POST /person/search, then /person/enrich for past employers"],
+    ["Rank and cite", "every value carries its endpoint, record and fetch time"],
+  ];
+  return (
+    <section className="mt-8 flex flex-col gap-5 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50/50 p-5 sm:flex-row sm:items-start" data-testid="agent-intro">
+      <Mascot size={72} mood="idle" title="Dex" className="shrink-0 self-center sm:self-start" />
+      <ol className="grid min-w-0 flex-1 gap-2.5 sm:grid-cols-2">
+        {steps.map(([t, d], i) => (
+          <li key={t} className="flex gap-2.5 text-[12.5px]">
+            <span className="tnum grid size-5 shrink-0 place-items-center rounded-full bg-white text-[10.5px] font-semibold text-rust ring-1 ring-[#ecd9c6]">{i + 1}</span>
+            <span className="min-w-0"><span className="block font-medium text-ink">{t}</span><span className="block text-zinc-500">{d}</span></span>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
