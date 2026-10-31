@@ -69,7 +69,7 @@ export class CrustdataClient {
   private fixture<T>(path: string, data: T, credits: string): Result<T> {
     return {
       data,
-      meta: { mode: "fixture", path, creditsUsed: credits, requestId: null, asOf: today(), latencyMs: 0, cached: false, fixtureLabel: FIXTURE_LABEL },
+      meta: { mode: "fixture", path, creditsUsed: credits, requestId: null, asOf: today(), retrievedAt: new Date().toISOString(), latencyMs: 0, cached: false, fixtureLabel: FIXTURE_LABEL },
     };
   }
 
@@ -86,7 +86,7 @@ export class CrustdataClient {
       if (hit) {
         return {
           data: hit.data as T,
-          meta: { mode: "live", path, creditsUsed: hit.creditsUsed, requestId: hit.requestId, asOf: new Date(hit.storedAt).toISOString().slice(0, 10), latencyMs: hit.latencyMs, cached: true },
+          meta: { mode: "live", path, creditsUsed: hit.creditsUsed, requestId: hit.requestId, asOf: new Date(hit.storedAt).toISOString().slice(0, 10), retrievedAt: new Date(hit.storedAt).toISOString(), latencyMs: hit.latencyMs, cached: true },
         };
       }
     }
@@ -102,7 +102,7 @@ export class CrustdataClient {
       const latencyMs = Date.now() - t0;
       this.onLiveCall?.({ method, path, status: "ok", creditsUsed, latencyMs });
       if (key && this.cache) await this.cache.set(key, { data, creditsUsed, requestId, latencyMs, storedAt: Date.now() });
-      return { data, meta: { mode: "live", path, creditsUsed, requestId, asOf: today(), latencyMs, cached: false } };
+      return { data, meta: { mode: "live", path, creditsUsed, requestId, asOf: today(), retrievedAt: new Date().toISOString(), latencyMs, cached: false } };
     } catch (e) {
       this.onLiveCall?.({ method, path, status: "error", creditsUsed: null, latencyMs: Date.now() - t0, error: e instanceof Error ? e.message : String(e) });
       throw e;
