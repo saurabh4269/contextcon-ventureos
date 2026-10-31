@@ -76,6 +76,7 @@ const SPECS: ToolSpec[] = [
   },
 ];
 
+// Live-calibrated 2026-10-31: basic_info + locations + headcount + taxonomy cost 0.53 credits/row on /company/search.
 const PER_ROW = { base: 0.03, premium: 0.2, taxonomy: 0.1, experienceFilter: 0.1, experienceField: 0.1 };
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -87,8 +88,11 @@ export function estimateCredits(tool: string, input: Record<string, unknown>): n
     const limit = Number(input.limit ?? 10);
     const fields = (input.fields as string[] | undefined) ?? [];
     let row = PER_ROW.base;
-    if (mentions([fields, input.filters], /headcount|funding/)) row += PER_ROW.premium;
-    if (mentions([fields, input.filters], /taxonomy/)) row += PER_ROW.taxonomy;
+    const used = [fields.length ? fields : ["basic_info", "headcount", "locations", "taxonomy"], input.filters];
+    if (mentions(used, /headcount/)) row += PER_ROW.premium;
+    if (mentions(used, /funding/)) row += PER_ROW.premium;
+    if (mentions(used, /locations|roles|followers|revenue/)) row += PER_ROW.premium;
+    if (mentions(used, /taxonomy/)) row += PER_ROW.taxonomy;
     return round2(limit * row);
   }
   if (tool === "search_people") {
@@ -105,10 +109,13 @@ export function estimateCredits(tool: string, input: Record<string, unknown>): n
 
 export const creditsSpent = (ledger: LedgerCall[]) => round2(ledger.reduce((s, c) => s + (c.status === "ok" ? (c.creditsUsed ?? c.creditsEstimated) : 0), 0));
 
-/** Copy for the model: strings cut to `maxStr`, arrays to `maxArr` (indices preserved), noisy keys dropped. */
+/**
+ * Copy for the model: strings cut to `maxStr`, nested arrays to `maxArr` (indices preserved), noisy keys dropped.
+ * Top-level result lists (companies, profiles) are never cut — every returned row was paid for.
+ */
 export function prune(v: unknown, maxStr = 280, maxArr = 12, depth = 0): unknown {
   if (typeof v === "string") return v.length > maxStr ? `${v.slice(0, maxStr)}…` : v;
-  if (Array.isArray(v)) return v.slice(0, maxArr).map((x) => prune(x, maxStr, maxArr, depth + 1));
+  if (Array.isArray(v)) return (depth <= 1 ? v : v.slice(0, maxArr)).map((x) => prune(x, maxStr, maxArr, depth + 1));
   if (v && typeof v === "object") {
     if (depth > 8) return "…";
     const out: Record<string, unknown> = {};
@@ -213,7 +220,9 @@ export async function runTool(ctx: ToolContext, registry: Map<string, ToolDef>, 
     const used = x.meta.creditsUsed != null && x.meta.creditsUsed !== "" && Number.isFinite(Number(x.meta.creditsUsed)) ? Number(x.meta.creditsUsed) : null;
     ctx.raw.set(ref, x.data);
     ctx.ledger.push({ ref, tool, method: x.method, path: x.path, body: x.body, status: "ok", creditsUsed: x.meta.cached ? 0 : used, creditsEstimated: est, retrievedAt: x.meta.retrievedAt, cached: x.meta.cached, ms: Date.now() - t0, ...rowsOf(x.data) });
-    return { ref, content: JSON.stringify({ ref, endpoint: `${x.method} ${x.path}`, response: prune(x.data) }) };
+    const total = creditsSpent(ctx.ledger);
+    const credits = { this_call: used ?? est, used_so_far: total, remaining: Math.max(0, Math.round((ctx.creditCap - total) * 100) / 100) };
+    return { ref, content: JSON.stringify({ ref, endpoint: `${x.method} ${x.path}`, credits, response: prune(x.data) }) };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     const status = typeof (e as { status?: unknown }).status === "number" ? ((e as { status: number }).status) : undefined;
