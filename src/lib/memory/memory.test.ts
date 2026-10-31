@@ -52,3 +52,13 @@ describe.skipIf(!url)("postgres memory store (live database)", () => {
     expect(MEMORY_TABLE).toBe("dealdesk_memory_events");
   });
 });
+
+describe("event id cursor", () => {
+  it("accepts bigint-sized ids only", async () => {
+    const { isEventId } = await import("./types");
+    expect(isEventId("12")).toBe(true);
+    expect(isEventId("9".repeat(19))).toBe(false);
+    expect(isEventId("abc")).toBe(false);
+    expect(isEventId("")).toBe(false);
+  });
+});

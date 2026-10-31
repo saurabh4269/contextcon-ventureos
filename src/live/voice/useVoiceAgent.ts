@@ -10,6 +10,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { Greeting } from "@/lib/voice/greeting";
 import { recordEvent } from "../memory";
+import { stopSpeaking } from "./speak";
 
 export type VoicePhase = "idle" | "preparing" | "blocked" | "speaking" | "listening" | "thinking" | "error";
 export type VoiceContext = { screen: string; subject?: string | null };
@@ -106,6 +107,7 @@ export function useVoiceAgent({ context, autoStart = false }: { context: () => V
 
   const play = useCallback(async () => {
     const el = ensureAudio();
+    stopSpeaking(); // never overlap a one-off speak() clip
     try {
       await el.play();
       setPhase("speaking");
@@ -208,6 +210,13 @@ export function useVoiceAgent({ context, autoStart = false }: { context: () => V
     el.addEventListener("ended", ended);
     return () => el.removeEventListener("ended", ended);
   }, [element]);
+
+  // a one-off speak() clip elsewhere pauses this player (never two voices at once)
+  useEffect(() => {
+    const onSpeak = () => { if (audio.current && !audio.current.paused) { audio.current.pause(); setPhase("idle"); } };
+    window.addEventListener("dealdesk:speak", onSpeak);
+    return () => window.removeEventListener("dealdesk:speak", onSpeak);
+  }, []);
 
   useEffect(() => { if (autoStart) void start(); }, [autoStart]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => () => { audio.current?.pause(); rec.current?.abort(); stopMic(); void ac.current?.ctx.close().catch(() => {}); }, []);

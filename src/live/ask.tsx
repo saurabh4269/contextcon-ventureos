@@ -75,7 +75,7 @@ export function LiveAsk({ shell }: { shell: ShellData }) {
     </span>
   );
   return (
-    <Page active="assistant" shell={shell} responsive top={<TopBar crumbs={[{ label: "Assistant" }]} pill={false} ask={false} lead={lead} />}>
+    <Page active="assistant" shell={shell} top={<TopBar crumbs={[{ label: "Assistant" }]} pill={false} ask={false} lead={lead} />}>
       <AskBody state={state} onAsk={ask} onStop={stop} />
     </Page>
   );

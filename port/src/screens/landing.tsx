@@ -99,14 +99,14 @@ function Glow({ moving, band }: { moving: boolean; band?: boolean }) {
 function Nav({ d, onAccess }: { d: LandingData; onAccess: () => void }) {
   const pill = "bg-white/90 shadow-[0_1px_2px_rgba(60,20,0,.06),0_8px_24px_-12px_rgba(60,20,0,.18)] ring-1 ring-black/[.04] backdrop-blur-md";
   return (
-    <nav className="absolute inset-x-0 top-5 z-20 flex items-center justify-between px-6">
+    <nav className="absolute inset-x-0 top-5 z-20 flex items-center justify-between gap-2 px-6 max-sm:top-3 max-sm:px-3">
       <Link href="/landing" className={cx(pill, "flex h-11 items-center gap-2 rounded-full pr-4 pl-1.5")}><DeskMark size={32} /><span className="serif text-[18px] tracking-[-0.02em]">{d.brand}</span></Link>
-      <div className={cx(pill, "absolute left-1/2 flex h-11 -translate-x-1/2 items-center gap-1 rounded-full px-1.5")}>
+      <div className={cx(pill, "absolute left-1/2 flex h-11 -translate-x-1/2 items-center gap-1 rounded-full px-1.5 max-lg:hidden")}>
         {d.nav.map((n) => <a key={n.id} href={n.href} className="rounded-full px-4 py-2 text-[13.5px] font-medium text-zinc-700 transition-colors hover:bg-[#f6ede4] hover:text-ink">{n.label}</a>)}
       </div>
       <div className="flex items-center gap-2">
         <Link href={d.signIn.href} className={cx(pill, "flex h-11 items-center rounded-full px-5 text-[13.5px] font-medium text-zinc-800 hover:text-ink")}>{d.signIn.label}</Link>
-        <button type="button" onClick={onAccess} className="flex h-11 items-center gap-2 rounded-full bg-ink pr-4 pl-5 text-[13.5px] font-medium text-white shadow-[0_8px_20px_-10px_rgba(9,9,11,.6),inset_0_1px_0_rgba(255,255,255,.12)] transition-colors hover:bg-zinc-800">{d.hero.access}<ArrowUpRight className="size-4 text-[#f0b48a]" /></button>
+        <button type="button" onClick={onAccess} className="flex h-11 items-center gap-2 rounded-full bg-ink pr-4 pl-5 max-sm:hidden text-[13.5px] font-medium text-white shadow-[0_8px_20px_-10px_rgba(9,9,11,.6),inset_0_1px_0_rgba(255,255,255,.12)] transition-colors hover:bg-zinc-800">{d.hero.access}<ArrowUpRight className="size-4 text-[#f0b48a]" /></button>
       </div>
     </nav>
   );
@@ -468,11 +468,11 @@ function Features({ d, moving, show }: { d: LandingData["features"]; moving: boo
 function Closing({ d, demo, moving, requested, onDemo, onRequest, inputRef }: { d: LandingData["closing"]; demo: string; moving: boolean; requested?: string; onDemo: () => void; onRequest: (email: string) => void; inputRef: React.RefObject<HTMLInputElement | null> }) {
   const [email, setEmail] = useState("");
   return (
-    <section id="access" className="mx-auto max-w-[1240px] scroll-mt-10 px-6 pt-24">
-      <div className="relative overflow-hidden rounded-[28px] px-8 py-20 text-center shadow-[0_1px_2px_rgba(60,20,0,.05),0_30px_60px_-30px_rgba(120,48,10,.35)]">
+    <section id="access" className="mx-auto max-w-[1240px] scroll-mt-10 px-6 pt-24 max-sm:px-3 max-sm:pt-12">
+      <div className="relative overflow-hidden rounded-[28px] px-8 py-20 text-center max-sm:px-4 max-sm:py-14 shadow-[0_1px_2px_rgba(60,20,0,.05),0_30px_60px_-30px_rgba(120,48,10,.35)]">
         <Glow moving={moving} band />
         <div className="relative">
-          <h2 className="serif text-[60px] leading-[1] tracking-[-0.035em]"><Accent l={d.title} className="text-rust" /></h2>
+          <h2 className="serif text-[60px] leading-[1] max-sm:text-[44px] tracking-[-0.035em]"><Accent l={d.title} className="text-rust" /></h2>
           <p className="mx-auto mt-4 max-w-[480px] text-[15.5px] leading-[1.6] text-zinc-700">{d.sub}</p>
           {requested ? (
             <div role="status" className="mx-auto mt-8 inline-flex h-12 items-center gap-2.5 rounded-full bg-white/90 pr-5 pl-2 text-[14px] text-zinc-800 shadow-[0_8px_24px_-12px_rgba(60,20,0,.3)] ring-1 ring-black/[.04] backdrop-blur"><span className="grid size-8 place-items-center rounded-full bg-[#2f9a5c] text-white"><Check className="size-4" strokeWidth={2.6} /></span>{d.done.replace("{email}", requested)}</div>
@@ -482,7 +482,7 @@ function Closing({ d, demo, moving, requested, onDemo, onRequest, inputRef }: { 
               <button type="submit" className="flex h-10 shrink-0 items-center gap-2 rounded-full bg-ink px-5 text-[13.5px] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,.12)] transition-colors hover:bg-zinc-800">{d.cta}<ArrowUpRight className="size-4 text-[#f0b48a]" /></button>
             </form>
           )}
-          <button type="button" onClick={onDemo} className="mt-5 inline-flex items-center gap-2 text-[13.5px] font-medium text-zinc-700 hover:text-ink"><span className="grid size-7 place-items-center rounded-full bg-white/80 ring-1 ring-black/[.05]"><Play className="size-3 fill-current" /></span>{demo}</button>
+          <button type="button" onClick={onDemo} className="mt-5 inline-flex min-h-10 items-center gap-2 text-[13.5px] font-medium text-zinc-700 hover:text-ink"><span className="grid size-7 place-items-center rounded-full bg-white/80 ring-1 ring-black/[.05]"><Play className="size-3 fill-current" /></span>{demo}</button>
         </div>
       </div>
     </section>
@@ -497,7 +497,7 @@ function DemoFrame({ d, onClose, still }: { d: LandingData["demo"]; onClose: () 
   }, [onClose]);
   return (
     <motion.div role="dialog" aria-modal aria-label={d.title} className="fixed inset-0 z-50 grid place-items-center bg-[rgba(30,14,4,.38)] p-6 backdrop-blur-md" initial={still ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
-      <motion.div onClick={(e) => e.stopPropagation()} initial={still ? false : { opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.35, ease }} className="overflow-hidden rounded-[22px] bg-white shadow-[0_40px_100px_-30px_rgba(30,10,0,.6)] ring-1 ring-black/10" style={{ width: 1152 }}>
+      <motion.div onClick={(e) => e.stopPropagation()} initial={still ? false : { opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 8 }} transition={{ duration: 0.35, ease }} className="max-w-full overflow-hidden rounded-[22px] bg-white shadow-[0_40px_100px_-30px_rgba(30,10,0,.6)] ring-1 ring-black/10" style={{ width: 1152 }}>
         <div className="flex h-12 items-center gap-3 border-b border-zinc-100 px-4">
           <span className="flex gap-1.5">{["#f2b8a2", "#f3d39b", "#bfe0cb"].map((c) => <span key={c} className="size-2.5 rounded-full" style={{ background: c }} />)}</span>
           <span className="text-[13px] font-medium">{d.title}</span><span className="truncate text-[12.5px] text-zinc-500">{d.caption}</span>
@@ -522,11 +522,11 @@ function HeroCopy({ d, show, onDemo, onAccess }: { d: LandingData; show: boolean
   return (
     <div className="relative z-10 flex flex-col items-center text-center">
       <In show={show} i={0}><span className="inline-flex h-7 items-center gap-2 rounded-full bg-white/60 pr-3 pl-1 text-[12.5px] text-zinc-700 ring-1 ring-black/[.05] backdrop-blur"><span className="grid size-5 place-items-center rounded-full bg-rust text-white"><Sparkles className="size-3" /></span>{d.hero.eyebrow}</span></In>
-      <In show={show} i={1}><h1 className="serif mt-5 text-[clamp(68px,5.5vw,108px)] leading-[.94] font-[420] tracking-[-0.045em] text-[#1b1008]" style={{ fontVariationSettings: '"opsz" 72' }}>
+      <In show={show} i={1}><h1 className="serif mt-5 text-[clamp(68px,5.5vw,108px)] leading-[.94] max-sm:text-[52px] font-[420] tracking-[-0.045em] text-[#1b1008]" style={{ fontVariationSettings: '"opsz" 72' }}>
         {d.hero.headline.map((l, k) => <span key={k} className="block"><Accent l={l} className="bg-[linear-gradient(100deg,#8a3a0c,#c2652b)] bg-clip-text text-transparent" /></span>)}
       </h1></In>
-      <In show={show} i={2}><p className="mt-5 max-w-[540px] text-[17px] leading-[1.55] text-zinc-700">{d.hero.sub}</p></In>
-      <In show={show} i={3} className="mt-7 flex items-center gap-2.5">
+      <In show={show} i={2}><p className="mt-5 max-w-[540px] px-4 text-[17px] leading-[1.55] text-zinc-700 max-sm:text-[15.5px]">{d.hero.sub}</p></In>
+      <In show={show} i={3} className="mt-7 flex flex-wrap items-center justify-center gap-2.5 px-4">
         <button type="button" onClick={onDemo} className="flex h-12 items-center gap-2.5 rounded-full bg-ink pr-5 pl-1.5 text-[14px] font-medium text-white shadow-[0_12px_28px_-12px_rgba(9,9,11,.7),inset_0_1px_0_rgba(255,255,255,.12)] transition-transform hover:-translate-y-px"><span className="grid size-9 place-items-center rounded-full bg-white/12 ring-1 ring-white/15"><Play className="size-3.5 fill-[#f0b48a] text-[#f0b48a]" /></span>{d.hero.demo}</button>
         <button type="button" onClick={onAccess} className="flex h-12 items-center rounded-full bg-white/85 px-6 text-[14px] font-medium text-zinc-800 shadow-[0_8px_20px_-12px_rgba(60,20,0,.3)] ring-1 ring-black/[.05] backdrop-blur transition-colors hover:bg-white hover:text-ink">{d.hero.access}</button>
       </In>
@@ -570,26 +570,28 @@ export function LandingScreen(p: LandingScreenProps) {
     try { await p.onRequestAccess?.(email); } catch { setRequested(undefined); }
   };
   const ready = status === "ready" || status === "empty";
+  // Phones and tablets get the app itself; the framed preview only makes sense on a desktop-sized window.
+  const openDemo = () => { if (typeof window !== "undefined" && window.innerWidth < 1024) window.location.assign(d.demo.src); else setDemo(true); };
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#fcf8f3] pb-10 text-ink">
+    <div className="min-h-screen overflow-x-hidden bg-[#fcf8f3] pb-10 max-lg:pb-24 text-ink">
       <style>{KEYFRAMES}</style>
       <header className="relative m-3 overflow-hidden rounded-[28px] shadow-[0_1px_2px_rgba(60,20,0,.06),0_0_0_1px_rgba(120,50,10,.12)]">
         <Glow moving={moving} />
         <Nav d={d} onAccess={toAccess} />
         <div className="relative flex flex-col items-center pt-[clamp(112px,12.5vh,140px)] pb-10">
-          {status === "loading" ? <HeroSkeleton /> : status === "error" ? <div className="relative z-10 w-[480px] rounded-[20px] bg-white/90 p-2 backdrop-blur"><ErrorState message={p.error} onRetry={p.onRetry} /></div> : <>
-            <HeroCopy d={d} show={show} onDemo={() => setDemo(true)} onAccess={toAccess} />
+          {status === "loading" ? <HeroSkeleton /> : status === "error" ? <div className="relative z-10 w-[min(480px,calc(100vw-48px))] rounded-[20px] bg-white/90 p-2 backdrop-blur"><ErrorState message={p.error} onRetry={p.onRetry} /></div> : <>
+            <HeroCopy d={d} show={show} onDemo={openDemo} onAccess={toAccess} />
             {status === "ready" && d.assistant.questions.length > 0 && <div className="relative mt-12"><Stage d={d} q={q} setQ={setQ} moving={moving} show={show} /></div>}
           </>}
         </div>
       </header>
       {ready && (status === "empty" || !d.features.items.length
-        ? <div className="mx-auto mt-16 max-w-[560px]"><EmptyState title="See it on real data" body="There is no recorded product tour. Open the app and research any company live on Crustdata." action={<button type="button" onClick={() => setDemo(true)} className="inline-flex h-9 items-center gap-2 rounded-full bg-ink px-4 text-[13px] font-medium text-white"><Video className="size-4" />{d.hero.demo}</button>} /></div>
+        ? <div className="mx-auto mt-16 max-w-[560px] px-4 max-sm:mt-8"><EmptyState title="See it on real data" body="There is no recorded product tour. Open the app and research any company live on Crustdata." action={<button type="button" onClick={openDemo} className="inline-flex h-10 items-center gap-2 rounded-full bg-ink px-4 text-[13px] font-medium text-white"><Video className="size-4" />{d.hero.demo}</button>} /></div>
         : <Features d={d.features} moving={moving} show={show} />)}
-      {ready && <Closing d={d.closing} demo={d.hero.demo} moving={moving} requested={requested} onDemo={() => setDemo(true)} onRequest={request} inputRef={inputRef} />}
-      <footer className="mx-auto mt-10 flex max-w-[1240px] items-center gap-3 px-8 text-[12.5px] text-zinc-500">
+      {ready && <Closing d={d.closing} demo={d.hero.demo} moving={moving} requested={requested} onDemo={openDemo} onRequest={request} inputRef={inputRef} />}
+      <footer className="mx-auto mt-10 flex max-w-[1240px] flex-wrap items-center gap-3 px-8 text-[12.5px] text-zinc-500 max-sm:px-5">
         <DeskMark size={22} /><span className="serif text-[15px] text-ink">{d.brand}</span>
-        <span className="ml-auto flex items-center gap-5">{d.nav.map((n) => <a key={n.id} href={n.href} className="hover:text-ink">{n.label}</a>)}<span className="text-zinc-400">{d.footer}</span></span>
+        <span className="ml-auto flex items-center gap-5">{d.nav.map((n) => <a key={n.id} href={n.href} className="hover:text-ink max-md:hidden">{n.label}</a>)}<span className="text-zinc-400">{d.footer}</span></span>
       </footer>
       <AnimatePresence>{demo && <DemoFrame d={d.demo} still={!show} onClose={() => setDemo(false)} />}</AnimatePresence>
     </div>

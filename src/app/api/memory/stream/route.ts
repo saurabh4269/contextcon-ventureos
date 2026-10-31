@@ -2,6 +2,7 @@
 // polled from the store every POLL_MS. Without DATABASE_URL: 503 unavailable (same body as /api/memory/events).
 import { NextResponse } from "next/server";
 import { memoryStore } from "@/lib/memory/store";
+import { isEventId } from "@/lib/memory/types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -14,7 +15,7 @@ export async function GET(req: Request) {
   if (m.status !== "ok") return NextResponse.json(m, { status: 503, headers: { "cache-control": "no-store" } });
   const store = m.store;
   let cursor = new URL(req.url).searchParams.get("since") ?? undefined;
-  if (cursor !== undefined && !/^\d+$/.test(cursor)) return NextResponse.json({ status: "error", message: "since must be an event id (digits)" }, { status: 400 });
+  if (cursor !== undefined && !isEventId(cursor)) return NextResponse.json({ status: "error", message: "since must be an event id (digits)" }, { status: 400 });
   const enc = new TextEncoder();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const stream = new ReadableStream({
@@ -27,7 +28,8 @@ export async function GET(req: Request) {
           if (events.length) cursor = events.at(-1)!.id;
           else send(": keep-alive\n\n");
         } catch (e) {
-          send(`event: error\ndata: ${JSON.stringify({ status: "error", message: e instanceof Error ? e.message : String(e) })}\n\n`);
+          console.error("[memory] stream store error:", e instanceof Error ? e.message : String(e));
+          send(`event: error\ndata: ${JSON.stringify({ status: "error", message: "Memory store error (see server log)" })}\n\n`);
         }
         if (!req.signal.aborted) timer = setTimeout(tick, POLL_MS);
       };

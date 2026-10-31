@@ -234,9 +234,9 @@ function Group({ label, events, preview, start }: { label: string; events: Perso
 function Tabs({ d, tab, onTab }: { d: PersonData; tab: PersonTab; onTab: (t: PersonTab) => void }) {
   const rm = useReducedMotion();
   return (
-    <div role="tablist" aria-label="Activity type" className="flex items-center gap-1 border-b border-zinc-100 px-4">
+    <div role="tablist" aria-label="Activity type" className="flex items-center gap-1 overflow-x-auto border-b border-zinc-100 px-4 [scrollbar-width:none] @max-[720px]/main:px-2">
       {TABS.map((t) => { const on = tab === t.id, n = countFor(d, t.id); return (
-        <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => onTab(t.id)} className={cx("relative inline-flex h-12 items-center gap-1.5 px-3 text-[13px] transition-colors [&>svg]:size-3.5", on ? "font-medium text-ink" : "text-zinc-500 hover:text-ink")}>
+        <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => onTab(t.id)} className={cx("relative inline-flex h-12 shrink-0 items-center gap-1.5 px-3 text-[13px] whitespace-nowrap transition-colors [&>svg]:size-3.5", on ? "font-medium text-ink" : "text-zinc-500 hover:text-ink")}>
           {t.icon}{t.label}
           <span className={cx("tnum ml-0.5 inline-grid h-[18px] min-w-[18px] place-items-center rounded-full px-1 text-[10.5px] font-medium transition-colors", on ? "bg-rust-50 text-rust" : "bg-zinc-100 text-zinc-500")}>{n}</span>
           {on && <motion.span layoutId="person-tab" transition={rm ? { duration: 0 } : { type: "spring", stiffness: 520, damping: 40 }} className="absolute inset-x-2 -bottom-px h-[2px] rounded-full bg-rust" />}
@@ -269,30 +269,30 @@ const ghostBtn = cx(pillBtn, "bg-white text-zinc-800 ring-1 ring-zinc-200 shadow
 const inkBtn = cx(pillBtn, "bg-ink text-white shadow-[0_1px_2px_rgba(9,9,11,.2),inset_0_1px_0_rgba(255,255,255,.12)] hover:bg-zinc-800 hover:shadow-[0_8px_18px_-8px_rgba(9,9,11,.5),inset_0_1px_0_rgba(255,255,255,.12)]");
 
 function Fact({ label, children, className }: { label: string; children: ReactNode; className?: string }) {
-  return <div className={cx("min-w-0 flex-auto px-5 first:pl-0 last:pr-0", className)}><div className="text-[12px] text-zinc-500">{label}</div><div className="mt-2 flex h-6 min-w-0 items-center text-[13.5px] font-medium text-ink">{children}</div></div>;
+  return <div className={cx("min-w-0 flex-auto px-5 first:pl-0 last:pr-0 @max-[720px]/main:px-0", className)}><div className="text-[12px] text-zinc-500">{label}</div><div className="mt-2 flex h-6 min-w-0 items-center text-[13.5px] font-medium text-ink">{children}</div></div>;
 }
 
 function Header({ d, onEmail, onBook }: { d: PersonData; onEmail?: () => void; onBook?: () => void }) {
   const { me } = useContext(PersonCtx);
   const next = d.next && <><CalendarDays className="mr-1.5 size-3.5 shrink-0 text-rust" /><span className="truncate">{d.next.label}<span className="font-normal text-zinc-500"> · {d.next.when}</span></span></>;
   return (
-    <section className={cx(CARD, "col-span-2 px-6 pt-6 pb-5")}>
-      <div className="flex items-center gap-5">
+    <section className={cx(CARD, "px-6 pt-6 pb-5 @min-[900px]/main:col-span-2 @max-[720px]/main:px-4 @max-[720px]/main:pt-4")}>
+      <div className="flex flex-wrap items-center gap-5 @max-[720px]/main:gap-x-3 @max-[720px]/main:gap-y-4">
         <FounderAvatar d={d} />
         <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-3"><h1 className="serif truncate text-[32px] leading-none tracking-[-0.02em]">{d.person.name}</h1><span className="text-[12.5px] whitespace-nowrap text-zinc-400">Last touched <span className="text-zinc-600">{d.lastTouched}</span></span></div>
-          <div className="mt-2 flex items-center gap-1.5 text-[13.5px] text-zinc-500">
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1"><h1 className="serif min-w-0 truncate text-[32px] leading-none tracking-[-0.02em] @max-[720px]/main:text-[26px]">{d.person.name}</h1><span className="text-[12.5px] whitespace-nowrap text-zinc-400">Last touched <span className="text-zinc-600">{d.lastTouched}</span></span></div>
+          <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[13.5px] text-zinc-500">
             <span>{d.person.title}</span><span className="text-zinc-300">·</span>
             {d.company.dealId ? <Link href={ROUTES.deal(d.company.dealId)} className="inline-flex items-center gap-1.5 font-medium text-zinc-800 underline-offset-[3px] hover:text-ink hover:underline"><CompanyLogo c={d.company} size={18} />{d.company.name}</Link> : <span className="inline-flex items-center gap-1.5 font-medium text-zinc-800"><CompanyLogo c={d.company} size={18} />{d.company.name}</span>}
             {d.person.location && <><span className="text-zinc-300">·</span><span>{d.person.location}</span></>}
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-2 @max-[720px]/main:w-full @max-[720px]/main:[&>button]:h-10 @max-[720px]/main:[&>button]:flex-1 @max-[720px]/main:[&>button]:justify-center">
           <button type="button" onClick={onEmail} className={ghostBtn}><ToolLogo id="gmail" bare size={14} />Email</button>
           {onBook && <button type="button" onClick={onBook} className={inkBtn}><CalendarPlus className="size-4" strokeWidth={1.9} />Book meeting</button>}
         </div>
       </div>
-      <div className="mt-5 flex divide-x divide-zinc-100 border-t border-zinc-100 pt-4">
+      <div className="mt-5 flex divide-x divide-zinc-100 border-t border-zinc-100 pt-4 @max-[720px]/main:grid @max-[720px]/main:grid-cols-2 @max-[720px]/main:gap-x-4 @max-[720px]/main:gap-y-3 @max-[720px]/main:divide-x-0">
         <Fact label="Relationship"><StagePill tone={d.relationship.tone}>{d.relationship.label}</StagePill></Fact>
         <Fact label="Stage"><StagePill tone={d.stage.tone}>{d.stage.label}</StagePill></Fact>
         {d.status && <Fact label="Status"><StagePill tone={d.status.tone}>{d.status.label}</StagePill></Fact>}
@@ -389,7 +389,7 @@ function Toast({ t, onDone }: { t: PersonToast | null; onDone: () => void }) {
     <AnimatePresence>
       {t && (
         <motion.div key={t.id} role="status" initial={rm ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={rm ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, y: 12 }} transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="fixed bottom-6 left-1/2 z-50 -ml-[180px] flex w-[360px] items-center gap-3 rounded-2xl bg-ink py-2.5 pr-2.5 pl-4 text-[13px] text-white shadow-[0_20px_50px_-12px_rgba(9,9,11,.55)]">
+          className="fixed bottom-6 left-1/2 z-50 -ml-[min(180px,calc(50vw-12px))] flex w-[min(360px,calc(100vw-24px))] items-center gap-3 rounded-2xl bg-ink py-2.5 pr-2.5 pl-4 text-[13px] text-white shadow-[0_20px_50px_-12px_rgba(9,9,11,.55)]">
           <Check className="size-4 shrink-0 text-[#f0b48a]" /><span className="min-w-0 flex-1 truncate">{t.text}</span>
           {t.undo && <button type="button" onClick={() => { t.undo!(); onDone(); }} className="rounded-lg bg-white px-3 py-1 text-[12.5px] font-semibold text-ink transition-colors hover:bg-zinc-100">Undo</button>}
         </motion.div>
@@ -400,8 +400,8 @@ function Toast({ t, onDone }: { t: PersonToast | null; onDone: () => void }) {
 
 function PersonSkeleton() {
   return (
-    <div aria-busy="true" aria-live="polite" className="mx-auto grid w-full max-w-[1240px] grid-cols-[minmax(0,1fr)_340px] gap-5 px-7 pt-6 pb-16">
-      <div className={cx(CARD, "col-span-2 flex items-center gap-5 p-6")}><span className="size-16 shrink-0 overflow-hidden rounded-full"><Skeleton className="size-full" /></span><div className="flex-1 space-y-2"><Skeleton className="h-7 w-56" /><Skeleton className="h-4 w-80" /></div><Skeleton className="h-9 w-56 rounded-full" /></div>
+    <div aria-busy="true" aria-live="polite" className="mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-5 px-7 pt-6 pb-16 max-lg:pb-24 @min-[900px]/main:grid-cols-[minmax(0,1fr)_340px] @max-[720px]/main:px-4">
+      <div className={cx(CARD, "@min-[900px]/main:col-span-2 flex overflow-hidden items-center gap-5 p-6")}><span className="size-16 shrink-0 overflow-hidden rounded-full"><Skeleton className="size-full" /></span><div className="flex-1 space-y-2"><Skeleton className="h-7 w-56" /><Skeleton className="h-4 w-80" /></div><Skeleton className="h-9 w-56 rounded-full" /></div>
       <div className={cx(CARD, "space-y-5 p-6")}><Skeleton className="h-8 w-2/3" />{Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex gap-3"><span className="size-7 shrink-0 overflow-hidden rounded-full"><Skeleton className="size-full" /></span><Skeleton className="h-5 flex-1" /></div>)}</div>
       <div className="space-y-4">{[2, 5, 4].map((n, i) => <div key={i} className={cx(CARD, "space-y-2.5 p-5")}><Skeleton className="h-4 w-1/3" />{Array.from({ length: n - 1 }).map((_, j) => <Skeleton key={j} className="h-3.5" />)}</div>)}</div>
     </div>
@@ -451,11 +451,11 @@ export function PersonScreen({ shell, data, tab: tab0 = "activity", overlay, onE
       <Toast t={toast} onDone={() => setToast(null)} />
     </>}>
       {status === "loading" ? <PersonSkeleton /> : status === "error" ? <ErrorState message={error ?? `Couldn’t load ${data.person.name}.`} onRetry={onRetry} /> : (
-        <motion.div initial={rm || !dir ? false : { opacity: 0, y: dir * 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} className="mx-auto grid w-full max-w-[1240px] grid-cols-[minmax(0,1fr)_340px] items-start gap-5 px-7 pt-6 pb-16">
-          <Rise className="col-span-2"><Header d={data} onEmail={onEmail ?? (() => setCompose(data.email))} onBook={onBook} /></Rise>
+        <motion.div initial={rm || !dir ? false : { opacity: 0, y: dir * 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} className="mx-auto grid w-full max-w-[1240px] grid-cols-1 items-start gap-5 px-7 pt-6 pb-16 max-lg:pb-24 @min-[900px]/main:grid-cols-[minmax(0,1fr)_340px] @max-[720px]/main:gap-4 @max-[720px]/main:px-4 @max-[720px]/main:pt-4">
+          <Rise className="min-w-0 @min-[900px]/main:col-span-2"><Header d={data} onEmail={onEmail ?? (() => setCompose(data.email))} onBook={onBook} /></Rise>
           <section className={cx(CARD, "min-w-0 overflow-hidden")}>
             <Tabs d={data} tab={tab} onTab={setTab} />
-            <div className="px-6 pt-4 pb-2">
+            <div className="px-6 pt-4 pb-2 @max-[720px]/main:px-4">
               {groups.length === 0
                 ? <TabEmpty title={empty ? "No activity yet" : title} body={empty ? TABS[0].empty(firstName(data.person))[1] : body} action={(empty || tab === "meetings") && onBook ? <button type="button" onClick={onBook} className={ghostBtn}><CalendarPlus className="size-4" />Book meeting</button> : undefined} />
                 : <div key={tab}>
@@ -464,7 +464,7 @@ export function PersonScreen({ shell, data, tab: tab0 = "activity", overlay, onE
                   </div>}
             </div>
           </section>
-          <aside className="sticky top-[72px] flex min-w-0 flex-col gap-4">
+          <aside className="flex min-w-0 flex-col gap-4 @min-[900px]/main:sticky @min-[900px]/main:top-[72px]">
             <Rise i={1}><QueueNav q={data.queue} why={data.waitingFor} /></Rise>
             <Rise i={2}><Insights d={data} /></Rise>
             <Rise i={3}><Details d={data} /></Rise>

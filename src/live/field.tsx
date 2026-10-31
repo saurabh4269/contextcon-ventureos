@@ -30,7 +30,7 @@ export function FieldRow({ label, f, fmt, testId }: { label: string; f: Computed
   const ok = isOk(f);
   return (
     <div className="border-t border-zinc-100 py-2.5 first:border-t-0">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="flex w-full items-baseline gap-3 text-left">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="-my-2.5 flex w-full items-baseline gap-3 py-2.5 text-left">
         <span className="text-[12.5px] text-zinc-500">{label}</span>
         <span data-testid={testId} data-status={f?.status ?? "missing"} className={cx("ml-auto text-[13.5px] tnum", ok ? "font-medium text-ink" : "text-zinc-400")}>{ok ? fmt(f.value) : "—"}</span>
         <span className="w-[72px] text-right text-[11px] text-zinc-400">{ok ? "why?" : "unavailable"}</span>

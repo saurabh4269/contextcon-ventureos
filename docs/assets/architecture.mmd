@@ -1,0 +1,50 @@
+%% Deal Desk architecture (docs copy). Checked against branch `integrate` code on 2026-10-31.
+%% Differences from /workspace/dealdesk_audit/architecture/architecture.mmd:
+%%  - adds the Sourcing agent (/agent, POST /api/agent/run) and ElevenLabs STT  <!-- VERIFY: remove "in progress" once src/lib/agent lands -->
+%%  - adds GET /account/credits (health) and ElevenLabs as sources
+%%  - memory is Postgres only when DATABASE_URL is set; otherwise every memory route answers 503 "unavailable"
+%%  - "pass · meet · track · invest" moved to Coming next (no verdict engine in this build)
+flowchart TB
+  subgraph S["01 · Sources (live only)"]
+    CD["Crustdata API v2025-11-01<br/>/company/identify · /company/enrich · /company/search<br/>/person/search · /person/enrich · /job/search · /web/search/live<br/>GET /account/credits (health, 0 credits)"]
+    GM["Gmail<br/>threads (read only)"]
+    GC["Google Calendar<br/>events.list · insert (dry run by default)"]
+    EL["ElevenLabs<br/>TTS stream · Scribe STT"]
+  end
+  subgraph A["02 · Agents"]
+    SO["Sourcing (/agent)<br/>request → filters → search → verify → founders → cited table"]
+    R["Research<br/>identify → enrich, comps"]
+    P["People<br/>founders + history"]
+    SG["Signals<br/>open roles, live web"]
+    N["Numbers<br/>method · inputs · citations"]
+    I["Inbox<br/>Gmail + Calendar"]
+    V["Voice<br/>greeting · orb · mic · run summary"]
+    H["Health<br/>real calls, not timers"]
+  end
+  subgraph M["03 · Firm memory"]
+    MEM[("Append-only event log (Postgres, DATABASE_URL)<br/>GET /api/memory/events · SSE /api/memory/stream<br/>no DB → honest 503 'unavailable'")]
+  end
+  subgraph T["04 · Trust layer"]
+    TR["ComputedField: value + method + inputs + citations, or 'unavailable' + reason<br/>Money {amount, currency} · UTC stored, IST shown · outbound dry run"]
+  end
+  subgraph Y["05 · You decide"]
+    U["Agent · Today · Deal · Person · IC memo · Firm brain · Voice orb"]
+  end
+  subgraph NX["Coming next (not in this build)"]
+    F["Fit score + verdict<br/>advance · track · pass"]:::next
+    IC["IC memo + pricing"]:::next
+    TK["Track · Crustdata /watch/company webhooks"]:::next
+    WF["Warm forward (double opt-in)"]:::next
+    OB["Slack · AgentMail · Fireflies"]:::next
+  end
+  CD --> SO & R & P & SG
+  GM --> I
+  GC --> I
+  EL --> V
+  R & P & SG --> N
+  SO & R & P & SG & N & I & V & H --> MEM
+  MEM --> V
+  N --> TR
+  SO --> TR
+  MEM --> TR --> U
+  classDef next stroke-dasharray: 5 5,fill:#fff,color:#52525b
