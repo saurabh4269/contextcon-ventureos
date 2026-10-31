@@ -77,8 +77,9 @@ working assumption. <!-- VERIFY: pricing line with Saurabh -->
 **Stack:** Next.js 15 (App Router, route handlers on Node), React 19, Tailwind 4, TypeScript, vitest. Postgres (`postgres`
 driver) for organizational memory. No other backend.
 
-**Models: no LLM is used.** There was no LLM key at the event, so request parsing, ranking and every sentence of the
-memo and spoken summaries are deterministic code over live data. ElevenLabs provides voice only: `eleven_flash_v2_5` for
+**Models.** The research agent (`/ask`) is LLM-driven: OpenAI Responses API with function tools, default `gpt-6.1-sol`
+at reasoning effort `high` (see "Research agent" below). Everything else (the Sourcing agent, ranking, memo and spoken
+summaries) is deterministic code over live data, and is the no-model fallback. ElevenLabs provides voice only: `eleven_flash_v2_5` for
 text-to-speech and Scribe (`scribe_v2`) for speech-to-text. (An optional `ANTHROPIC_API_KEY` hook can rephrase the Today
 greeting from the same facts; it is not set in this build.)
 
@@ -86,7 +87,8 @@ greeting from the same facts; it is not set in this build.)
 
 | Agent | Does | Code |
 | --- | --- | --- |
-| Sourcing | Request → filters → search → verify → founders → ranked, cited table; streams its trace as NDJSON | `src/lib/agent`, `POST /api/agent/run`, `src/live/agent` <!-- VERIFY --> |
+| Research (LLM) | Any natural-language request → model plans, calls Crustdata tools, verifies rows vs the ask, relaxes/re-queries (disclosed) → ranked table; every value checked against its cited response | `src/lib/agent`, `POST /api/live/screen`, `src/live/ask.tsx` + `src/live/screen` |
+| Sourcing | Request → filters → search → verify → founders → ranked, cited table; streams its trace as NDJSON. Deterministic; the no-model fallback | `src/lib/sourcing`, `POST /api/sourcing/run`, `src/live/agent` |
 | Research | identify → enrich, then founders, jobs, web, comparables in parallel; one failing call never hides the others | `src/lib/live/research.ts` |
 | People | Founders by company id; full profile by LinkedIn URL | `src/lib/crustdata/person-queries.ts` |
 | Numbers | Turns raw responses into `ComputedField`s (method, inputs, citations) | `src/lib/numbers/*` |
@@ -116,6 +118,19 @@ rate limiter, bounded 429 retry (≤ 15 s total), response cache (no credits on 
 
 A fresh deal research run on e2b.dev cost **5.56 credits** (measured). A sourcing run costs roughly
 <!-- VERIFY: credits per /agent run from the step trace --> credits. Full audit: [docs/CRUSTDATA_USAGE.md](docs/CRUSTDATA_USAGE.md).
+
+### Research agent (LLM screener)
+
+`/ask` (also reached from the assistant dock, the sidebar Search row and `/ask?q=<text>`, which runs the text once) streams
+`POST /api/live/screen {"query"}` as NDJSON: `start`, `plan`, `tool_call`, `tool_result`, `verify`, `final`. The model
+(env `OPENAI_MODEL`, default `gpt-6.1-sol`; `OPENAI_REASONING_EFFORT`, default `high`; `ANTHROPIC_API_KEY` +
+`DEALDESK_LLM_MODEL` take precedence when set) picks tools from the registry in `src/lib/agent/tools.ts` (+ `tools/*.ts`),
+within a 60-credit / 14-turn cap. Its final answer cites a tool call and JSON path for every value; the server resolves
+each one and marks it verified, corrected (Crustdata's value shown) or unavailable. Each requirement is reported as applied
+server-side, client-side or unavailable. **No model key:** the route returns one `model_unavailable` event (HTTP 503),
+nothing is searched, and `/ask` offers a one-tap link to the deterministic Sourcing agent with the same text
+(`/agent?q=…`). Live runs: India B2B founders example ≈54 credits / 143 s; US fintech ≈51 / 92 s; EU climate ex-Google
+founders ≈20 / 119 s.
 
 ## 5. Approaches tried: what worked, what failed
 

@@ -191,6 +191,21 @@ Server-side OAuth refresh (`GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN`); access toke
   415 `unsupported_type` · 503 `not_connected` · 402 `quota_exceeded` · 429 `rate_limited` · 422 `bad_audio` ·
   502 `key_invalid` / `permission_denied` / `upstream_error`.
 
+## Research agent (LLM screener)
+
+* `POST /api/live/screen {query: string}` (≤ 2000 chars) → `application/x-ndjson`, one `ScreenEvent` per line
+  (`src/lib/agent/contract.ts`): `start {query, model}` · `thinking {step}` · `plan {step, text}` (plan, verification and
+  relax/re-query narration) · `tool_call {ref, tool, endpoint, input, estCredits}` · `tool_result {ref, status, rows,
+  totalCount, creditsUsed, ms, error?}` · `verify {text, stats}` · `final {result: ScreenResult}`.
+* `ScreenResult`: `rows[]` (`name`, `cells[]`, `people[]` with `prior[]` roles), each value a `ScreenCell {value, status:
+  verified|corrected|unavailable, citation {ref, method, endpoint, path, retrievedAt}, reason?, claimed?}`; `filters[]`
+  `{requirement, applied: server|client|unavailable, field, detail, relaxed?}`; `caveats`, `calls` (ledger with body,
+  credits, retrieval time), `credits {used, cap}`, `timings`, `citationStats`.
+* Failures: no model key → HTTP 503, single `{type:"model_unavailable", message}` line; no `CRUSTDATA_API_KEY` → 503,
+  single `error` line; bad body → 400 `error` line; model API failure mid-run → `error` event. Env: `OPENAI_API_KEY`,
+  `OPENAI_MODEL` (default `gpt-6.1-sol`), `OPENAI_REASONING_EFFORT` (default `high`); `ANTHROPIC_API_KEY` +
+  `DEALDESK_LLM_MODEL` take precedence when set.
+
 ## Sourcing agent <!-- VERIFY: every line of this section against src/app/api/agent/run and src/lib/agent -->
 
 * `POST /api/agent/run {request: string}` → `application/x-ndjson`, one JSON object per line as each step happens:
