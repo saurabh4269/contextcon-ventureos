@@ -42,8 +42,11 @@ function LiveDealFor({ shell, domain, tab }: { shell: ShellData; domain: string;
     : base;
   const valid = (v?: string) => (v && (v === "signals" || data.sections?.[v]) ? v : "signals");
   const [view, setView] = useState(valid(tab));
-  useEffect(() => { if (ok) setView((v) => valid(v ?? tab)); }, [ok, val.state]); // eslint-disable-line react-hooks/exhaustive-deps
+  // once data (and the valuation section) arrive, honour the ?tab= the page was opened with
+  const asked = useRef(tab);
+  useEffect(() => { if (ok) setView((v) => valid(asked.current && (asked.current !== "valuation" || val.state === "ok") ? asked.current : v)); }, [ok, val.state]); // eslint-disable-line react-hooks/exhaustive-deps
   const onOutline = (id: string) => {
+    asked.current = undefined;
     setView(valid(id));
     const u = new URL(window.location.href); u.searchParams.set("tab", id); window.history.replaceState(null, "", u);
   };

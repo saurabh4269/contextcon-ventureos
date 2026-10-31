@@ -125,7 +125,7 @@ await browser.close();
 
 // ── autoplay blocked (default policy, no gesture) and TTS error ──
 {
-  const b2 = await chromium.launch();
+  const b2 = await chromium.launch({ args: ["--autoplay-policy=user-gesture-required"] });
   const c2 = await b2.newContext({ viewport: { width: 1440, height: 900 } });
   const page = await c2.newPage();
   watch(page, "today-voice-blocked");

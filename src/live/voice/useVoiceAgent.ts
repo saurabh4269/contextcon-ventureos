@@ -56,7 +56,9 @@ export function useVoiceAgent({ context, autoStart = false }: { context: () => V
   const raf = useRef(0);
   const ctxRef = useRef(context);
   ctxRef.current = context;
-  const canListen = typeof window !== "undefined" && !!speechRecognition();
+  // decided after mount so server and client render the same markup (no hydration mismatch)
+  const [canListen, setCanListen] = useState(false);
+  useEffect(() => setCanListen(!!speechRecognition()), []);
 
   /** Create/resume the audio graph. Call from a user gesture when possible (autoplay policy). */
   const element = useCallback(() => {

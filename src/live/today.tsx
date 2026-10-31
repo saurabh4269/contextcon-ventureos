@@ -71,7 +71,7 @@ export function LiveToday() {
               </>}
         </Card>
         <div className="@min-[900px]/main:col-span-2">
-          <MemoryPanel title="Today’s activity" sub={`Actions recorded today (${today}, IST), live.`} match={(e) => fmtDate(e.at) === today} />
+          <MemoryPanel title="Today’s activity" sub={`Latest actions recorded today (${today}, IST), live.`} match={(e) => fmtDate(e.at) === today} max={12} />
         </div>
       </div>
     </Page>
