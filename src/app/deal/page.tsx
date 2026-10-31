@@ -10,6 +10,7 @@ import { LiveRail } from "@port/components/liverail";
 import { useDataMode } from "@/components/datamode";
 import { namedLiveDeal } from "@/lib/datamode";
 import { LiveDeal } from "@/live/deal";
+import { liveShellFrom } from "@/live/shell";
 export default function Deal({ searchParams }: { searchParams: Promise<{ team?: string; restricted?: string; pin?: string; id?: string; ask?: string; tab?: string; t?: string; graph?: string; sg?: string; alert?: string; reviewer?: string; status?: string; domain?: string; company?: string }> }) {
   const q = use(searchParams);
   const mode = useDataMode();
@@ -28,8 +29,8 @@ export default function Deal({ searchParams }: { searchParams: Promise<{ team?: 
   const status = q.status === "loading" || q.status === "error" ? q.status : undefined;
   // Same DealScreen either way: ?domain= (or ?company=) overlays live Crustdata even in demo. Fixture deals (?id=helio,
   // ?restricted, or a bare /deal) stay dummy so the live site look does not change.
-  if (liveDomain) return <LiveDeal shell={shellInvest} domain={liveDomain} tab={q.tab} />;
-  if (mode === "live" && !q.id && !q.restricted) return <LiveDeal shell={shellInvest} domain={q.domain ?? q.company} tab={q.tab} />;
+  // Live mode drops the fixture firm card and nav counts from the shell (src/live/shell.ts).
+  if (liveDomain || (mode === "live" && !q.id && !q.restricted)) return <LiveDeal shell={mode === "live" ? liveShellFrom(shellInvest) : shellInvest} domain={liveDomain} tab={q.tab} />;
   if (q.restricted) return <RestrictedDealScreen shell={shellInvest} data={restrictedDeal} channel="#deal-falcon" />;
   // v3.2: ?ask=1..6 opens the docked assistant at that frame (empty → thinking → answer → follow-ups). ⌘K opens it at frame 1.
   if (q.id === "helio") return (

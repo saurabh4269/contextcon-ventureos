@@ -22,3 +22,10 @@ export const liveShell: ShellData = {
     greeting: { title: "Find companies. Get a cited list.", body: "Your question runs the research agent live on Crustdata; every value is cited." },
   },
 };
+
+/**
+ * The port shell for live-wired screens: same user and dock, without the fixture firm card, nav badge counts,
+ * "agents working" dot or notification dot (nothing reports them in this build). The footer falls back to
+ * "Deal Desk" on the same line, so the layout does not change.
+ */
+export const liveShellFrom = (base: ShellData): ShellData => ({ ...base, firm: undefined, badges: {}, agentsWorking: undefined, unreadNotifications: false });
