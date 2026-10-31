@@ -413,8 +413,8 @@ export function SignalGraph(p: SignalGraphProps) {
         <svg className="pointer-events-none absolute inset-0 size-full" aria-hidden>{DUST.map((q, i) => <circle key={i} cx={`${q.x}%`} cy={`${q.y}%`} r={q.r} fill="#fff" opacity={q.o * (q.r > 1.3 ? 0.35 : 1)} />)}</svg>
 
         <div className="relative flex items-center gap-3 px-1">
-          <span className="flex items-center gap-1.5 text-[11.5px]" style={{ color: K.t3 }}>Powered by<Mark url={d.provider.markUrl} size={15} /><b className="font-semibold text-white">{d.provider.name}</b></span>
-          <span className="font-mono text-[10px]" style={{ color: K.t4 }}>x-api-version: {d.provider.apiVersion}</span>
+          <span className="flex shrink-0 items-center gap-1.5 text-[11.5px] whitespace-nowrap" style={{ color: K.t3 }}>Powered by<Mark url={d.provider.markUrl} size={15} /><b className="font-semibold text-white">{d.provider.name}</b></span>
+          <span className="font-mono text-[10px] @max-[560px]/sg:hidden" style={{ color: K.t4 }}>x-api-version: {d.provider.apiVersion}</span>
           <span className="ml-auto"><Freshness mode={fresh} ago={d.requestedAgo} /></span>
         </div>
 
@@ -568,10 +568,10 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
 export function SignalSection({ aside, ...p }: SignalGraphProps & { aside?: ReactNode }) {
   const [tok, setTok] = useState(0);
   return (
-    <section className="min-w-0 px-8 pt-4 pb-6">
-      <div className="flex items-end gap-4">
+    <section className="min-w-0 px-8 pt-4 pb-6 @max-[720px]/main:px-4">
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
         <div className="min-w-0">
-          <h2 className="serif text-[26px] leading-tight">{!p.status || p.status === "ready" ? <HL h={p.data.headline} /> : p.status === "loading" ? `Researching ${p.data.company.name}…` : `No signals for ${p.data.company.name} yet`}</h2>
+          <h2 className="serif text-[26px] leading-tight @max-[720px]/main:text-[22px]">{!p.status || p.status === "ready" ? <HL h={p.data.headline} /> : p.status === "loading" ? `Researching ${p.data.company.name}…` : `No signals for ${p.data.company.name} yet`}</h2>
         </div>
         <div className="ml-auto flex items-center gap-3 pb-1">
           <span className="eyebrow">{p.data.eyebrow}</span>

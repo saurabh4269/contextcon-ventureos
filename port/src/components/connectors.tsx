@@ -124,12 +124,12 @@ export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onS
       <Header connected={connected} attention={attention} total={items.length} />
 
       {/* status tabs + search */}
-      <div className="mt-6 flex items-center gap-4">
-        <div role="tablist" aria-label="Connector status" className="flex h-10 shrink-0 items-center gap-0.5 rounded-full bg-zinc-100/90 p-1 shadow-[inset_0_0_0_1px_rgba(9,9,11,.04)]">
+      <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-3">
+        <div role="tablist" aria-label="Connector status" className="flex h-10 max-w-full shrink-0 items-center overflow-x-auto [scrollbar-width:none] gap-0.5 rounded-full bg-zinc-100/90 p-1 shadow-[inset_0_0_0_1px_rgba(9,9,11,.04)]">
           {TABS.map((t) => {
             const on = tab === t.id, n = tabCount(t.id);
             return (
-              <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => setTab(t.id)} className={cx("relative flex h-8 items-center gap-2 rounded-full px-3.5 text-[13px] motion-safe:transition-colors", on ? "font-medium text-ink" : "text-zinc-500 hover:text-ink")}>
+              <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => setTab(t.id)} className={cx("relative flex h-8 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] whitespace-nowrap motion-safe:transition-colors @max-[720px]/main:px-2.5", on ? "font-medium text-ink" : "text-zinc-500 hover:text-ink")}>
                 {on && <motion.span layoutId={r ? undefined : "conn-tab"} transition={{ duration: 0.3, ease: EASE }} className="absolute inset-0 rounded-full bg-white shadow-[0_0_0_1px_rgba(9,9,11,.06),0_1px_2px_rgba(9,9,11,.08)]" />}
                 <span className="relative">{t.label}</span>
                 <span className={cx("tnum relative min-w-5 rounded-full px-1.5 text-center text-[11px] leading-[18px]", t.id === "attention" && n > 0 ? "bg-warn-50 text-warn ring-1 ring-warn-100" : on ? "bg-zinc-100 text-zinc-700" : "bg-zinc-200/60 text-zinc-500")}>{n}</span>
@@ -137,7 +137,7 @@ export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onS
             );
           })}
         </div>
-        <label className="ml-auto flex h-10 w-[280px] min-w-[180px] shrink items-center gap-2 rounded-full border border-zinc-200 bg-white pr-2 pl-3.5 shadow-[0_1px_1px_rgba(9,9,11,.04)] focus-within:border-zinc-400">
+        <label className="ml-auto flex h-10 w-[280px] min-w-[180px] shrink @max-[720px]/main:ml-0 @max-[720px]/main:w-full items-center gap-2 rounded-full border border-zinc-200 bg-white pr-2 pl-3.5 shadow-[0_1px_1px_rgba(9,9,11,.04)] focus-within:border-zinc-400">
           <Search className="size-4 shrink-0 text-zinc-400" strokeWidth={1.75} />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search connectors" aria-label="Search connectors" className="h-full min-w-0 flex-1 bg-transparent text-[13px] outline-none placeholder:text-zinc-400" />
           {q && <button type="button" aria-label="Clear search" onClick={() => setQ("")} className="grid size-6 place-items-center rounded-full text-zinc-400 hover:bg-zinc-100 hover:text-ink"><X className="size-3.5" /></button>}
@@ -164,7 +164,7 @@ export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onS
             </motion.div>
           )}
         </AnimatePresence>
-        <motion.div layout={!r} className="mt-4 grid grid-cols-2 gap-4 min-[1360px]:grid-cols-3">
+        <motion.div layout={!r} className="mt-4 grid grid-cols-2 gap-4 min-[1360px]:grid-cols-3 @max-[720px]/main:grid-cols-1 @max-[720px]/main:gap-3">
           <AnimatePresence initial={false} mode="popLayout">
             {grid.flatMap((c, i) => {
               const head = tab === "all" && c.status === "available" && i > 0 && grid[i - 1].status !== "available";
@@ -201,9 +201,9 @@ export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onS
 
 function Header({ connected, attention, total }: { connected: number; attention: number; total: number }) {
   return (
-    <div className="flex items-end justify-between gap-6">
+    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
       <div className="min-w-0">
-        <h1 className="serif text-[32px] leading-none">Connectors</h1>
+        <h1 className="serif text-[32px] leading-none @max-[720px]/main:text-[26px]">Connectors</h1>
         <p className="mt-2.5 text-[13.5px] text-zinc-500">The tools your agents read from and act in. Each asks only for the access a task needs.</p>
       </div>
       {total > 0 && (
@@ -351,7 +351,7 @@ function Featured({ c, f, cat, agents, onConnect, onManage }: { c: Connector; f:
         <div className="absolute -bottom-40 right-[32%] size-[320px] rounded-full bg-[radial-gradient(circle,rgba(246,196,120,.36),rgba(246,196,120,.1)_48%,transparent_72%)] blur-[2px]" />
         <div className="absolute -top-20 -left-16 size-[260px] rounded-full bg-[radial-gradient(circle,rgba(255,250,242,.95),transparent_65%)]" />
       </div>
-      <div className="relative flex items-center gap-3.5">
+      <div className="relative flex flex-wrap items-center gap-3.5">
         {/* Crustdata's own purple stays inside its tile. */}
         <span className="grid size-11 shrink-0 place-items-center rounded-[12px] bg-white shadow-[0_0_0_1px_rgba(103,80,230,.14),0_2px_6px_-2px_rgba(103,80,230,.18)]">{f.mark ? <img src={TOOL_LOGO_BASE + f.mark} alt="" aria-hidden width={26} height={22} className="block h-[22px] w-[26px]" /> : <ToolLogo id={c.tool} size={26} bare />}</span>
         <div className="min-w-0 flex-1">
@@ -361,16 +361,16 @@ function Featured({ c, f, cat, agents, onConnect, onManage }: { c: Connector; f:
             <BadgeCheck aria-label="Connected" className="size-[18px] shrink-0 fill-ok text-white" strokeWidth={2} />
             <span className="hidden truncate text-[12px] text-zinc-500 min-[1360px]:inline">{cat}</span>
           </div>
-          <p className="truncate text-[13.5px] text-zinc-600">{f.headline}</p>
+          <p className="truncate text-[13.5px] text-zinc-600 @max-[720px]/main:whitespace-normal">{f.headline}</p>
         </div>
-        <div className="flex shrink-0 items-center gap-4">
+        <div className="flex shrink-0 items-center gap-4 @max-[720px]/main:w-full @max-[720px]/main:justify-between">
           <AgentStack c={c} agents={agents} />
           <span className="hidden h-5 w-px bg-[#ead8c6] min-[1360px]:block" />
           <StatusLine c={c} />
           <Action c={c} onConnect={onConnect} onManage={onManage} />
         </div>
       </div>
-      <div className="relative mt-3.5 grid grid-cols-5 gap-2">
+      <div className="relative mt-3.5 grid grid-cols-5 gap-2 @max-[900px]/main:grid-cols-3 @max-[560px]/main:grid-cols-2">
         {f.uses.map((u) => (
           <div key={u.id} title={u.detail} className="flex h-11 min-w-0 flex-col justify-center rounded-xl bg-white/75 px-3 shadow-[inset_0_0_0_1px_rgba(156,68,15,.08)] backdrop-blur-[2px]">
             <div className="truncate text-[12px] font-medium text-ink">{u.label}</div>
@@ -421,7 +421,7 @@ function ManageSheet({ c, cat, agents, onClose, patch, onSync, onScope, onDiscon
     <div className="fixed inset-0 z-50">
       <motion.div className="absolute inset-0 bg-zinc-900/15 backdrop-blur-[3px]" onClick={onClose} initial={r ? false : { opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, transition: { duration: r ? 0 : 0.18 } }} />
       <motion.aside role="dialog" aria-modal aria-label={`Manage ${nameOf(c)}`} initial={r ? false : { opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={r ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0, x: 24 }} transition={{ duration: 0.28, ease: EASE }}
-        className="absolute top-2 right-2 bottom-2 flex w-[440px] flex-col overflow-hidden rounded-[20px] border border-zinc-200/80 bg-white shadow-[0_24px_60px_-12px_rgba(9,9,11,.22),0_2px_6px_rgba(9,9,11,.05)]">
+        className="absolute top-2 right-2 bottom-2 flex w-[min(440px,calc(100vw-16px))] flex-col overflow-hidden rounded-[20px] border border-zinc-200/80 bg-white shadow-[0_24px_60px_-12px_rgba(9,9,11,.22),0_2px_6px_rgba(9,9,11,.05)]">
         <header className="border-b border-zinc-100 px-6 pt-5 pb-4">
           <div className="flex items-start gap-3.5">
             <ToolLogo id={c.tool} size={44} className="rounded-[12px]" />

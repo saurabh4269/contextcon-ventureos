@@ -162,3 +162,18 @@ body { background-color: #f8f8f7; background-image: url("data:image/svg+xml;utf8
 /* Floating voice orb: stay clear of the docked assistant panel (360px) when it is open. */
 body:has([data-dock="open"]) .voice-orb { right: calc(360px + 20px); }
 body:has([data-dock="open"]) .voice-pop { right: calc(360px + 20px); }
+
+/* v5 · Dex, the Deal Desk mascot (port/src/components/brand/mascot.tsx): blink, tail wag, thinking dots. */
+.dex .dex-blink { transform-box: fill-box; transform-origin: center; animation: dex-blink 5.2s infinite; }
+.dex .dex-tail { transform-box: fill-box; transform-origin: 10% 90%; animation: dex-wag 2.8s ease-in-out infinite; }
+.dex .dex-dot { animation: dex-dot 1.2s ease-in-out infinite; }
+.dex[data-mood="happy"] .dex-tail { animation-duration: 1.1s; }
+.dex[data-mood="sorry"] .dex-tail { animation: none; transform: rotate(10deg); }
+.dex-still .dex-blink, .dex-still .dex-tail, .dex-still .dex-dot { animation: none; }
+@keyframes dex-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.12); } }
+@keyframes dex-wag { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(7deg); } }
+@keyframes dex-dot { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .dex .dex-blink, .dex .dex-tail, .dex .dex-dot { animation: none; } }
+
+/* v5 · shell: when the app shell (sidebar) is on screen, the memory launcher lives in the sidebar instead of floating. */
+body[data-shell] [data-testid="memory-dock"] { display: none; }

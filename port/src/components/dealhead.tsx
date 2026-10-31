@@ -16,17 +16,17 @@ import type { DealHeader } from "../types";
 export function DealHead({ h, primary, walled }: { h: DealHeader; primary: ReactNode; walled?: boolean }) {
   const v = h.valuation;
   return (
-    <div className="border-b border-zinc-200/70 bg-white px-8 pt-5 pb-4">
-      <div className="flex items-center gap-3.5">
+    <div className="border-b border-zinc-200/70 bg-white px-8 pt-5 pb-4 @max-[720px]/main:px-4">
+      <div className="flex items-center gap-3.5 @max-[720px]/main:gap-3">
         <CompanyLogo c={h.company} size={40} />
         <div className="min-w-0">
-          <div className="flex items-center gap-2.5"><h1 className="serif truncate text-[28px] leading-none">{h.company.name}</h1>{h.fit && <FitPill score={h.fit.score} signals={h.fit.signals} />}{walled && <WallBadge inside />}</div>
+          <div className="flex items-center gap-2.5"><h1 className="serif truncate text-[28px] leading-none @max-[720px]/main:text-[24px]">{h.company.name}</h1>{h.fit && <FitPill score={h.fit.score} signals={h.fit.signals} />}{walled && <WallBadge inside />}</div>
           <div className="mt-1.5 flex min-w-0 items-center gap-2 text-[12.5px] text-zinc-500">
             <span className="truncate">{h.metrics ? h.subtitle : `${h.stageLabel} · ${h.icLabel}`}</span>
             {h.owner && <><span className="text-zinc-300">·</span><span title={`Lead: ${h.owner.name}`} className="inline-flex shrink-0 items-center gap-1.5 text-zinc-600"><Avatar i={h.owner.initials} size={18} tone="sand" />{h.owner.name}</span></>}
           </div>
         </div>
-        <div className="ml-auto flex shrink-0 items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2 @max-[420px]/main:gap-1">
           <IconMenu icon={<Info />} label="Deal details" w={320} title={h.subtitle}>
             <DetailRows rows={[
               { k: "Stage", v: h.stageLabel },
@@ -41,9 +41,9 @@ export function DealHead({ h, primary, walled }: { h: DealHeader; primary: React
         </div>
       </div>
       {h.metrics && (
-        <dl className="mt-4 ml-[54px] flex min-w-0 items-stretch overflow-hidden">
+        <dl className="mt-4 ml-[54px] flex min-w-0 items-stretch overflow-hidden @max-[720px]/main:ml-0 @max-[720px]/main:grid @max-[720px]/main:grid-cols-2 @max-[720px]/main:gap-x-4 @max-[720px]/main:gap-y-3">
           {h.metrics.map((m, i) => (
-            <div key={m.id} title={m.hint ?? (m.sub ? `${m.label}: ${m.value} · ${m.sub}` : undefined)} className={cx("min-w-0 shrink-0", i > 0 && "ml-5 border-l border-zinc-200/80 pl-5 @max-[1040px]/main:ml-4 @max-[1040px]/main:pl-4")}>
+            <div key={m.id} title={m.hint ?? (m.sub ? `${m.label}: ${m.value} · ${m.sub}` : undefined)} className={cx("min-w-0 shrink-0", i > 0 && "ml-5 border-l border-zinc-200/80 pl-5 @max-[1040px]/main:ml-4 @max-[1040px]/main:pl-4 @max-[720px]/main:ml-0 @max-[720px]/main:border-l-0 @max-[720px]/main:pl-0")}>
               <dt className="text-[12px] text-zinc-500">{m.label}</dt>
               <dd className={cx("tnum mt-0.5 flex items-center gap-1.5 text-[13.5px] font-medium whitespace-nowrap", m.tone === "rust" ? "text-rust" : m.tone === "ok" ? "text-ok" : "text-ink")}>
                 {m.tone === "rust" && <span className="size-1.5 rounded-full bg-rust" />}

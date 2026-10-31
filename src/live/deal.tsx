@@ -67,7 +67,7 @@ function LiveDealFor({ shell, domain, tab }: { shell: ShellData; domain: string;
 function DomainPrompt({ shell }: { shell: ShellData }) {
   return (
     <Page active="pipeline" shell={shell} top={<TopBar crumbs={[{ label: "Pipeline", href: "/pipeline" }, { label: "Research a company" }]} ctx="All deals" />}>
-      <ResearchForm className="mx-auto my-16 max-w-[460px]" />
+      <div className="px-4"><ResearchForm className="mx-auto my-16 max-w-[460px] @max-[720px]/main:my-6" /></div>
     </Page>
   );
 }
@@ -78,11 +78,11 @@ export function ResearchForm({ className }: { className?: string }) {
   const [v, setV] = useState("");
   const go = (e: FormEvent) => { e.preventDefault(); const d = v.trim(); if (d) router.push(`/deal?domain=${encodeURIComponent(d)}`); };
   return (
-    <form onSubmit={go} data-testid="research-form" className={`rounded-xl border border-dashed border-zinc-300 bg-zinc-50/60 p-8 text-center ${className ?? ""}`}>
+    <form onSubmit={go} data-testid="research-form" className={`rounded-xl border border-dashed border-zinc-300 bg-zinc-50/60 p-8 text-center @max-[720px]/main:p-5 ${className ?? ""}`}>
       <div className="serif text-[22px]">Research a company</div>
       <p className="mt-1 text-[13px] text-zinc-500">Enter a company domain. Deal Desk resolves it on Crustdata and pulls headcount, funding, founders, hiring and news.</p>
       <div className="mt-4 flex gap-2">
-        <input aria-label="Company domain" value={v} onChange={(e) => setV(e.target.value)} placeholder="company.com" className="h-9 min-w-0 flex-1 rounded-full bg-white px-4 text-[13px] ring-1 ring-zinc-200 outline-none focus:ring-zinc-400" />
+        <input aria-label="Company domain" value={v} onChange={(e) => setV(e.target.value)} placeholder="company.com" className="h-9 min-w-0 flex-1 rounded-full @max-[720px]/main:h-10 bg-white px-4 text-[13px] ring-1 ring-zinc-200 outline-none focus:ring-zinc-400" />
         <Btn variant="primary" type="submit">Research</Btn>
       </div>
     </form>

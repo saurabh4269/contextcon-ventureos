@@ -84,9 +84,9 @@ function Evidence({ e, href }: { e: EvidenceItem; href: string }) {
 function AskRow({ text, label, init, onAsk }: { text: string; label: string; init?: boolean; onAsk?: () => void }) {
   const [added, setAdded] = useState(!!init);
   return (
-    <div className={cx(CARD, "mt-4 flex items-center gap-3 p-4")}>
+    <div className={cx(CARD, "mt-4 flex flex-wrap items-center gap-3 p-4")}>
       <span className={cx("grid size-9 shrink-0 place-items-center rounded-full", added ? "bg-ok-50 text-ok" : "bg-[#fbf3ea] text-rust")}>{added ? <Check className="size-4" strokeWidth={2.25} /> : <MessageSquarePlus className="size-4" strokeWidth={1.75} />}</span>
-      <span className="min-w-0 flex-1 truncate text-[13px]">{text}</span>
+      <span className="min-w-0 flex-1 truncate text-[13px] @max-[720px]/main:basis-[calc(100%-48px)] @max-[720px]/main:whitespace-normal">{text}</span>
       {added ? <span className="flex shrink-0 items-center gap-3 text-[12.5px] text-ok">Added to IC questions<Undo onClick={() => setAdded(false)} /></span>
         : <button type="button" onClick={() => { setAdded(true); onAsk?.(); }} className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full bg-ink px-4 text-[13px] font-medium text-white shadow-[0_1px_2px_rgba(9,9,11,.2),inset_0_1px_0_rgba(255,255,255,.12)] transition-all hover:-translate-y-px hover:bg-zinc-800"><Plus className="size-3.5" />{label}</button>}
     </div>
@@ -117,24 +117,26 @@ export function DealScreen(p: DealScreenProps) {
     <Page active="pipeline" shell={p.shell} top={<TopBar crumbs={[{ label: "Pipeline", href: ROUTES.pipeline }, { label: name }]} ctx={name} />}>
       {status === "loading" ? <ScreenSkeleton cols="grid-cols-[200px_minmax(0,1fr)_360px]" /> : status === "error" ? <ErrorState message={p.error} onRetry={p.onRetry} /> : <>
       <DealHead h={d.header} walled={d.walled} primary={<><IconBtn icon={<FolderOpen />} label="Data room" onClick={p.onOpenRoom} href={p.onOpenRoom ? undefined : ROUTES.dataRoom(id)} /><IconBtn icon={<FileText />} label="IC memo" onClick={p.onOpenMemo} href={p.onOpenMemo ? undefined : ROUTES.memo(id)} /></>} />
-      <div className={cx("grid flex-1 group-data-[dock=open]/page:grid-cols-[168px_minmax(0,1fr)]", sig ? "grid-cols-[200px_minmax(0,1fr)]" : "grid-cols-[200px_minmax(0,1fr)_360px]")}>
-        <nav className="border-r border-zinc-200/70 px-3 pt-5">
-          <div className="eyebrow px-2">Diligence</div>
-          <div className="mt-2 space-y-px">
+      {/* Phone: one column, the outline becomes a scrolling tab strip. Tablet: outline + content, the rail drops below.
+          Desktop: outline · content · rail. With the assistant docked the rail steps aside. */}
+      <div className={cx("grid flex-1 grid-cols-1 content-start @min-[720px]/main:content-stretch @min-[720px]/main:grid-cols-[168px_minmax(0,1fr)] group-data-[dock=open]/page:@min-[720px]/main:grid-cols-[168px_minmax(0,1fr)]", sig ? "@min-[1100px]/main:grid-cols-[200px_minmax(0,1fr)]" : "@min-[1100px]/main:grid-cols-[200px_minmax(0,1fr)_360px]")}>
+        <nav aria-label="Diligence sections" className="border-b border-zinc-200/70 px-3 py-2 @min-[720px]/main:row-span-2 @min-[720px]/main:border-r @min-[720px]/main:border-b-0 @min-[720px]/main:pt-5 @min-[720px]/main:pb-0">
+          <div className="eyebrow px-2 @max-[720px]/main:hidden">Diligence</div>
+          <div className="mt-2 space-y-px @max-[720px]/main:[scrollbar-width:none] @max-[720px]/main:mt-0 @max-[720px]/main:-mx-3 @max-[720px]/main:flex @max-[720px]/main:gap-1 @max-[720px]/main:space-y-0 @max-[720px]/main:overflow-x-auto @max-[720px]/main:px-3">
             {outline.map((o) => (
-              <button type="button" key={o.id} onClick={() => p.onOutline?.(o.id)} aria-current={o.selected || undefined} className={cx("flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left text-[13px]", o.selected ? "bg-white font-medium shadow-[0_1px_2px_rgba(9,9,11,.06)] ring-1 ring-zinc-200" : "text-zinc-600 hover:bg-zinc-100")}>
-                <StepDot s={o.state} size={14} />{o.label}{o.count != null && <span className={cx("tnum ml-auto text-[11px]", o.state === "warn" ? "text-rust" : "text-zinc-400")}>{o.count}</span>}
+              <button type="button" key={o.id} onClick={() => p.onOutline?.(o.id)} aria-current={o.selected || undefined} className={cx("flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left text-[13px] @max-[720px]/main:h-10 @max-[720px]/main:w-auto @max-[720px]/main:shrink-0 @max-[720px]/main:gap-2 @max-[720px]/main:rounded-full @max-[720px]/main:px-3 @max-[720px]/main:whitespace-nowrap", o.selected ? "bg-white font-medium shadow-[0_1px_2px_rgba(9,9,11,.06)] ring-1 ring-zinc-200" : "text-zinc-600 hover:bg-zinc-100")}>
+                <StepDot s={o.state} size={14} />{o.label}{o.count != null && <span className={cx("tnum ml-auto text-[11px] @max-[720px]/main:ml-0.5", o.state === "warn" ? "text-rust" : "text-zinc-400")}>{o.count}</span>}
               </button>
             ))}
           </div>
-          <div className="mt-6 px-2 text-[11px] text-zinc-400"><Kbd>[</Kbd> <Kbd>]</Kbd> prev / next</div>
+          <div className="mt-6 px-2 text-[11px] text-zinc-400 @max-[720px]/main:hidden"><Kbd>[</Kbd> <Kbd>]</Kbd> prev / next</div>
         </nav>
         {sig ? <SignalSection data={sig} status={p.signalsStatus} freezeAt={p.signalsAt} autoplayKey={d.header.company.id} onAction={p.onSignalAction} onRetry={p.onRetry} /> : <>
-        <section key={sec?.id ?? "main"} className="min-w-0 px-8 pt-7 pb-12">
+        <section key={sec?.id ?? "main"} className="min-w-0 px-8 pt-7 pb-12 @max-[720px]/main:px-4 @max-[720px]/main:pt-5">
           {sec ? <DealSectionView s={sec} /> : <>
           <Rise>
             <div className="flex items-center gap-2"><span className="eyebrow" title={`${s.confidence} confidence`}>{s.eyebrow}</span></div>
-            <h2 className="serif mt-2 text-[34px] leading-tight text-pretty @max-[1180px]/main:text-[30px]"><HL h={s.headline} /></h2>
+            <h2 className="serif mt-2 text-[34px] leading-tight text-pretty @max-[1180px]/main:text-[30px] @max-[720px]/main:text-[26px]"><HL h={s.headline} /></h2>
           </Rise>
           {d.alert && <Rise i={1} className="mt-5"><AlertCard a={d.alert} init={p.alertInit} onVerify={p.onVerify} onRequest={p.onRequestData} /></Rise>}
           {s.growth ? (
@@ -148,7 +150,8 @@ export function DealScreen(p: DealScreenProps) {
               <div className="mt-3"><Waterfall h={170} barW={56} parts={s.bridge} delta /></div>
             </Rise>
           )}
-          <Rise i={3} className={cx(CARD, "mt-4 overflow-visible")}>
+          <Rise i={3} className={cx(CARD, "mt-4 overflow-visible @max-[720px]/main:overflow-x-auto")}>
+            <div className="@max-[720px]/main:min-w-[600px]">
             <div className={cx("grid h-9 items-center border-b border-zinc-100 bg-zinc-50/70 px-5 text-[11.5px] font-medium text-zinc-500", CL)}><span>Claim</span><span className="text-right">Reported</span><span className="text-right">Verified</span><span className="text-right">Variance</span><span>Status</span><span className={WIDE}>Source</span><span className={cx(NARROW, "justify-end")} aria-hidden /></div>
             {s.claims.map((c, i) => (
               <div key={c.id} className={cx("grid h-[56px] items-center border-b border-zinc-100 px-5 text-[13px] last:border-0", CL)}>
@@ -162,12 +165,13 @@ export function DealScreen(p: DealScreenProps) {
                 <span className={cx("flex min-w-0", WIDE)}>{c.source.excerpt ? <SrcPop source={c.source} pinned={p.pinSources && i === 0} side={i === 0 ? "above" : "below"} align="end" w={300} /> : <Src k={c.source.kind}>{c.source.label}</Src>}</span>
               </div>
             ))}
+            </div>
           </Rise>
           <AskRow text={s.ask.text} label={s.ask.action.label} init={p.askAdded} onAsk={() => p.onAsk?.(s.ask.action.id)} />
           </>}
         </section>
         {/* v3.2: with the assistant docked, this column steps aside; the answers cite the same evidence */}
-        <aside className="border-l border-zinc-200/70 bg-white px-6 pt-6 pb-10 group-data-[dock=open]/page:hidden">
+        <aside className="border-t border-zinc-200/70 bg-white px-6 pt-6 pb-10 group-data-[dock=open]/page:hidden @max-[720px]/main:px-4 @min-[720px]/main:col-start-2 @min-[1100px]/main:col-start-auto @min-[1100px]/main:border-t-0 @min-[1100px]/main:border-l">
           {d.live && <div className="mb-4"><LiveRail run={d.live} boxed /></div>}
           <DealTeamPanel team={d.team} me={p.shell.user.initials} onClaim={p.onClaim} onAssign={p.onAssign} onUndoClaim={p.onUndoClaim} onAddReviewer={p.onAddReviewer} reviewerAdded={p.reviewerAdded} />
           <div className="mt-6 flex items-center justify-between"><span className="text-[14px] font-medium">Evidence</span><span className="inline-flex items-center gap-1.5 text-[12px] text-ok"><Check className="size-3.5" />{d.evidence.agreeNote}</span></div>
