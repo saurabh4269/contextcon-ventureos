@@ -316,7 +316,7 @@ export function PipelineTableScreen(p: PipelineTableScreenProps) {
           {d.stats && <div className="mt-5 grid grid-cols-4 gap-4 @max-[900px]/main:grid-cols-2">{d.stats.map((s, i) => <Rise key={s.id} i={i}><StatCard s={s} /></Rise>)}</div>}
           {d.mix && <Rise i={4} className="mt-4"><MixCard d={d} /></Rise>}
           <Rise i={5} className="mt-4">
-            <section className={cx(CARD, "@container/pt")}>
+            <section className={cx(CARD, "@container/pt overflow-x-auto")}>
               <div className="flex items-center gap-3 px-4 pt-3.5 pb-3 @max-[1000px]/pt:flex-wrap">
                 <div role="tablist" aria-label="Stage" className="flex min-w-0 items-center gap-1.5 overflow-x-auto">
                   {filters.map((x) => { const on = filter === x.id; return (

@@ -119,7 +119,7 @@ export function WorkList({ rows, filter, onFilter, onAction, waiting, me }: { me
   const COLS = "grid-cols-[18px_minmax(160px,1fr)_52px_88px_96px] @[600px]/wl:grid-cols-[18px_minmax(200px,1fr)_52px_88px_100px_96px] @[780px]/wl:grid-cols-[18px_minmax(244px,1.75fr)_52px_minmax(0,1fr)_88px_100px_96px]";
   const SECTOR = "hidden truncate @[780px]/wl:block", OWNER = "hidden min-w-0 @[600px]/wl:flex";
   return (
-    <section className={cx(CARD, "@container/wl")}>
+    <section className={cx(CARD, "@container/wl overflow-x-auto")}>
       <div role="tablist" aria-label="Stage" className="flex items-center gap-1.5 px-4 pt-4 pb-3">
         {STAGES.map((s) => { const n = s.id === "all" ? rows.length : rows.filter((r) => r.stage === s.id).length; return (
           <button key={s.id} type="button" role="tab" aria-selected={filter === s.id} onClick={() => onFilter(s.id)} className={cx("inline-flex h-9 items-center gap-1.5 rounded-full px-4 text-[13px] transition-colors", filter === s.id ? "bg-ink text-white shadow-[0_1px_2px_rgba(9,9,11,.2)]" : "bg-zinc-50 text-zinc-600 ring-1 ring-zinc-200/70 hover:bg-white hover:text-ink")}>{s.label}<span className={cx("tnum text-[11px]", filter === s.id ? "text-zinc-400" : "text-zinc-400")}>{n}</span></button>
@@ -156,7 +156,7 @@ function TodaySkeleton() {
   return (
     <div aria-busy="true" aria-live="polite" className="mx-auto grid w-full max-w-[1240px] grid-cols-[320px_minmax(0,1fr)] gap-5 px-7 pt-7 pb-16 @max-[1040px]/main:grid-cols-1">
       <div className="flex flex-col gap-4 @max-[1040px]/main:order-2 @max-[1040px]/main:grid @max-[1040px]/main:grid-cols-2">
-        <SkCard className="h-[324px] space-y-3 p-5 @max-[1040px]/main:h-[423px] group-data-[dock=open]/page:hidden"><Skeleton className="size-9 rounded-full" /><Skeleton className="mt-8 h-[74px]" /><Skeleton className="h-8 w-2/3" /><Skeleton className="h-11" /></SkCard>
+        <SkCard className="h-[366px] space-y-3 p-5 @max-[1040px]/main:h-[423px] group-data-[dock=open]/page:hidden"><Skeleton className="size-9 rounded-full" /><Skeleton className="mt-8 h-[74px]" /><Skeleton className="h-8 w-2/3" /><Skeleton className="h-11" /></SkCard>
         <SkCard className="h-[265px] space-y-3 p-5 @max-[1040px]/main:h-[423px]"><Skeleton className="h-4 w-1/2" />{bars(2)}<Skeleton className="h-[120px]" /></SkCard>
         <SkCard className="h-[127px] space-y-3 p-5"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-9" /></SkCard>
       </div>

@@ -289,7 +289,7 @@ function Start({ start, name }: { start?: string; name?: string }) {
       <section className="rounded-xl border border-zinc-200 bg-white p-4">
         <h2 className="text-[14px] font-semibold text-ink">Start from inbox</h2>
         <p className="text-[12px] text-zinc-500">Read-only Gmail search{inbox?.query ? `: ${inbox.query}` : ""}</p>
-        {!inbox ? <div aria-busy="true" className="mt-2 divide-y divide-zinc-100">{[0, 1].map((i) => <div key={i} className="flex items-center gap-3 py-2"><div className="min-w-0 flex-1 space-y-1.5"><Skeleton className="h-[14px] w-2/3" /><Skeleton className="h-[14px] w-1/3" /></div><Skeleton className="h-7 w-[84px]" /></div>)}</div> : inbox.candidates ? (
+        {!inbox ? <div aria-busy="true" className="mt-2 divide-y divide-zinc-100">{[0].map((i) => <div key={i} className="flex items-center gap-3 py-2"><div className="min-w-0 flex-1 space-y-1.5"><Skeleton className="h-[14px] w-2/3" /><Skeleton className="h-[14px] w-1/3" /></div><Skeleton className="h-7 w-[84px]" /></div>)}</div> : inbox.candidates ? (
           inbox.candidates.length ? (
             <ul className="mt-2 divide-y divide-zinc-100">
               {inbox.candidates.map((c) => (
@@ -305,7 +305,7 @@ function Start({ start, name }: { start?: string; name?: string }) {
       <section className="rounded-xl border border-zinc-200 bg-white p-4">
         <h2 className="text-[14px] font-semibold text-ink">Deals</h2>
         <StorageNote storage={storage} />
-        {!deals ? <div aria-busy="true" className="mt-2 divide-y divide-zinc-100">{[0, 1].map((i) => <div key={i} className="py-2"><Skeleton className="h-[18px] w-1/2" /></div>)}</div> : dealsErr ? <p role="alert" className="mt-2 text-[12.5px] text-red-700">{dealsErr}</p> : deals.length ? (
+        {!deals ? <div aria-busy="true" className="mt-2 divide-y divide-zinc-100">{[0].map((i) => <div key={i} className="py-2"><Skeleton className="h-[18px] w-1/2" /></div>)}</div> : dealsErr ? <p role="alert" className="mt-2 text-[12.5px] text-red-700">{dealsErr}</p> : deals.length ? (
           <ul className="mt-2 divide-y divide-zinc-100">
             {deals.map((d) => {
               const w = d.steps.find((s) => s.status === "waiting" || s.status === "running" || s.status === "error");
@@ -332,7 +332,7 @@ export function WorkflowScreen({ id, start, name }: { id?: string; start?: strin
   useLiveCoverage("Live · Crustdata · Gmail · Calendar");
   return (
     <Page active="pipeline" shell={mode === "live" ? liveShellFrom(shellInvest) : shellInvest} top={<TopBar crumbs={id ? [{ label: "Workflow", href: "/workflow" }, { label: id }] : [{ label: "Workflow" }]} ctx="Workflow" />}>
-      <div className="mx-auto max-w-[920px] px-4 py-6 sm:px-6">{id ? <Timeline id={id} /> : <Start start={start} name={name} />}</div>
+      <div className="mx-auto w-full max-w-[920px] px-4 py-6 sm:px-6">{id ? <Timeline id={id} /> : <Start start={start} name={name} />}</div>
     </Page>
   );
 }

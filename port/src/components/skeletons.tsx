@@ -35,10 +35,10 @@ export function PortfolioSkeleton() {
   return (
     <div aria-busy="true" aria-live="polite" className="mx-auto flex w-full max-w-[1240px] flex-col gap-5 px-7 pt-7 pb-16">
       <div className="px-1 pt-1"><Skeleton className="h-9 w-[315px] max-w-full" /><Skeleton className="mt-2.5 h-[21px] w-1/2" /></div>
-      <div className="grid grid-cols-3 gap-4">{Array.from({ length: 3 }, (_, i) => <SkCard key={i} className="h-[127px] space-y-3 p-5"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-8 w-2/3" /></SkCard>)}</div>
+      <div className="grid grid-cols-4 gap-4 @max-[900px]/main:grid-cols-2 @max-[720px]/main:grid-cols-1">{Array.from({ length: 3 }, (_, i) => <SkCard key={i} className="h-[127px] space-y-3 p-5"><Skeleton className="h-4 w-1/2" /><Skeleton className="h-8 w-2/3" /></SkCard>)}</div>
       <div className="grid grid-cols-[minmax(0,1fr)_360px] items-start gap-5 @max-[1120px]/main:grid-cols-[minmax(0,1fr)_340px] @max-[900px]/main:grid-cols-1">
         <SkCard className="h-[166px] space-y-3 p-4"><Skeleton className="h-9 w-1/2 rounded-full" /><Skeleton className="h-11" /></SkCard>
-        <SkCard className="h-[674px] space-y-3 p-5"><Skeleton className="h-10 w-2/3" /><Skeleton className="mt-4 h-[190px]" /><Skeleton className="mt-6 h-[81px]" /></SkCard>
+        <SkCard className="h-[674px] p-5"><Skeleton className="h-10 w-2/3" /><Skeleton className="mt-[77px] h-[190px]" /><Skeleton className="mt-[193px] h-[81px]" /></SkCard>
       </div>
     </div>
   );
@@ -49,7 +49,7 @@ export function MemoSkeleton() {
   return (
     <div aria-busy="true" aria-live="polite" className="grid flex-1 grid-cols-[208px_minmax(0,1fr)_340px] @max-[1120px]/main:grid-cols-[196px_minmax(0,1fr)_296px] @max-[900px]/main:grid-cols-1">
       <div className="space-y-2 border-r border-zinc-200/70 px-3 pt-5 @max-[900px]/main:hidden">{rows(6, "h-7")}</div>
-      <section className="min-h-[1807px] bg-zinc-100/60 px-10 pt-7 pb-12 @max-[720px]/main:px-4">
+      <section className="min-h-[1807px] bg-zinc-100/60 px-10 pt-7 pb-12 @max-[900px]/main:min-h-[3274px] @max-[720px]/main:px-4">
         <div className="mx-auto w-full max-w-[448px]">
           <div className="h-[77px]"><Skeleton className="h-4 w-1/3" /></div>
           <Skeleton className="h-10 w-2/3" />
@@ -71,13 +71,13 @@ export function DealSkeleton() {
       <div className="flex h-[146px] flex-col justify-center gap-3 border-b border-zinc-200/70 px-8 @max-[720px]/main:h-[248px] @max-[720px]/main:px-4"><Skeleton className="h-7 w-1/4" /><Skeleton className="h-4 w-1/2" /></div>
       <div className="grid grid-cols-1 content-start @min-[720px]/main:grid-cols-[168px_minmax(0,1fr)] @min-[1100px]/main:grid-cols-[200px_minmax(0,1fr)]">
         <div className="flex h-[55px] items-center gap-2 border-b border-zinc-200/70 px-3 @min-[720px]/main:block @min-[720px]/main:h-auto @min-[720px]/main:space-y-2 @min-[720px]/main:border-r @min-[720px]/main:border-b-0 @min-[720px]/main:pt-5">{rows(7, "h-8 w-20 shrink-0 @min-[720px]/main:w-full")}</div>
-        <div className="min-w-0 px-8 pt-4 pb-6 @max-[720px]/main:px-4">
+        <section className="min-h-[694px] min-w-0 px-8 pt-4 pb-6 @max-[720px]/main:px-4">
           <div className="flex h-[48px] items-center @max-[720px]/main:h-[92px]"><Skeleton className="h-8 w-1/2" /></div>
           <div className="grid grid-cols-1 gap-4 @min-[1100px]/main:grid-cols-[minmax(0,1fr)_276px]">
-            <SkCard className="h-[594px] p-6"><Skeleton className="h-full" /></SkCard>
+            <SkCard className="relative h-[594px] p-6"><Skeleton className="h-full" /><Skeleton className="absolute top-[215px] left-[282px] size-[176px] rounded-2xl bg-zinc-200/70 @max-[720px]/main:left-[291px]" /></SkCard>
             <SkCard className="flex h-[594px] flex-col p-4 @max-[1100px]/main:h-[364px]"><div className="h-[91px] @max-[1100px]/main:h-[75px]"><Skeleton className="h-4 w-1/2" /></div><Skeleton className="h-[139px]" /><Skeleton className="mt-auto h-[122px]" /></SkCard>
           </div>
-        </div>
+        </section>
       </div>
     </div>
   );
@@ -91,7 +91,7 @@ export function SettingsSkeleton({ connectors = 0 }: { connectors?: number }) {
       <section className="min-w-0 px-8 pt-7 pb-12 @max-[720px]/main:px-4">
         {connectors ? (
           <div className="space-y-4"><Skeleton className="h-8 w-[534px] max-w-full" /><Skeleton className="h-[160px]" /><Skeleton className="h-[136px]" />
-            <div className="grid grid-cols-3 gap-4 @max-[1100px]/main:grid-cols-2 @max-[720px]/main:grid-cols-1">{Array.from({ length: connectors }, (_, i) => <SkCard key={i} className="h-[264px] space-y-3 p-5"><Skeleton className="h-5 w-1/2" />{bars(3)}</SkCard>)}</div></div>
+            <div className="grid grid-cols-3 gap-4 @max-[1100px]/main:grid-cols-2 @max-[720px]/main:grid-cols-1">{Array.from({ length: connectors }, (_, i) => <SkCard key={i} className="h-[252px] space-y-3 p-5"><Skeleton className="h-5 w-1/2" />{bars(3)}</SkCard>)}</div></div>
         ) : <SkCard className="mx-auto mt-14 h-[224px] max-w-[560px] space-y-3 p-7 @max-[720px]/main:mt-6 @max-[720px]/main:h-[273px]"><Skeleton className="mx-auto h-6 w-1/2" />{bars(2)}<Skeleton className="h-[58px] @max-[720px]/main:h-[95px]" /></SkCard>}
       </section>
     </div>

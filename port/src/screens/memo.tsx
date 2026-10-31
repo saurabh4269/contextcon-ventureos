@@ -395,8 +395,8 @@ function LegacyMemo(p: MemoScreenProps) {
   const C = ({ n }: { n: number }) => <sup role="button" tabIndex={0} onClick={() => p.onCite?.(n)} className="ml-0.5 cursor-pointer rounded bg-zinc-100 px-1 text-[9.5px] font-semibold text-zinc-600">{n}</sup>;
   const [first, ...rest] = d.sources;
   return (
-    <div className="grid flex-1 grid-cols-[220px_1fr_360px]">
-      <nav className="border-r border-zinc-200/70 px-3 pt-5">
+    <div className="grid flex-1 grid-cols-[220px_minmax(0,1fr)_360px] @max-[1120px]/main:grid-cols-[196px_minmax(0,1fr)_296px] @max-[900px]/main:grid-cols-1">
+      <nav className="border-r border-zinc-200/70 px-3 pt-5 @max-[900px]/main:border-r-0">
         <div className="eyebrow px-2">IC memo template</div>
         <div className="mt-2 space-y-px">
           {d.outline.map((o) => <button type="button" key={o.id} onClick={() => p.onOutline?.(o.id)} className={cx("flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left text-[13px]", o.selected ? "bg-white font-medium ring-1 ring-zinc-200" : "text-zinc-600")}><StepDot s={o.state} size={14} />{o.label}</button>)}
