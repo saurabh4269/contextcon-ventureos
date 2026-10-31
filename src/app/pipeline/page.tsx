@@ -6,13 +6,15 @@ import { PipelineTableScreen, PipelineBoardScreen, WatchlistScreen } from "@port
 import { shellInvest, pipelineTable, pipelineBoard, watchlist, pipelineHandoff } from "@port/fixtures";
 import type { PipelineDeal } from "@port/types";
 import { usePipelineDeals } from "@/live/usePipelineDeals";
+import { realPipelineDeals } from "@/lib/adapters/today";
 import { useDataMode } from "@/components/datamode";
 import { LivePipelineTable } from "@/live/pipelineTable";
 
 export default function Pipeline({ searchParams }: { searchParams: Promise<{ view?: string; board?: string; handoff?: string; frame?: string; status?: "loading" | "empty" | "error"; stage?: string; q?: string; sel?: string }> }) {
   const q = use(searchParams);
   const router = useRouter();
-  const live = usePipelineDeals();
+  // Pitch-like inbound and researched companies only: other inbox threads (personal mail) never become rows.
+  const live = realPipelineDeals(usePipelineDeals());
   const [, setLog] = useState<string[]>([]);
   const data = useMemo(() => {
     const extra: PipelineDeal[] = live.map((d) => ({

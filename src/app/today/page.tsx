@@ -13,6 +13,7 @@ import { RunPanel, CommandPalette, AskPanel } from "@port/components/overlays";
 import { askByPage, shellInvest, shellBank, shellFirstRun, todayInvest, todayBank, todayInvestHolding, todayWithInbound, agentRun, palette, paletteDenied, askAnswer, askDenied, onboarding, slackHoldApproval, todayCalm, todayAssistant, assistantAt, todaySummary, keelCall, calendarAsk, connectAsks, nextMeetings } from "@port/fixtures";
 import type { OnboardingData, WorkRow } from "@port/types";
 import { usePipelineDeals } from "@/live/usePipelineDeals";
+import { realPipelineDeals } from "@/lib/adapters/today";
 import { useDataMode } from "@/components/datamode";
 import { LiveTodaySummary } from "@/live/todaySummary";
 import { liveShellFrom } from "@/live/shell";
@@ -34,7 +35,8 @@ function liveWorkRows(deals: { domain: string; name: string }[]): WorkRow[] {
 
 export default function Today({ searchParams }: { searchParams: Promise<Q> }) {
   const q = use(searchParams);
-  const live = usePipelineDeals();
+  // Pitch-like inbound and researched companies only: other inbox threads (personal mail) never become rows.
+  const live = realPipelineDeals(usePipelineDeals());
   const [step, setStep] = useState<OnboardingData["step"]>((Math.min(5, Math.max(1, Number(q.step) || 1)) as OnboardingData["step"]));
   const tick = q.tick !== "0";
   const jitTool = q.connect && q.connect in connectAsks ? q.connect : undefined;
