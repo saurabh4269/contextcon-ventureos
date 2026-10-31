@@ -29,7 +29,7 @@ npm run dev                    # http://localhost:3240
 | `/settings` → Connectors | Real health checks (Crustdata `GET /account/credits`, ElevenLabs, Gmail, Calendar) |
 | `/today` | Gmail + Calendar read, spoken greeting (ElevenLabs) |
 
-`npm test` (vitest, no network; 662 passing, 5 skipped that need a live key or Postgres) · `npm run typecheck` · Details for contributors: [AGENTS.md](AGENTS.md) · state of play: [docs/HANDOFF.md](docs/HANDOFF.md).
+`npm test` (vitest, no network; 664 passing, 5 skipped that need a live key or Postgres) · `npm run typecheck` · Details for contributors: [AGENTS.md](AGENTS.md) · state of play: [docs/HANDOFF.md](docs/HANDOFF.md).
 
 ---
 
@@ -95,7 +95,7 @@ have not run that test with a paying customer yet.
 driver) for organizational memory. No other backend.
 
 **Models.** The research agent (`/ask`) is LLM-driven: OpenAI Responses API with function tools, default `gpt-6.1-sol`
-at reasoning effort `high` (see "Research agent" below). Everything else (the Sourcing agent, ranking, memo and spoken
+at reasoning effort `medium` (override with `OPENAI_REASONING_EFFORT`; `high` measured >280 s per run) (see "Research agent" below). Everything else (the Sourcing agent, ranking, memo and spoken
 summaries) is deterministic code over live data, and the Sourcing agent is the no-model fallback. ElevenLabs:
 `eleven_flash_v2_5` for text-to-speech, Scribe (`scribe_v2`) for speech-to-text, and an optional Conversational AI agent
 (created by `scripts/voice-agent-setup.mjs`, LLM `ELEVENLABS_AGENT_LLM`, default `gemini-2.5-flash`) whose client tools only

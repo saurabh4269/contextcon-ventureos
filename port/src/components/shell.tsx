@@ -176,16 +176,16 @@ export function TopBar({ crumbs, right, ctx = "All deals", ask = true, bell = fa
   const user: User | undefined = me ? { id: me.id ?? "me", firstName: me.firstName ?? me.name, ...me } : ctxMe;
   const ui = useShellUI();
   const a = useAsk();
-  const back = (() => { const parent = crumbs.length > 1 ? crumbs[crumbs.length - 2] : undefined; return parent?.href ? <Link href={parent.href} className="flex min-w-0 items-center gap-1 hover:text-ink"><ChevronLeft className="size-3.5 shrink-0" /><span className="truncate">{parent.label}</span></Link> : null; })();
+  const back = (() => { const parent = crumbs.length > 1 ? crumbs[crumbs.length - 2] : undefined; return parent?.href ? <Link href={parent.href} className="flex min-h-10 min-w-0 items-center gap-1 hover:text-ink"><ChevronLeft className="size-3.5 shrink-0" /><span className="truncate">{parent.label}</span></Link> : null; })();
   return (
     <header className="sticky top-0 z-20 flex h-[52px] items-center gap-2 border-b border-zinc-200/70 bg-[#f8f8f7]/85 px-3 backdrop-blur-md sm:gap-4 sm:px-6">
       <div className="flex min-w-0 flex-1 basis-0 items-center gap-1.5 text-[12.5px] text-zinc-500">
         {ui && (
-          <button type="button" onClick={() => ui.setDrawer(true)} aria-label="Open menu" aria-expanded={ui.drawer} aria-controls="dd-sidebar" className="-ml-1 grid size-9 shrink-0 place-items-center rounded-lg text-zinc-600 hover:bg-white hover:text-ink lg:hidden">
+          <button type="button" onClick={() => ui.setDrawer(true)} aria-label="Open menu" aria-expanded={ui.drawer} aria-controls="dd-sidebar" className="-ml-1 grid size-10 shrink-0 place-items-center rounded-lg text-zinc-600 hover:bg-white hover:text-ink lg:hidden">
             <Menu className="size-[18px]" strokeWidth={1.75} />
           </button>
         )}
-        {ui && <Link href={ROUTES.today()} aria-label="Deal Desk, go to Today" className="mr-1 shrink-0 lg:hidden"><Mascot size={24} /></Link>}
+        {ui && <Link href={ROUTES.today()} aria-label="Deal Desk, go to Today" className="mr-1 grid size-10 shrink-0 place-items-center lg:hidden"><Mascot size={24} /></Link>}
         {/* v3.2: one quiet back link when you are inside something; the page title already names where you are. */}
         <div className="flex min-w-0 items-center gap-1.5 truncate">{lead ?? back}</div>
       </div>
@@ -201,7 +201,7 @@ export function TopBar({ crumbs, right, ctx = "All deals", ask = true, bell = fa
         {user && (
           <AccountMenu user={user} place="bottom-end">
             {({ ref, toggle, props }) => (
-              <button ref={ref} type="button" onClick={toggle} {...props} aria-label={`Account: ${user.name}`} title={user.name} className="ml-0.5 grid shrink-0 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-rust/40">
+              <button ref={ref} type="button" onClick={toggle} {...props} aria-label={`Account: ${user.name}`} title={user.name} className="ml-0.5 grid size-10 shrink-0 place-items-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-rust/40">
                 <Avatar i={user.initials} src={user.avatarUrl} size={28} tone="ink" />
               </button>
             )}
@@ -309,7 +309,7 @@ export function Page({ active, children, top, mode, overlay, shell, dock, tone =
       <div data-dock={open ? "open" : "closed"} data-rail={collapsed ? "" : undefined} className={cx("group/page flex min-h-screen w-full", tone === "mono" && "mono")}>
         <Sidebar active={active} mode={mode} shell={shell} />
         {drawer && <div aria-hidden="true" onClick={() => setDrawer(false)} className="fixed inset-0 z-[69] bg-zinc-900/25 backdrop-blur-[1px] lg:hidden" />}
-        <main className="@container/main flex min-w-0 flex-1 flex-col">
+        <main className="@container/main flex min-w-0 flex-1 flex-col pb-24 lg:pb-0">
           {top}
           {children}
         </main>

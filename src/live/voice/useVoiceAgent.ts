@@ -41,6 +41,13 @@ export function parseTimestampStream(ndjson: string): { audio: Uint8Array[]; ali
   return { audio, alignment };
 }
 
+/** The browser's IANA time zone and local hour, so the server greets by the user's clock (it validates both). */
+export function localClock(now = new Date()): { tz: string; hour: string } {
+  let tz = "";
+  try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone ?? ""; } catch { /* server falls back to IST */ }
+  return { tz, hour: String(now.getHours()) }; // ist-ok: the salutation follows the user's own clock, not a displayed time
+}
+
 export function useVoiceAgent({ context, autoStart = false }: { context: () => VoiceContext; autoStart?: boolean }) {
   const [phase, setPhase] = useState<VoicePhase>("idle");
   const [brief, setBrief] = useState<Greeting | null>(null);
@@ -149,7 +156,7 @@ export function useVoiceAgent({ context, autoStart = false }: { context: () => V
   const start = useCallback(() => {
     ensureAudio();
     const c = ctxRef.current();
-    const qs = new URLSearchParams({ screen: c.screen, ...(c.subject ? { subject: c.subject } : {}) });
+    const qs = new URLSearchParams({ screen: c.screen, ...(c.subject ? { subject: c.subject } : {}), ...localClock() });
     return run(() => fetch(`/api/voice/brief?${qs}`, { cache: "no-store" }));
   }, [ensureAudio, run]);
 
@@ -158,7 +165,7 @@ export function useVoiceAgent({ context, autoStart = false }: { context: () => V
     setHeard(question);
     const c = ctxRef.current();
     setPhase("thinking");
-    return run(() => fetch("/api/voice/brief", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ screen: c.screen, subject: c.subject ?? null, question }) }));
+    return run(() => fetch("/api/voice/brief", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ screen: c.screen, subject: c.subject ?? null, question, ...localClock() }) }));
   }, [ensureAudio, run]);
 
   const stopMic = () => {

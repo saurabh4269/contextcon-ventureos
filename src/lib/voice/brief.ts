@@ -4,7 +4,7 @@ import "server-only";
 // only when a model key (OPENAI_API_KEY or ANTHROPIC_API_KEY) is set, and only to phrase those facts. Without it, questions get an honest reply.
 import { listIntegrations } from "@/lib/live/integrations";
 import { memoryStore, recordMemory } from "@/lib/memory/store";
-import { composeGreeting, rephraseWithLlm, type Greeting } from "./greeting";
+import { composeGreeting, rephraseWithLlm, stripSalutation, type Greeting } from "./greeting";
 import { composeScreenLine, type ScreenContext } from "./screen";
 import { googleConfig, GoogleApiError } from "@/lib/google/oauth";
 import { listInboxThreads } from "@/lib/google/gmail";
@@ -18,7 +18,8 @@ const why = (e: unknown) => (e instanceof GoogleApiError || e instanceof Error ?
 
 const RECENT = 200; // events read per brief
 
-export async function buildBrief(ctx: ScreenContext & { question?: string | null }): Promise<Greeting> {
+/** `tz` / `hour`: the client's IANA time zone and local hour (validated in the route); only the Today greeting uses them. */
+export async function buildBrief(ctx: ScreenContext & { question?: string | null; tz?: string | null; hour?: number | null }): Promise<Greeting> {
   const m = memoryStore();
   let memory: Parameters<typeof composeGreeting>[0]["memory"];
   if (m.status !== "ok") memory = m;
@@ -36,8 +37,10 @@ export async function buildBrief(ctx: ScreenContext & { question?: string | null
     inbox = i.status === "fulfilled" ? { status: "ok", items: i.value.threads, since: lastPlayed } : { status: "error", reason: why(i.reason) };
     meetings = m.status === "fulfilled" ? { status: "ok", items: m.value } : { status: "error", reason: why(m.reason) };
   }
-  const draft = ctx.screen === "today" && !ctx.question
-    ? composeGreeting({ name: process.env.DEALDESK_GREETING_NAME?.trim() || null, memory, connectors, inbox, meetings })
+  // only the Today greeting opens with a salutation; every other screen (and any answer) starts with its content
+  const greet = ctx.screen === "today" && !ctx.question;
+  const draft = greet
+    ? composeGreeting({ name: process.env.DEALDESK_GREETING_NAME?.trim() || null, memory, connectors, inbox, meetings, tz: ctx.tz, hour: ctx.hour })
     : composeScreenLine(ctx, memory, connectors);
   const llm = !!modelFromEnv(process.env);
   let text = draft.text, composer: Greeting["composer"] = "deterministic", llmError: string | undefined;
@@ -46,11 +49,12 @@ export async function buildBrief(ctx: ScreenContext & { question?: string | null
     // bounded: a slow or down model falls back to the deterministic draft (same facts) with the reason in llmError
     const facts = { ...draft.facts, ...(ctx.question ? { question: ctx.question } : {}) };
     try {
-      text = await withResilience(({ signal }) => rephraseWithLlm(draft.text, facts, process.env, ((u, i) => fetch(u, { ...i, signal })) as typeof fetch), { label: "AI model (voice phrasing)", timeoutMs: 12_000, deadlineMs: 20_000, retries: 1 });
+      text = await withResilience(({ signal }) => rephraseWithLlm(draft.text, facts, process.env, ((u, i) => fetch(u, { ...i, signal })) as typeof fetch, { greet }), { label: "AI model (voice phrasing)", timeoutMs: 12_000, deadlineMs: 20_000, retries: 1 });
       composer = "llm";
     }
     catch (e) { llmError = e instanceof Error ? e.message : String(e); }
   }
+  if (!greet) text = stripSalutation(text);
   const kind = ctx.question ? "assistant.asked" : ctx.screen === "today" ? "greeting.generated" : "assistant.brief";
   await recordMemory({
     kind,

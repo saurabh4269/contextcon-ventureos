@@ -4,8 +4,8 @@ import { AGENT_EXAMPLES } from "@/lib/sourcing/examples";
 /**
  * App chrome without invented counts: this is a single-operator build with no sign-in, and the operator is the founder
  * (Saurabh Gupta; photo is his public GitHub avatar, saved to /public/team). There is no firm profile, notification feed
- * or agent runtime, so the sidebar shows no badges, no "agents working" and no firm card, and the assistant dock says
- * it is not connected (no AI model is wired into the assistant in this build).
+ * or agent runtime, so the sidebar shows no badges, no "agents working" and no firm card. The assistant dock routes a
+ * request to the agents: /ask (LLM research agent, when a model key is set) or /agent (deterministic Sourcing agent).
  */
 export const liveShell: ShellData = {
   user: { id: "saurabh-gupta", name: "Saurabh Gupta", firstName: "Saurabh", initials: "SG", avatarUrl: "/team/saurabh-gupta.png", github: "saurabh4269", role: "Partner" },
