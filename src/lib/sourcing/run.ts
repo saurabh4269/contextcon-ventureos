@@ -378,7 +378,14 @@ export async function runAgent(input: unknown, deps: RunDeps): Promise<RunSummar
       rows.push(blankRow(c, window, searchCite, v.error ?? "not enriched"));
       continue;
     }
-    const row = buildRow(c, v.data, v.meta, window, plan, searchCite);
+    let row: AgentRow;
+    try {
+      row = buildRow(c, v.data, v.meta, window, plan, searchCite);
+    } catch (e) {
+      // a malformed enrich record must not end the run: keep the search match, say what failed
+      rows.push(blankRow(c, window, searchCite, `enrich record unreadable: ${errMsg(e)}`));
+      continue;
+    }
     if (v.note) row.errors.push(v.note);
     const failed = row.checks.find((k) => k.ok === false);
     if (failed) {
@@ -462,7 +469,7 @@ export async function runAgent(input: unknown, deps: RunDeps): Promise<RunSummar
 
   /* 6 · summary */
   const top = rows[0];
-  const growthBit = (r: AgentRow) => (r.growth.status === "ok" ? ` (${r.growth.value > 0 ? "+" : ""}${r.growth.value}% in ${WINDOW_MONTHS[window]} months)` : "");
+  const growthBit = (r: AgentRow) => (plan.growth && r.growth.status === "ok" ? ` (${r.growth.value > 0 ? "+" : ""}${r.growth.value}% in ${WINDOW_MONTHS[window]} months)` : "");
   const sentence = rows.length === 0
     ? `No company matched “${plan.raw.slice(0, 120)}”${relaxedLabels.length ? `, even after I ${relaxedLabels.join("; ")}` : ""}. Nothing was padded.`
     : `Found ${rows.length} of the ${plan.count} requested${rows.length < plan.count ? " (only these matched; nothing padded)" : ""}${relaxedLabels.length ? ` after I ${relaxedLabels.join("; ")}` : ""}. Top: ${top!.name}${growthBit(top!)}.`;
