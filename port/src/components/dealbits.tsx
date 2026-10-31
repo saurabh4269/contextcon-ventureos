@@ -15,6 +15,8 @@ const BAND_LABEL = { strong: "Strong fit", maybe: "Possible fit", weak: "Weak fi
 
 /** Fit score pill. With `signals`, hover/focus shows the top Crustdata signals behind the score. */
 export function FitPill({ score, signals, source = "Crustdata" }: { score: number; signals?: FitSignal[]; source?: string }) {
+  // No score yet (NaN): the same pill, neutral, reading "—" (live data never invents a fit).
+  if (!Number.isFinite(score)) return <span title="Fit not scored yet"><span className="tnum inline-flex h-6 w-[52px] items-center justify-center rounded-full bg-zinc-100 text-[12px] font-medium text-zinc-500">—</span></span>;
   const b = fitBand(score);
   const pill = <span className={cx("tnum inline-flex h-6 w-[52px] items-center justify-center gap-1.5 rounded-full text-[12px] font-medium", BAND[b])}><span className={cx("size-1.5 rounded-full", BAND_DOT[b])} />{score}</span>;
   if (!signals?.length) return <span title={`Fit ${score} · ${BAND_LABEL[b]}`}>{pill}</span>;

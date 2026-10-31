@@ -44,6 +44,21 @@ export function fmtDate(iso: string | null | undefined): string {
   return parts(iso, { day: "numeric", month: "short", year: "numeric" });
 }
 
+/** "Saturday, 31 October" for an instant, as its IST calendar day (Today's date line). */
+export function fmtWeekdayDate(iso: string | null | undefined): string {
+  if (!iso || Number.isNaN(Date.parse(iso))) return "—";
+  return `${parts(iso, { weekday: "long" })}, ${parts(iso, { day: "numeric", month: "long" })}`;
+}
+
+/** "Sat" for an instant's IST weekday (chart axis labels). */
+export const fmtWeekdayShort = (iso: string) => parts(iso, { weekday: "short" });
+
+/** IST calendar day key "YYYY-MM-DD" of an instant (for grouping by day). */
+export const istDay = (iso: string) => new Intl.DateTimeFormat("en-CA", { timeZone: DISPLAY_TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
+
+/** Epoch ms of midnight IST that starts an istDay key "YYYY-MM-DD" (IST has no DST). */
+export const istDayStart = (day: string) => Date.parse(`${day}T00:00:00+05:30`);
+
 /** "Mar" for a YYYY-MM[-DD] calendar month. */
 export function fmtMonth(iso: string): string {
   return new Intl.DateTimeFormat(LOCALE, { timeZone: "UTC", month: "short" }).format(new Date(`${iso.slice(0, 7)}-01T00:00:00Z`));
