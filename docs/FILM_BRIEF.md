@@ -105,9 +105,9 @@ Read it deep, slow and calm. A pause is part of the read. One-word lines are rea
 | 32.4 | Today, we stand at zero point seven. | long hold on orbit | the bar fills to 0.70 *as the words land* |
 | 36.4 | To climb faster, we have to fund the future faster. | a garage start-up, a keynote, typing, a rocket test, a booster landing | — |
 | 41.9 | Starting with the people who fund it. | handshake, a start-up stage | — |
-| 44.6 | Deal Desk is our first step. | black → serif wordmark with a sienna rule | the line as text |
+| 44.9 | Deal Desk is our first step. | black → serif wordmark with a sienna rule (title fades in at 44.6, just before the line) | the line as text |
 
-**TTS tips:** spell numbers out ("zero point seven"). If a product name is mis-read, send it phonetically. Generate each line as its own file, then place it from measured line timings so picture always follows voice.
+**TTS tips:** spell numbers out ("zero point seven"). If a product name is mis-read, send it phonetically. Generate each line as its own file, then place it from measured line timings so picture always follows voice. Keep each line clear of booms and kick blocks: duck the bed under it and check every line with speech-to-text on the final mix.
 
 ---
 
