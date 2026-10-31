@@ -1,6 +1,6 @@
 # 09 · Local setup and demo runbook
 
-There is no `SETUP_LOCAL.md` in this repo. Setup is the [README Quick start](../../README.md#quick-start), expanded below.
+Full local setup (one command on Windows, Mac or Linux; keys checked before start): [SETUP_LOCAL.md](../../SETUP_LOCAL.md). The [README Quick start](../../README.md#quick-start) is the short version, expanded below.
 Full demo script: [../DEMO_SCRIPT.md](../DEMO_SCRIPT.md).
 
 ## Local setup
