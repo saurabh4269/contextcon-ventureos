@@ -19,8 +19,12 @@ Close scorecard gaps 4–5 for criterion 3: Crustdata tool resilience, LLM-call 
 - Tests: crustdata/resilience.test.ts, live/robustness.test.ts, live/routes-robustness.test.ts, live/resolve.test.ts,
   resilience/*.test.ts, adapters/deal-robustness.test.ts.
 
+- Independent review done; 5 confirmed bugs fixed in c5ffb0b (write replay after reset, stuck breaker trial slot,
+  rate-limit wait past deadline, unlabelled stale no-match, model fallback budget) + non-array identify ≠ no_match.
+- Also: voice LLM call bounded (brief.ts), Google calls timeout + non-JSON handling, memo stamps in IST + guard test.
+
 ## In progress
-- Independent review of the diff; fix anything confirmed.
+- Nothing. DONE — status in /workspace/rubric_cc/c3.status. 336 tests pass / 5 skipped, tsc clean.
 
 ## Next / for the merger
 - nl-screener merge seam: see docs/ROBUSTNESS.md "Model calls".
