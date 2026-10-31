@@ -6,11 +6,16 @@ import { PersonScreen } from "@port/screens/person";
 import { BookFlow, useBookFlow, bookFrame } from "@port/components/bookflow";
 import { shellInvest, personById, calendarAsk } from "@port/fixtures";
 import type { LoadStatus, PersonTab } from "@port/types";
+import { useDataMode } from "@/components/datamode";
+import { LivePerson } from "@/live/person";
 
-export default function Person({ searchParams }: { searchParams: Promise<{ id?: string; tab?: string; status?: string; book?: string }> }) {
+export default function Person({ searchParams }: { searchParams: Promise<{ id?: string; tab?: string; status?: string; book?: string; linkedin?: string; domain?: string }> }) {
   const q = use(searchParams);
+  const mode = useDataMode();
   const data = personById(q.id);
   const flow = useBookFlow({ frame: bookFrame(q.book), connected: true });
+  // Live mode: ?linkedin=<profile URL> enriches the person on Crustdata; fixture people (?id=) stay demo data (badged).
+  if (mode === "live" && !q.id) return <LivePerson shell={shellInvest} linkedin={q.linkedin} domain={q.domain} tab={q.tab as PersonTab} />;
   const status: LoadStatus = q.status === "loading" || q.status === "empty" || q.status === "error" ? q.status : "ready";
   const overlay = data.book && flow.stage !== "closed" ? <BookFlow flow={flow} data={data.book} ask={calendarAsk} /> : undefined;
   return <PersonScreen key={data.id} shell={shellInvest} data={data} tab={(q.tab as PersonTab) || "activity"} status={status} overlay={overlay} onBook={data.book ? flow.start : undefined} onAlertAction={() => {}} onRetry={() => {}} />;
