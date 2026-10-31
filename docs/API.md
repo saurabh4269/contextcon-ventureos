@@ -178,3 +178,28 @@ Server-side OAuth refresh (`GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN`); access toke
   `screen=today` is the greeting (memory since the last `greeting.played`, Gmail threads since then, next meeting,
   connector issues, latest deal); other screens get a line about their subject. Without an AI key, the text is composed
   deterministically from those facts and questions get an honest "no AI model connected" reply.
+
+## Speech-to-text
+
+* `POST /api/voice/stt` (multipart: `file` = audio blob, `durationMs?` = client-measured length, `language?` = ISO 639)
+  → 200 `{text, language, durationMs, raw, languageProbability, source}`. Upstream: ElevenLabs `POST /v1/speech-to-text`,
+  model `scribe_v2` (override `ELEVENLABS_STT_MODEL_ID`), domain `keyterms` (Crustdata, B2B, Series A, …; disable with
+  `ELEVENLABS_STT_KEYTERMS=0`). `text` is `raw` after a small post-correction for domain words (`correctTranscript` in
+  `src/lib/voice/stt.ts`); `raw` is kept so the correction is visible.
+* Limits: webm / ogg / mp4 / mpeg / wav only, ≥ 200 bytes, ≤ 4 MB, ≤ 32 s.
+* Errors (JSON `{status:"error"|"not_connected", code, message, source}`): 400 `bad_input` · 413 `too_large` / `too_long` ·
+  415 `unsupported_type` · 503 `not_connected` · 402 `quota_exceeded` · 429 `rate_limited` · 422 `bad_audio` ·
+  502 `key_invalid` / `permission_denied` / `upstream_error`.
+
+## Sourcing agent <!-- VERIFY: every line of this section against src/app/api/agent/run and src/lib/agent -->
+
+* `POST /api/agent/run {request: string}` → `application/x-ndjson`, one JSON object per line as each step happens:
+  - `{type:"interpretation", chips:[{key, label, value, source:"parsed"|"default"}], unparsed:[…]}`
+  - `{type:"step", id, label, status:"running"|"ok"|"no_match"|"error"|"skipped", call?: LiveCall, note?}` for
+    `search` (`POST /company/search`), `relax` (which filter was loosened, and why), `verify` (`POST /company/enrich`,
+    growth recomputed from `headcount.timeseries`), `founders` (`POST /person/search`), `history` (`POST /person/enrich`)
+  - `{type:"result", rows:[{company, fields: Record<key, ComputedField>, founders:[…]}], creditsUsed}`
+  - `{type:"error", message}` on a failure that stops the run (no key → `not_connected`).
+* No LLM: parsing is deterministic; the chips are the full statement of what was understood.
+* Exports (memo markdown, CSV) are built from the `result` rows; every row keeps its citations.
+* Each run is appended to organizational memory when `DATABASE_URL` is set.
