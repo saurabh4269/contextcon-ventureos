@@ -96,15 +96,15 @@ function BookCall({ onBooked }: { onBooked: () => void }) {
     if (j?.transport === "dry_run") return setMsg(`${j.label}: would book “${title.trim()}” for ${fmtDateTime(s.toISOString())}.`);
     setMsg(`Booked for ${fmtDateTime(s.toISOString())}.`); setTitle(""); setStart(""); onBooked();
   };
-  if (!open) return <button type="button" onClick={() => setOpen(true)} className="mt-3 h-8 rounded-full bg-white px-3.5 text-[12.5px] font-medium ring-1 ring-zinc-200 hover:text-ink">Book a call</button>;
+  if (!open) return <button type="button" onClick={() => setOpen(true)} className="mt-3 h-8 max-sm:h-10 rounded-full bg-white px-3.5 text-[12.5px] font-medium ring-1 ring-zinc-200 hover:text-ink">Book a call</button>;
   return (
     <form onSubmit={submit} className="mt-3 space-y-2 rounded-xl bg-zinc-50 p-3" data-testid="book-call">
-      <input aria-label="Meeting title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Call with …" className="h-8 w-full rounded-lg bg-white px-3 text-[12.5px] ring-1 ring-zinc-200 outline-none focus:ring-zinc-400" />
+      <input aria-label="Meeting title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Call with …" className="h-8 max-sm:h-10 w-full rounded-lg bg-white px-3 text-[12.5px] ring-1 ring-zinc-200 outline-none focus:ring-zinc-400" />
       <div className="flex gap-2">
-        <input aria-label="Start time" type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} className="h-8 min-w-0 flex-1 rounded-lg bg-white px-2 text-[12.5px] ring-1 ring-zinc-200" />
-        <select aria-label="Duration" value={mins} onChange={(e) => setMins(Number(e.target.value))} className="h-8 rounded-lg bg-white px-2 text-[12.5px] ring-1 ring-zinc-200">{DURATIONS.map((d) => <option key={d} value={d}>{d} min</option>)}</select>
+        <input aria-label="Start time" type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} className="h-8 max-sm:h-10 min-w-0 flex-1 rounded-lg bg-white px-2 text-[12.5px] ring-1 ring-zinc-200" />
+        <select aria-label="Duration" value={mins} onChange={(e) => setMins(Number(e.target.value))} className="h-8 max-sm:h-10 rounded-lg bg-white px-2 text-[12.5px] ring-1 ring-zinc-200">{DURATIONS.map((d) => <option key={d} value={d}>{d} min</option>)}</select>
       </div>
-      <div className="flex items-center gap-2"><button type="submit" className="h-8 rounded-full bg-ink px-3.5 text-[12.5px] font-medium text-white hover:bg-zinc-800">Book</button><button type="button" onClick={() => setOpen(false)} className="h-8 px-2 text-[12.5px] text-zinc-500">Cancel</button><span className="text-[11.5px] text-zinc-500">Dry run unless the server allows outbound; no invitations either way.</span></div>
+      <div className="flex items-center gap-2"><button type="submit" className="h-8 max-sm:h-10 rounded-full bg-ink px-3.5 text-[12.5px] font-medium text-white hover:bg-zinc-800">Book</button><button type="button" onClick={() => setOpen(false)} className="h-8 max-sm:h-10 px-2 text-[12.5px] text-zinc-500">Cancel</button><span className="text-[11.5px] text-zinc-500">Dry run unless the server allows outbound; no invitations either way.</span></div>
       {msg && <p role="status" className="text-[12px] text-zinc-600">{msg}</p>}
     </form>
   );

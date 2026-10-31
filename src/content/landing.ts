@@ -5,16 +5,15 @@ import type { LandingData } from "@port/types";
 export const landingCopy: LandingData = {
   brand: "Deal Desk",
   nav: [
-    { id: "triage", label: "Triage", href: "#triage" },
-    { id: "diligence", label: "Diligence", href: "#diligence" },
-    { id: "meetings", label: "Meetings", href: "#meetings" },
-    { id: "agents", label: "Agents", href: "#agents" },
+    { id: "value", label: "Who pays", href: "#value" },
+    { id: "how", label: "How it works", href: "#how" },
+    { id: "ask", label: "Try a request", href: "/ask" },
   ],
   signIn: { id: "signin", label: "Open the app", href: "/pipeline" },
   hero: {
     eyebrow: "For venture and banking deal teams",
     headline: [{ before: "Your firm’s ", accent: "AI" }, { before: "deal team", accent: "" }],
-    sub: "Triage inbound, run diligence, book founders and prep IC, with every step visible and every call yours.",
+    sub: "Ask in plain English. Get back a finished, cited shortlist or IC memo. A person signs off only on the exceptions.",
     demo: "Open the live app",
     access: "Request access",
   },

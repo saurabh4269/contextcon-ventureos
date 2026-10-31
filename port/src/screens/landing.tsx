@@ -28,6 +28,8 @@ export interface LandingScreenProps extends ScreenStatus {
   /** show the closing band's "request sent" state with this email */
   requested?: string;
   onRequestAccess?: (email: string) => void | Promise<void>;
+  /** sections rendered between the hero and the product fragments (the value story) */
+  story?: ReactNode;
 }
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -465,7 +467,7 @@ function Features({ d, moving, show }: { d: LandingData["features"]; moving: boo
 }
 
 /* ───────────── closing band ───────────── */
-function Closing({ d, demo, moving, requested, onDemo, onRequest, inputRef }: { d: LandingData["closing"]; demo: string; moving: boolean; requested?: string; onDemo: () => void; onRequest: (email: string) => void; inputRef: React.RefObject<HTMLInputElement | null> }) {
+function Closing({ d, demo, moving, requested, error, onDemo, onRequest, inputRef }: { d: LandingData["closing"]; demo: string; moving: boolean; requested?: string; error?: string | null; onDemo: () => void; onRequest: (email: string) => void; inputRef: React.RefObject<HTMLInputElement | null> }) {
   const [email, setEmail] = useState("");
   return (
     <section id="access" className="mx-auto max-w-[1240px] scroll-mt-10 px-6 pt-24 max-sm:px-3 max-sm:pt-12">
@@ -482,6 +484,7 @@ function Closing({ d, demo, moving, requested, onDemo, onRequest, inputRef }: { 
               <button type="submit" className="flex h-10 shrink-0 items-center gap-2 rounded-full bg-ink px-5 text-[13.5px] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,.12)] transition-colors hover:bg-zinc-800">{d.cta}<ArrowUpRight className="size-4 text-[#f0b48a]" /></button>
             </form>
           )}
+          {!requested && error && <p role="alert" className="mx-auto mt-3 max-w-[460px] text-[13px] text-rust">Request not recorded: {error}</p>}
           <button type="button" onClick={onDemo} className="mt-5 inline-flex min-h-10 items-center gap-2 text-[13.5px] font-medium text-zinc-700 hover:text-ink"><span className="grid size-7 place-items-center rounded-full bg-white/80 ring-1 ring-black/[.05]"><Play className="size-3 fill-current" /></span>{demo}</button>
         </div>
       </div>
@@ -565,9 +568,11 @@ export function LandingScreen(p: LandingScreenProps) {
     return () => clearInterval(h);
   }, [moving, manual, d.assistant.questions]);
   const toAccess = () => { document.getElementById("access")?.scrollIntoView({ behavior: rm ? "auto" : "smooth", block: "center" }); setTimeout(() => inputRef.current?.focus({ preventScroll: true }), rm ? 0 : 600); };
+  const [reqError, setReqError] = useState<string | null>(null);
+  // Confirm only after the request is recorded; on failure say why (no optimistic "done").
   const request = async (email: string) => {
-    setRequested(email);
-    try { await p.onRequestAccess?.(email); } catch { setRequested(undefined); }
+    setReqError(null);
+    try { await p.onRequestAccess?.(email); setRequested(email); } catch (e) { setRequested(undefined); setReqError(e instanceof Error && e.message ? e.message : "The request could not be recorded."); }
   };
   const ready = status === "ready" || status === "empty";
   // Phones and tablets get the app itself; the framed preview only makes sense on a desktop-sized window.
@@ -585,10 +590,11 @@ export function LandingScreen(p: LandingScreenProps) {
           </>}
         </div>
       </header>
+      {ready && p.story}
       {ready && (status === "empty" || !d.features.items.length
         ? <div className="mx-auto mt-16 max-w-[560px] px-4 max-sm:mt-8"><EmptyState title="See it on real data" body="There is no recorded product tour. Open the app and research any company live on Crustdata." action={<button type="button" onClick={openDemo} className="inline-flex h-10 items-center gap-2 rounded-full bg-ink px-4 text-[13px] font-medium text-white"><Video className="size-4" />{d.hero.demo}</button>} /></div>
         : <Features d={d.features} moving={moving} show={show} />)}
-      {ready && <Closing d={d.closing} demo={d.hero.demo} moving={moving} requested={requested} onDemo={openDemo} onRequest={request} inputRef={inputRef} />}
+      {ready && <Closing d={d.closing} demo={d.hero.demo} moving={moving} requested={requested} error={reqError} onDemo={openDemo} onRequest={request} inputRef={inputRef} />}
       <footer className="mx-auto mt-10 flex max-w-[1240px] flex-wrap items-center gap-3 px-8 text-[12.5px] text-zinc-500 max-sm:px-5">
         <DeskMark size={22} /><span className="serif text-[15px] text-ink">{d.brand}</span>
         <span className="ml-auto flex items-center gap-5">{d.nav.map((n) => <a key={n.id} href={n.href} className="hover:text-ink max-md:hidden">{n.label}</a>)}<span className="text-zinc-400">{d.footer}</span></span>

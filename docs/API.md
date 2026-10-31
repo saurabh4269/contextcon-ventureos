@@ -79,12 +79,23 @@ Cost of a fresh run (live, measured 2026-10-31 for e2b.dev): identify 0 · enric
 with experience) · job search 0.75 (0.03/row, limit 25) · web search 1 · company search 1.15 (≈0.23/row with funding)
 = **5.56 credits**. Repeats are served from the response cache (0 credits).
 
-### `GET /api/live/company?domain=` → `{status:"ok", company, identify, enrich}` | `{status:"no_match", domain, identify}` (identify 0 + enrich 2)
-### `GET /api/live/people?companyId=` → `LiveCall<{ total, people: LivePerson[] }>` (founders; ≈0.23/row, limit 5)
+### `GET /api/live/company?domain=` → `{status:"ok", company, identify, enrich}` | `{status:"no_match", domain, identify, message, suggestions, suggest}` (identify 0 + enrich 2; "did you mean" suggestions on no_match, never auto-picked — also on `/api/live/research`)
+### `GET /api/live/people?companyId=` (or `domain=` / `company=`) → `LiveCall<{ total, people: LivePerson[] }>` (founders; ≈0.23/row, limit 5)
 ### `GET /api/live/person?linkedin=https://www.linkedin.com/in/<handle>` → `{status:"ok", person, call}` | `{status:"no_match", linkedinUrl, call}` (1 credit)
-### `GET /api/live/jobs?companyId=` → `LiveCall<{ total, listings[], byCategory[] }>` (0.03/row, limit 25)
-### `GET /api/live/news?q=&mention=` → `LiveCall<{ query, results[] }>` (1 credit). Results not mentioning `mention` are dropped (live web results for short names are noisy).
-### `GET /api/live/comps?companyId=&q=` → `LiveCall<LiveComp[]>` (ranked company search, target excluded)
+### `GET /api/live/jobs?companyId=` (or `domain=` / `company=`) → `LiveCall<{ total, listings[], byCategory[] }>` (0.03/row, limit 25)
+### `GET /api/live/news?q=&mention=` (or `domain=` / `company=`) → `LiveCall<{ query, results[] }>` (1 credit). Results not mentioning `mention` are dropped (live web results for short names are noisy). A domain is resolved to the company name (identify, 0) and searched as `"<name>"` with `mention=<name>`; a plain name is searched directly.
+### `GET /api/live/comps?companyId=&q=` (or `domain=` / `company=`, `q` optional) → `LiveCall<LiveComp[]>` (ranked company search, target excluded). Without `q` the description comes from identify + enrich (+2 credits, `enrich` call included).
+
+`domain=` / `company=` (a domain, URL or company name in any script, ≤ 200 chars) on people/jobs/comps/news: messy input is
+normalised (case, whitespace, scheme/`www.`/path, invisible characters, IDN → punycode) and resolved with
+`/company/identify` (0 credits); the response is the route's usual body plus `resolved: { companyId, name, domain, via:
+"domain"|"name", identify }`. Never guessed: a name is accepted only when exactly one candidate has that exact name;
+otherwise HTTP 200 `{ status: "no_match"|"ambiguous", input, message, suggestions: [{ companyId, name, domain,
+confidence }], calls }` (an unknown domain gets "did you mean" suggestions from a name identify on its first label).
+A broken domain (`strpe..com`, `stripe,com`) is a 400 `{ status:"error", message, suggestion: "strpe.com" }`.
+
+Failures, retries, the circuit breaker, stale-cache fallback ("cached at … IST"), per-route deadlines and the outage
+drill are described in [ROBUSTNESS.md](ROBUSTNESS.md). Failure bodies: `{ status: "error", message, upstreamStatus?, retryable? }`.
 
 ### `GET /api/deals/:id/numbers`
 
@@ -206,15 +217,30 @@ Server-side OAuth refresh (`GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN`); access toke
   `OPENAI_MODEL` (default `gpt-6.1-sol`), `OPENAI_REASONING_EFFORT` (default `high`); `ANTHROPIC_API_KEY` +
   `DEALDESK_LLM_MODEL` take precedence when set.
 
-## Sourcing agent <!-- VERIFY: every line of this section against src/app/api/agent/run and src/lib/agent -->
+## Sourcing agent
 
-* `POST /api/agent/run {request: string}` → `application/x-ndjson`, one JSON object per line as each step happens:
-  - `{type:"interpretation", chips:[{key, label, value, source:"parsed"|"default"}], unparsed:[…]}`
-  - `{type:"step", id, label, status:"running"|"ok"|"no_match"|"error"|"skipped", call?: LiveCall, note?}` for
-    `search` (`POST /company/search`), `relax` (which filter was loosened, and why), `verify` (`POST /company/enrich`,
-    growth recomputed from `headcount.timeseries`), `founders` (`POST /person/search`), `history` (`POST /person/enrich`)
-  - `{type:"result", rows:[{company, fields: Record<key, ComputedField>, founders:[…]}], creditsUsed}`
-  - `{type:"error", message}` on a failure that stops the run (no key → `not_connected`).
-* No LLM: parsing is deterministic; the chips are the full statement of what was understood.
-* Exports (memo markdown, CSV) are built from the `result` rows; every row keeps its citations.
-* Each run is appended to organizational memory when `DATABASE_URL` is set.
+Code: `src/app/api/sourcing/run/route.ts`, `src/lib/sourcing/{parse,run,export,examples}.ts`, UI `src/live/agent/*` at `/agent?q=`.
+(`src/lib/agent` and `POST /api/live/screen` are the LLM research agent above; when it reports `model_unavailable`,
+`/ask` offers a one-tap fallback to this agent at `/agent?q=`.)
+
+* `POST /api/sourcing/run {q: string}` (also `GET ?q=`) → `application/x-ndjson`, one `AgentEvent` per line
+  (`src/lib/sourcing/run.ts`). 400 when the body is not JSON or `q` is not a string.
+  - `{type:"plan", runId, startedAt, parse}`: `parse.kind` is `search` (plan with `interpretation[]` chips
+    `{key,label,phrase,kind:"filter"|"query"|"output"|"default"|"assumption"|"correction"}` and `ignored[]` phrases),
+    `company` or `refuse`.
+  - `{type:"step", step:{id,label,tool,endpoint,status:"running"|"done"|"failed"|"skipped",startedAt,ms,credits,cachedCalls,calls,count,detail}}`
+    for `parse`, `search`, `relax-<constraint>` (one constraint loosened per search, at most three), `verify`
+    (`POST /company/enrich`), `founders` (`POST /person/search`), `person-enrich` (`POST /person/enrich`), `rank`, `memory`.
+  - `{type:"row", row}` (upserted by `row.id` as founders arrive): `founded`, `hq`, `headcountNow`, `headcountThen`,
+    `growth` (recomputed from `headcount.timeseries`), `funding`, `founders` are `ComputedField`s with citations
+    (`endpoint`, `path`, `record`, `url`, `retrievedAt`, `cached`); plus `series`, `checks`, `relaxed`, `errors`.
+  - `{type:"dropped", item:{id,name,domain,reason}}`: matched the search but failed verification.
+  - Terminal: `{type:"done", summary:{sentence, requested, returned, dropped, relaxed[], rankingReason, credits, liveCalls, cachedCalls, failedCalls, ms, rowOrder}}`
+    | `{type:"refuse", message, ignored}` | `{type:"redirect", href, label, reason}` (a single company → `/deal?domain=`)
+    | `{type:"error", kind:"not_connected"|"upstream"|"bad_request", message}`.
+* No LLM: parsing is deterministic; the chips are the full statement of what was understood. Too few matches → relax
+  (disclosed in the chips' trace, the row and the summary); never padded.
+* 403 field denial: search/enrich retry with the permitted fields and say so in the step detail. 429: `http.ts` backoff.
+  One company's failure stays on its row (`errors[]`).
+* Exports (memo markdown, CSV) are built client-side from the rows (`src/lib/sourcing/export.ts`); every value keeps its citation.
+* Each run is appended to organizational memory (`agent.run`) when `DATABASE_URL` is set; otherwise the `memory` step is `skipped` with the reason.

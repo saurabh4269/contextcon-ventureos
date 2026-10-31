@@ -5,6 +5,7 @@ import { liveRoute } from "@/lib/live/route";
 import { researchCompany } from "@/lib/live/research";
 import { normalizeDomainInput } from "@/lib/live/normalize";
 import { recordResearchRun } from "@/lib/memory/record";
+import { suggestForDomain } from "@/lib/live/resolve";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,6 +19,10 @@ export const GET = liveRoute(
   async (client, domain) => {
     const r = await researchCompany(client, domain);
     await recordResearchRun(r, "/api/live/research");
-    return r;
+    if (r.status !== "no_match") return r;
+    // unknown domain (often a typo): "did you mean" suggestions, never auto-picked
+    const { suggestions, message, suggest } = await suggestForDomain(client, domain);
+    return { ...r, message, suggestions, calls: { identify: suggestions.length ? { ...r.calls.identify, note: message } : r.calls.identify, suggest } };
   },
+  { deadlineMs: 55_000 }, // maxDuration 60
 );

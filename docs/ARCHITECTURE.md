@@ -10,7 +10,7 @@ diagram and do not yet show the Sourcing agent or STT. <!-- VERIFY: re-render on
 | # | Layer | In code |
 | --- | --- | --- |
 | 01 | Sources: Crustdata, Gmail, Google Calendar, ElevenLabs | `src/lib/crustdata`, `src/lib/google`, `src/lib/voice` |
-| 02 | Agents: deterministic orchestration functions, no LLM | `src/lib/agent` <!-- VERIFY -->, `src/lib/live/research.ts`, `src/lib/numbers`, `src/lib/voice` |
+| 02 | Agents: deterministic orchestration functions, no LLM | `src/lib/sourcing` <!-- VERIFY -->, `src/lib/live/research.ts`, `src/lib/numbers`, `src/lib/voice` |
 | 03 | Firm memory: append-only event log | `src/lib/memory` (Postgres via `DATABASE_URL`, else 503) |
 | 04 | Trust layer: `ComputedField`, money, IST, dry-run | `src/lib/fields.ts`, `src/lib/format`, `src/lib/outbound.ts`, `src/test/guards.test.ts` |
 | 05 | Screens | `src/app/*` → `src/live/*` → `@port/*` UI kit |
@@ -21,7 +21,7 @@ Request path for every live screen:
 page (src/app/x/page.tsx)
   → client wrapper (src/live/x.tsx) → useLiveJson("/api/…")
     → route handler (src/app/api/…/route.ts, liveRoute wrapper: 400 / 503 / 502)
-      → orchestration (src/lib/live/research.ts or src/lib/agent/*)
+      → orchestration (src/lib/live/research.ts or src/lib/sourcing/*)
         → CrustdataClient (cache → rate limiter → fetch with x-api-version → X-Credits-Used)
       → normalise + ComputedFields (src/lib/live/normalize.ts, src/lib/numbers/*)
       → recordMemory(...)
@@ -32,7 +32,7 @@ page (src/app/x/page.tsx)
 
 | Route | Client wrapper | API | Upstream | Unavailable when |
 | --- | --- | --- | --- | --- |
-| `/agent` | `src/live/agent` <!-- VERIFY --> | `POST /api/agent/run` (NDJSON) <!-- VERIFY --> | `/company/search` → `/company/enrich` → `/person/search` → `/person/enrich` | no Crustdata key; no candidates (shown honestly, with the relaxation tried) |
+| `/agent` | `src/live/agent` <!-- VERIFY --> | `POST /api/sourcing/run` (NDJSON) <!-- VERIFY --> | `/company/search` → `/company/enrich` → `/person/search` → `/person/enrich` | no Crustdata key; no candidates (shown honestly, with the relaxation tried) |
 | `/agents` | <!-- VERIFY --> | — | lists the real agents | — |
 | `/deal?domain=` | `src/live/deal.tsx` | `GET /api/live/research`, `GET /api/deals/:id/valuation` | identify → enrich, then `/person/search`, `/job/search`, `/web/search/live`, `/company/search` in parallel | no key (503); `no_match`; valuation always unavailable (no pricing model) |
 | `/person?linkedin=` | `src/live/person.tsx` | `GET /api/live/person` | `/person/enrich` | no key; `no_match` |
@@ -59,7 +59,7 @@ page (src/app/x/page.tsx)
 None of the agents uses an LLM. The text the voice agent speaks is composed deterministically from the same facts the
 screen shows (`composer: "deterministic"` in `/api/voice/brief`).
 
-## Sourcing agent pipeline <!-- VERIFY: every step name and file against src/lib/agent -->
+## Sourcing agent pipeline <!-- VERIFY: every step name and file against src/lib/sourcing -->
 
 ```
 request text ─(STT optional)─▶ parse (deterministic) ─▶ interpretation chips (editable)

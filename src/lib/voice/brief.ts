@@ -9,6 +9,7 @@ import { composeScreenLine, type ScreenContext } from "./screen";
 import { googleConfig, GoogleApiError } from "@/lib/google/oauth";
 import { listInboxThreads } from "@/lib/google/gmail";
 import { listUpcoming } from "@/lib/google/calendar";
+import { withResilience } from "@/lib/resilience";
 
 const INBOX_MAX = 10; // threads read for the greeting
 const MEETINGS_MAX = 3;
@@ -41,7 +42,12 @@ export async function buildBrief(ctx: ScreenContext & { question?: string | null
   let text = draft.text, composer: Greeting["composer"] = "deterministic", llmError: string | undefined;
   if (ctx.question && !llm) text = `I heard: “${ctx.question}”. I can't answer free-form questions yet: no AI model is connected. Here's what I know: ${draft.text}`;
   if (llm) {
-    try { text = await rephraseWithLlm(draft.text, { ...draft.facts, ...(ctx.question ? { question: ctx.question } : {}) }, process.env); composer = "llm"; }
+    // bounded: a slow or down model falls back to the deterministic draft (same facts) with the reason in llmError
+    const facts = { ...draft.facts, ...(ctx.question ? { question: ctx.question } : {}) };
+    try {
+      text = await withResilience(({ signal }) => rephraseWithLlm(draft.text, facts, process.env, ((u, i) => fetch(u, { ...i, signal })) as typeof fetch), { label: "Anthropic (voice phrasing)", timeoutMs: 12_000, deadlineMs: 20_000, retries: 1 });
+      composer = "llm";
+    }
     catch (e) { llmError = e instanceof Error ? e.message : String(e); }
   }
   const kind = ctx.question ? "assistant.asked" : ctx.screen === "today" ? "greeting.generated" : "assistant.brief";

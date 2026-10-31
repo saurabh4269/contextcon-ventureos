@@ -233,7 +233,7 @@ describe("failures through runTool", () => {
     expect(r.isError).toBe(true);
   });
 
-  it("a POST that times out is not replayed and reports the timeout", async () => {
+  it("a read POST that keeps timing out is retried only within the client deadline and reports the timeout", async () => {
     vi.useFakeTimers();
     const sent: Sent[] = [];
     const client = createCrustdataClient({
@@ -245,11 +245,13 @@ describe("failures through runTool", () => {
     });
     const c = ctx(client);
     const p = runTool(c, registry, "web_search", { query: "slow" });
-    await vi.advanceTimersByTimeAsync(25_000);
+    await vi.advanceTimersByTimeAsync(60_000);
     const r = await p;
     expect(r.isError).toBe(true);
-    expect(r.content).toMatch(/timed out/);
-    expect(sent).toHaveLength(1);
+    expect(r.content).toMatch(/timed out|ran out of time/);
+    // /web/search/live is a read: the client may replay it, but only a bounded number of times inside its deadline.
+    expect(sent.length).toBeGreaterThanOrEqual(1);
+    expect(sent.length).toBeLessThanOrEqual(4);
   });
 
   it("refuses a call over the credit cap without calling Crustdata", async () => {

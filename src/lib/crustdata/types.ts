@@ -46,4 +46,8 @@ export type CrustdataCallMeta = {
   latencyMs: number;
   /** True when served from the response cache (no credits spent for this read). */
   cached: boolean;
+  /** True when Crustdata was unavailable and this is the last good cached response (past its TTL). */
+  stale?: boolean;
+  /** "Crustdata unavailable (HTTP 503); showing the response cached at 31 Oct 2026, 13:05 IST" */
+  staleNote?: string;
 };

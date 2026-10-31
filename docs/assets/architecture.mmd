@@ -1,6 +1,6 @@
 %% Deal Desk architecture (docs copy). Checked against branch `integrate` code on 2026-10-31.
 %% Differences from /workspace/dealdesk_audit/architecture/architecture.mmd:
-%%  - adds the Sourcing agent (/agent, POST /api/agent/run) and ElevenLabs STT  <!-- VERIFY: remove "in progress" once src/lib/agent lands -->
+%%  - adds the Sourcing agent (/agent, POST /api/sourcing/run) and ElevenLabs STT  <!-- VERIFY: remove "in progress" once src/lib/sourcing lands -->
 %%  - adds GET /account/credits (health) and ElevenLabs as sources
 %%  - memory is Postgres only when DATABASE_URL is set; otherwise every memory route answers 503 "unavailable"
 %%  - "pass · meet · track · invest" moved to Coming next (no verdict engine in this build)

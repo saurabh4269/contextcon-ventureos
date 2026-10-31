@@ -196,11 +196,25 @@ export function firstMatch<T>(data: unknown): { matchType?: string; confidence?:
   return payload ? { matchType: row?.match_type, confidence: m?.confidence_score, companyData: payload } : undefined;
 }
 
-/** "https://www.E2B.dev/path" → "e2b.dev". Returns undefined for things that are not a plausible domain. */
+/**
+ * "https://www.E2B.dev/path" → "e2b.dev"; internationalised hosts → punycode ("bücher.de" → "xn--bcher-kva.de").
+ * Returns undefined for things that are not a plausible domain.
+ */
 export function normalizeDomainInput(raw: string | null | undefined): string | undefined {
   if (!raw) return undefined;
-  const d = raw.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split(/[/?#]/)[0]!.replace(/\.$/, "");
+  let d = raw.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split(/[/?#]/)[0]!.replace(/\.$/, "");
+  if (/[^\x00-\x7f]/.test(d)) d = toAsciiHost(d).replace(/^www\./, "").replace(/\.$/, "");
   return /^(?=.{3,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(d) ? d : undefined;
+}
+
+/** WHATWG host parsing (IDNA → punycode); the input unchanged when it is not a parseable host. */
+function toAsciiHost(host: string): string {
+  if (/[@:\\]/.test(host)) return host; // userinfo/port: not a bare host, let the regex reject it
+  try {
+    return new URL(`http://${host}`).hostname;
+  } catch {
+    return host;
+  }
 }
 
 /** Normalize a LinkedIn profile URL; undefined when it isn't one. */

@@ -142,7 +142,7 @@ function DocMemo(p: MemoScreenProps & { doc: MemoDoc; exportItems: (onMd?: () =>
   const toReview = sections.filter((s) => s.state === "warn").length;
   const ready = sections.length - toReview;
   const actions = [...doc.actions, ...log];
-  const stamp = () => new Date().toLocaleTimeString("en-GB", { hour: "numeric", minute: "2-digit" });
+  const stamp = () => `${new Date().toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone: "Asia/Kolkata" })} IST`;
   const logIt = (label: string, detail?: string) => setLog((l) => [...l, { id: `l${l.length}`, at: `Today ${stamp()}`, label, detail, by: "person", who: doc.author.initials }]);
 
   // Scroll-spy: the rail follows the section you are reading.
