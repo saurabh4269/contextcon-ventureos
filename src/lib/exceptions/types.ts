@@ -115,7 +115,7 @@ export type RunRecord = {
   clientSubmitted?: boolean;
 };
 
-export type StorageInfo = { kind: "file" | "memory"; path?: string; note: string };
+export type StorageInfo = { kind: "file" | "memory" | "postgres"; path?: string; note: string; durable?: boolean; label?: string };
 
 export type ExceptionsResponse = {
   storage: StorageInfo;

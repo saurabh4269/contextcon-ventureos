@@ -7,7 +7,7 @@
 import { NextResponse } from "next/server";
 import { runAgent, type AgentEvent, type AgentRow, type Dropped, type RunSummary } from "@/lib/sourcing/run";
 import { fromSourcingRun } from "@/lib/exceptions/rules";
-import { exceptionStore } from "@/lib/exceptions/store";
+import { loadExceptionStore } from "@/lib/exceptions/store";
 import { liveCrustdataClient, NotConnectedError } from "@/lib/live/server";
 import { recordMemory } from "@/lib/memory/store";
 import type { CrustdataClient } from "@/lib/crustdata";
@@ -63,7 +63,9 @@ function stream(q: unknown, signal: AbortSignal) {
         }).catch((e: unknown) => ({ status: "error" as const, message: e instanceof Error ? e.message : String(e) }));
         try {
           const d = fromSourcingRun(summary, [...fullRows.values()], dropped);
-          const { run, items } = exceptionStore().recordRun(d.run, d.raise);
+          const store = await loadExceptionStore();
+          const { run, items } = store.recordRun(d.run, d.raise);
+          await store.flush();
           const open = items.filter((i) => i.status === "open").length;
           emit({ type: "step", step: { id: "review", label: "Route exceptions to a person", tool: "review", endpoint: `/review?run=${run.id}`, status: "done", startedAt: new Date().toISOString(), ms: 0, detail: open ? `${open} item${open === 1 ? "" : "s"} need a person; ${run.autoCompleted} auto-completed` : `all ${run.autoCompleted} auto-completed` } });
         } catch (e) {

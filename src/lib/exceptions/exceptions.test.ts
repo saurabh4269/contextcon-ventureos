@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Resolution as CompanyResolution } from "@/lib/live/resolve";
 import { ambiguousMatch, conflictingData, creditThreshold, missingData, outboundSend, parseRaise } from "./raise";
 import { createExceptionStore, ExceptionError } from "./store";
+import { resetDocStore } from "@/lib/store/docs";
 import type { Artefact } from "./types";
 
 vi.mock("server-only", () => ({}));
@@ -117,17 +118,10 @@ describe("raise helpers", () => {
 });
 
 describe("/api/exceptions routes", () => {
-  const g = globalThis as unknown as { __dealdeskExceptions?: unknown };
-  const prev = process.env.EXCEPTIONS_FILE;
-  afterEach(() => {
-    delete g.__dealdeskExceptions;
-    if (prev === undefined) delete process.env.EXCEPTIONS_FILE;
-    else process.env.EXCEPTIONS_FILE = prev;
-  });
+  afterEach(() => resetDocStore());
 
   it("raise over HTTP, count for the nav badge, list, then resolve", async () => {
-    process.env.EXCEPTIONS_FILE = "memory";
-    delete g.__dealdeskExceptions;
+    resetDocStore();
     const list = await import("@/app/api/exceptions/route");
     const one = await import("@/app/api/exceptions/[id]/route");
     const json = (body: unknown) => new Request("http://localhost/api/exceptions", { method: "POST", body: JSON.stringify(body) });

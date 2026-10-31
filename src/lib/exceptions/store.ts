@@ -1,12 +1,13 @@
-// The exception queue store. DATABASE_URL is not set in this build, so items and runs live in one JSON file on the
-// server (.cache/exceptions.json, or EXCEPTIONS_FILE); if the file cannot be written (read-only filesystem) the store
-// keeps working in memory and says so. Single-process only — fine for one desk, not for a fleet.
+// The exception queue store. Items and runs are kept in the durable store (src/lib/store/docs.ts): Postgres when
+// DATABASE_URL / POSTGRES_URL is set, else JSON files (labelled "not durable" on Vercel). A request loads the queue
+// (`loadExceptionStore`), works on it with the sync API below, then `flush()` writes only the items and runs it changed.
 //
 // Agent loops call `raiseException` (or `recordRun` with all of a run's items at once); the Review page calls
 // `resolveException`. A run is finished when its last open item is resolved.
 import fs from "node:fs";
 import path from "node:path";
 import { dryRun, outboundMode } from "@/lib/outbound";
+import { docStore, type DocStore } from "@/lib/store/docs";
 import type { ActionLabels, Artefact, ExceptionAction, ExceptionItem, ExceptionKind, RaiseInput, Resolution, RunRecord, RunSource, StorageInfo } from "./types";
 
 type State = { version: 1; items: ExceptionItem[]; runs: RunRecord[] };
@@ -61,10 +62,10 @@ export function applyToArtefact(a: Artefact, item: ExceptionItem, r: Resolution)
   return { ...a, rows };
 }
 
-export type StoreOptions = { file?: string | null; now?: () => Date; id?: () => string };
+export type StoreOptions = { file?: string | null; now?: () => Date; id?: () => string; initial?: { items: ExceptionItem[]; runs: RunRecord[] }; info?: () => StorageInfo };
 
 export function createExceptionStore(opts: StoreOptions = {}) {
-  const file = opts.file === undefined ? defaultFile() : opts.file;
+  const file = opts.file === undefined ? null : opts.file;
   const now = () => (opts.now ? opts.now() : new Date());
   let seq = 0;
   const newId = opts.id ?? (() => `ex_${now().getTime().toString(36)}${(++seq).toString(36)}${Math.random().toString(36).slice(2, 6)}`);
@@ -73,8 +74,8 @@ export function createExceptionStore(opts: StoreOptions = {}) {
 
   function load(): State {
     if (state) return state;
-    state = { version: 1, items: [], runs: [] };
-    if (file) {
+    state = { version: 1, items: opts.initial ? [...opts.initial.items] : [], runs: opts.initial ? [...opts.initial.runs] : [] };
+    if (file && !opts.initial) {
       try {
         const raw = JSON.parse(fs.readFileSync(file, "utf8")) as Partial<State>;
         if (Array.isArray(raw.items) && Array.isArray(raw.runs)) state = { version: 1, items: raw.items, runs: raw.runs };
@@ -99,6 +100,7 @@ export function createExceptionStore(opts: StoreOptions = {}) {
   }
 
   function storage(): StorageInfo {
+    if (opts.info) return opts.info();
     if (file && !writeError) return { kind: "file", path: path.relative(process.cwd(), file) || file, note: `Stored in a JSON file on this server (${path.basename(file)}) because no database is configured (DATABASE_URL is unset). Single server only.` };
     return { kind: "memory", note: `Kept in server memory only${writeError ? ` (file write failed: ${writeError})` : ""}; no database is configured (DATABASE_URL is unset), so items are lost on restart.` };
   }
@@ -240,20 +242,47 @@ function safeMode() {
   }
 }
 
-function defaultFile(): string | null {
-  const env = process.env.EXCEPTIONS_FILE?.trim();
-  if (env === "memory") return null;
-  return env || path.join(process.cwd(), ".cache", "exceptions.json");
+export const NS_ITEMS = "review_items";
+export const NS_RUNS = "review_runs";
+
+export type LoadedExceptionStore = ExceptionStore & {
+  /** Write the items and runs this request changed (one document each). */
+  flush(): Promise<void>;
+};
+
+/** The review queue as it is in the durable store now, for one request. Call flush() after changing it. */
+export async function loadExceptionStore(docs: DocStore = docStore()): Promise<LoadedExceptionStore> {
+  const [items, runs] = await Promise.all([docs.list<ExceptionItem>(NS_ITEMS), docs.list<RunRecord>(NS_RUNS)]);
+  const seen = new Map<string, string>();
+  for (const r of items) seen.set(`i:${r.id}`, JSON.stringify(r.doc));
+  for (const r of runs) seen.set(`r:${r.id}`, JSON.stringify(r.doc));
+  const store = createExceptionStore({ initial: { items: items.map((r) => r.doc), runs: runs.map((r) => r.doc) }, info: () => docs.info() });
+  return {
+    ...store,
+    async flush() {
+      const all = store.list({ status: "all" });
+      const changed = <T extends { id: string }>(tag: string, xs: T[]) => xs.filter((x) => seen.get(`${tag}:${x.id}`) !== JSON.stringify(x));
+      const ci = changed("i", all.items), cr = changed("r", all.runs);
+      // items before runs: a run never points at an item that is not stored yet
+      await docs.putMany(NS_ITEMS, [...ci].reverse().map((x) => ({ id: x.id, doc: x })));
+      await docs.putMany(NS_RUNS, [...cr].reverse().map((x) => ({ id: x.id, doc: x })));
+      for (const x of ci) seen.set(`i:${x.id}`, JSON.stringify(x));
+      for (const x of cr) seen.set(`r:${x.id}`, JSON.stringify(x));
+    },
+  };
 }
 
-const g = globalThis as unknown as { __dealdeskExceptions?: ExceptionStore };
-
-/** The process-wide store (survives dev hot reloads). */
-export function exceptionStore(): ExceptionStore {
-  return (g.__dealdeskExceptions ??= createExceptionStore());
+/** Seam for agent loops: raise one item and store it. */
+export async function raiseException(input: RaiseInput): Promise<ExceptionItem> {
+  const s = await loadExceptionStore();
+  const item = s.raiseException(input);
+  await s.flush();
+  return item;
 }
-
-/** Seam for agent loops: raise one item on the process-wide store. */
-export const raiseException = (input: RaiseInput) => exceptionStore().raiseException(input);
-/** Seam for the Review page / API: resolve one item on the process-wide store. */
-export const resolveException = (id: string, action: ExceptionAction, opts?: { note?: string; value?: string; by?: string }) => exceptionStore().resolveException(id, action, opts);
+/** Seam for the Review page / API: resolve one item and store it. */
+export async function resolveException(id: string, action: ExceptionAction, opts?: { note?: string; value?: string; by?: string }) {
+  const s = await loadExceptionStore();
+  const r = s.resolveException(id, action, opts);
+  await s.flush();
+  return r;
+}
