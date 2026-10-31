@@ -4,7 +4,9 @@
 // Nothing is canned: every clause comes from a fact below, and every fact carries its source. With an LLM key
 // (ANTHROPIC_API_KEY) the deterministic draft is rephrased by the model under "add no facts" instructions; without one
 // the deterministic text is used as is (composer: "deterministic"). An LLM failure is reported, not hidden.
-import { fmtTime, DISPLAY_TZ } from "@/lib/format";
+import { fmtDate, fmtTime, DISPLAY_TZ } from "@/lib/format";
+import type { InboxThread } from "@/lib/google/gmail";
+import type { Meeting } from "@/lib/google/calendar";
 import { describeFields } from "./screen";
 import type { MemoryEvent } from "@/lib/memory/types";
 import type { IntegrationInfo } from "@/lib/live/types";
@@ -29,7 +31,9 @@ const istHour = (now: Date) => Number(new Intl.DateTimeFormat("en-GB", { hour: "
 // conventional greeting boundaries (local IST hour), not data
 const salutation = (now: Date) => (istHour(now) < 12 ? "Good morning" : istHour(now) < 17 ? "Good afternoon" : "Good evening");
 
-export function composeGreeting(input: { name?: string | null; memory: Memory; connectors: IntegrationInfo[]; now?: Date }): Omit<Greeting, "composer" | "status" | "generatedAt"> {
+type Feed<T> = { status: "ok"; items: T[]; since?: string | null } | { status: "unavailable" | "error"; reason: string };
+
+export function composeGreeting(input: { name?: string | null; memory: Memory; connectors: IntegrationInfo[]; inbox?: Feed<InboxThread>; meetings?: Feed<Meeting>; now?: Date }): Omit<Greeting, "composer" | "status" | "generatedAt"> {
   const now = input.now ?? new Date();
   const sources: GreetingSource[] = [];
   const facts: Record<string, unknown> = {};
@@ -63,16 +67,34 @@ export function composeGreeting(input: { name?: string | null; memory: Memory; c
     sources.push({ label: "Organizational memory", ref: `GET /api/memory/events · ${since.length} events in window${lastPlayed ? ` after #${lastPlayed.id}` : ""}` });
   }
 
-  // 2 · what needs attention
+  // 2 · inbound email and the next meeting (Gmail / Calendar), when connected
+  const inbox = input.inbox, meet = input.meetings;
+  if (inbox?.status === "ok") {
+    const t = inbox.items, unread = t.filter((x) => x.unread).length;
+    const when = inbox.since ? `since ${fmtTime(inbox.since)}` : "in your inbox lately";
+    const senders = [...new Set(t.map((x) => x.from))].slice(0, 3);
+    parts.push(t.length ? `${plural(t.length, "email thread", "email threads")} came in ${when}${unread ? `, ${unread} unread` : ""}, from ${list(senders)}${t.length > senders.length ? " and others" : ""}.` : `No new email ${inbox.since ? `since ${fmtTime(inbox.since)}` : "in your inbox"}.`);
+    facts.inbox = { since: inbox.since ?? null, threads: t.length, unread, senders };
+    sources.push({ label: "Gmail", ref: `GET /api/connectors/gmail/threads · ${t.length} threads${inbox.since ? ` after ${inbox.since}` : ""}` });
+  } else if (inbox) { parts.push(`I couldn't read your inbox: ${inbox.reason}`); sources.push({ label: "Gmail", ref: inbox.reason }); }
+  if (meet?.status === "ok") {
+    const next = meet.items[0];
+    const today = fmtDate(now.toISOString());
+    parts.push(next ? `Your next meeting is ${next.summary}${next.allDay ? ` on ${fmtDate(next.start)}` : ` at ${fmtTime(next.start)}${fmtDate(next.start) !== today ? ` on ${fmtDate(next.start)}` : ""}`}.` : "Nothing is on your calendar ahead.");
+    facts.nextMeeting = next ? { summary: next.summary, start: next.start } : null;
+    sources.push({ label: "Google Calendar", ref: `GET /api/connectors/calendar/events · ${meet.items.length} upcoming` });
+  } else if (meet) { parts.push(`I couldn't read your calendar: ${meet.reason}`); sources.push({ label: "Google Calendar", ref: meet.reason }); }
+
+  // 3 · what needs attention
   const broken = input.connectors.filter((c) => c.status === "error");
-  const inbound = input.connectors.filter((c) => (c.id === "gmail" || c.id === "calendar") && c.status !== "connected");
+  const inbound = input.connectors.filter((c) => (c.id === "gmail" || c.id === "calendar") && c.status === "not_configured");
   if (broken.length) parts.push(`${list(broken.map((c) => c.name))} ${broken.length === 1 ? "needs" : "need"} your attention.`);
-  if (inbound.length) parts.push(`${list(inbound.map((c) => c.name))} ${inbound.length === 1 ? "isn't" : "aren't"} connected, so I have no inbound email or meetings to brief you on.`);
+  if (inbound.length) parts.push(`${list(inbound.map((c) => c.name))} ${inbound.length === 1 ? "isn't" : "aren't"} connected, so I have no ${inbound.length === 2 ? "inbound email or meetings" : inbound[0]!.id === "gmail" ? "inbound email" : "meetings"} to brief you on.`);
   if (!broken.length && !inbound.length) parts.push("All connectors look healthy.");
   facts.connectors = input.connectors.map((c) => ({ id: c.id, status: c.status }));
   sources.push({ label: "Connector status", ref: `GET /api/integrations/connectors · ${input.connectors.map((c) => `${c.id}: ${c.status}`).join(", ")}` });
 
-  // 3 · the top deal = the most recent company researched or opened
+  // 4 · the top deal = the most recent company researched or opened
   if (input.memory.status === "ok") {
     const deal = [...input.memory.events].reverse().find((e) => (e.kind === "research.run" || e.kind === "deal.opened") && e.subject && (e.data as { status?: string } | null)?.status !== "no_match");
     if (!deal) parts.push("There's no deal on your desk yet. Research a company from the pipeline to start one.");

@@ -34,6 +34,13 @@ describe("no demo data mode", () => {
   });
 });
 
+describe("no email sending", () => {
+  it("production code never calls Gmail users.messages.send / drafts.send", () => {
+    const bad = production.filter((f) => /messages\/send|drafts\/send|messages\.send/.test(fs.readFileSync(f, "utf8")));
+    expect(bad.map(rel)).toEqual([]);
+  });
+});
+
 /** String literals, template-literal static parts and JSX text of a source file, with their line numbers. */
 export function literals(src: string): { line: number; text: string }[] {
   const out: { line: number; text: string }[] = [];

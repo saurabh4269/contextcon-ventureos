@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { checkIntegration, INTEGRATION_SPECS, listIntegrations } from "./integrations";
+import { clearGoogleTokenCache } from "@/lib/google/oauth";
 
 const spec = (id: string) => INTEGRATION_SPECS.find((s) => s.id === id)!;
 const respond = (status: number, body: unknown): typeof fetch => (async () => new Response(JSON.stringify(body), { status })) as typeof fetch;
@@ -34,8 +35,11 @@ describe("connector status comes from config + health checks only", () => {
     expect(r.detail).toMatch(/not used by this build/);
   });
 
-  it("Google credentials without an OAuth flow are an error, not connected", async () => {
-    expect((await checkIntegration(spec("gmail"), { GOOGLE_CLIENT_ID: "a", GOOGLE_CLIENT_SECRET: "b" }, never)).status).toBe("error");
+  it("Google needs client + refresh token; an expired grant is an error, never connected", async () => {
+    clearGoogleTokenCache();
+    expect((await checkIntegration(spec("gmail"), { GOOGLE_CLIENT_ID: "a", GOOGLE_CLIENT_SECRET: "b" }, never)).status).toBe("not_configured");
+    const r = await checkIntegration(spec("calendar"), { GOOGLE_CLIENT_ID: "a", GOOGLE_CLIENT_SECRET: "b", GOOGLE_REFRESH_TOKEN: "c" }, respond(400, { error: "invalid_grant" }));
+    expect(r).toMatchObject({ status: "error", detail: expect.stringContaining("reconnect") });
   });
 
   it("never puts secret values in the response", async () => {

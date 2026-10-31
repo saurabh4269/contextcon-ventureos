@@ -6,6 +6,9 @@
 //   connected       a free health call succeeded (Crustdata: GET /account/credits, 0 credits)
 //   error           configured, but the health call failed or the integration cannot work in this build
 import type { IntegrationInfo, IntegrationStatus } from "./types";
+import { GOOGLE_ENV, GoogleApiError, googleConfig, type GoogleConfig } from "@/lib/google/oauth";
+import { gmailProfile } from "@/lib/google/gmail";
+import { primaryCalendar } from "@/lib/google/calendar";
 
 type Env = Record<string, string | undefined>;
 type Fetch = typeof fetch;
@@ -48,6 +51,13 @@ const errMsg = (body: unknown) => {
   const b = body as { error?: string | { message?: string }; message?: string } | null;
   return typeof b?.error === "object" ? b.error?.message : (b?.error ?? b?.message ?? (typeof body === "string" ? body : undefined));
 };
+
+async function googleCheck(env: Env, _f: Fetch, run: (cfg: GoogleConfig) => Promise<string>): Promise<Check> {
+  const cfg = googleConfig(env);
+  if (!cfg) return { ok: false, detail: "Google OAuth env incomplete" };
+  try { return { ok: true, detail: await run(cfg) }; }
+  catch (e) { return { ok: false, detail: e instanceof GoogleApiError ? e.message : `Google check failed: ${e instanceof Error ? e.message : String(e)}` }; }
+}
 
 export const INTEGRATION_SPECS: Spec[] = [
   {
@@ -138,9 +148,23 @@ export const INTEGRATION_SPECS: Spec[] = [
         : { ok: false, detail: `GET /v1/voices → ${status}${detail ? `: ${typeof detail === "string" ? detail : detail.message}` : ""}` };
     },
   },
-  // Google needs an OAuth consent flow per user; this build has none, so credentials alone cannot make it work.
-  { id: "gmail", name: "Gmail", docsUrl: "https://developers.google.com/gmail/api/auth/web-server", env: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"], wired: false },
-  { id: "calendar", name: "Google Calendar / Meet", docsUrl: "https://developers.google.com/calendar/api/guides/auth", env: ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"], wired: false },
+  // Google: OAuth client + a stored refresh token (offline access). Health = token refresh + one cheap read.
+  {
+    id: "gmail",
+    name: "Gmail",
+    docsUrl: "https://developers.google.com/gmail/api/reference/rest/v1/users/getProfile",
+    env: [...GOOGLE_ENV],
+    wired: true,
+    check: async (env, f) => googleCheck(env, f, async (cfg) => { await gmailProfile(cfg, f); return "Connected (token refresh + GET users/me/profile) · inbox feeds Today and the greeting"; }),
+  },
+  {
+    id: "calendar",
+    name: "Google Calendar / Meet",
+    docsUrl: "https://developers.google.com/calendar/api/v3/reference/calendarList/get",
+    env: [...GOOGLE_ENV],
+    wired: true,
+    check: async (env, f) => googleCheck(env, f, async (cfg) => { await primaryCalendar(cfg, f); return "Connected (token refresh + GET calendarList/primary) · upcoming meetings on Today"; }),
+  },
 ];
 
 type Cached = { at: number; info: IntegrationInfo };

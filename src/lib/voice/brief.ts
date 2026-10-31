@@ -6,6 +6,13 @@ import { listIntegrations } from "@/lib/live/integrations";
 import { memoryStore, recordMemory } from "@/lib/memory/store";
 import { composeGreeting, rephraseWithLlm, type Greeting } from "./greeting";
 import { composeScreenLine, type ScreenContext } from "./screen";
+import { googleConfig, GoogleApiError } from "@/lib/google/oauth";
+import { listInboxThreads } from "@/lib/google/gmail";
+import { listUpcoming } from "@/lib/google/calendar";
+
+const INBOX_MAX = 10; // threads read for the greeting
+const MEETINGS_MAX = 3;
+const why = (e: unknown) => (e instanceof GoogleApiError || e instanceof Error ? e.message : String(e));
 
 const RECENT = 200; // events read per brief
 
@@ -18,8 +25,17 @@ export async function buildBrief(ctx: ScreenContext & { question?: string | null
     catch (e) { memory = { status: "error", reason: `memory store error: ${e instanceof Error ? e.message : String(e)}` }; }
   }
   const connectors = await listIntegrations(process.env, fetch);
+  let inbox: Parameters<typeof composeGreeting>[0]["inbox"], meetings: Parameters<typeof composeGreeting>[0]["meetings"];
+  const google = googleConfig();
+  if (ctx.screen === "today" && google) {
+    // "overnight" = since the last greeting that was actually played (from memory); first time: the latest threads
+    const lastPlayed = memory.status === "ok" ? [...memory.events].reverse().find((e) => e.kind === "greeting.played")?.at ?? null : null;
+    const [i, m] = await Promise.allSettled([listInboxThreads(google, { after: lastPlayed ? new Date(lastPlayed) : null, max: INBOX_MAX }), listUpcoming(google, { from: new Date(), max: MEETINGS_MAX })]);
+    inbox = i.status === "fulfilled" ? { status: "ok", items: i.value.threads, since: lastPlayed } : { status: "error", reason: why(i.reason) };
+    meetings = m.status === "fulfilled" ? { status: "ok", items: m.value } : { status: "error", reason: why(m.reason) };
+  }
   const draft = ctx.screen === "today" && !ctx.question
-    ? composeGreeting({ name: process.env.DEALDESK_GREETING_NAME?.trim() || null, memory, connectors })
+    ? composeGreeting({ name: process.env.DEALDESK_GREETING_NAME?.trim() || null, memory, connectors, inbox, meetings })
     : composeScreenLine(ctx, memory, connectors);
   const llm = !!process.env.ANTHROPIC_API_KEY?.trim();
   let text = draft.text, composer: Greeting["composer"] = "deterministic", llmError: string | undefined;

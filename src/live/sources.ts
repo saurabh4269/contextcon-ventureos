@@ -6,8 +6,8 @@ export type ScreenId = "today" | "pipeline" | "portfolio" | "mandates" | "brain"
 export const SOURCES: Record<ScreenId, { label: string; title: string; reason: string; needs: string[] }> = {
   today: {
     label: "Today",
-    title: "No inbound or meetings to show",
-    reason: "Today lists inbound pitches, meetings and approvals. They come from Gmail and Google Calendar through the Deal Desk backend; none of these are connected in this build.",
+    title: "Inbound and meetings",
+    reason: "Today reads your Gmail inbox and Google Calendar directly. Deal triage and approvals need the Deal Desk backend, which this build does not include.",
     needs: ["gmail", "calendar", "backend"],
   },
   pipeline: {

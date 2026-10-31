@@ -46,7 +46,7 @@ export function DealHead({ h, primary, walled }: { h: DealHeader; primary: React
               <dt className="text-[12px] text-zinc-500">{m.label}</dt>
               <dd className={cx("tnum mt-0.5 flex items-center gap-1.5 text-[13.5px] font-medium whitespace-nowrap", m.tone === "rust" ? "text-rust" : m.tone === "ok" ? "text-ok" : "text-ink")}>
                 {m.tone === "rust" && <span className="size-1.5 rounded-full bg-rust" />}
-                {m.value}{m.sub && i === 0 && <span className="font-normal text-zinc-500">{m.sub}</span>}
+                <span data-metric={m.id}>{m.value}</span>{m.sub && i === 0 && <span className="font-normal text-zinc-500">{m.sub}</span>}
               </dd>
             </div>
           ))}
