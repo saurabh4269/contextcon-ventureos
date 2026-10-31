@@ -32,28 +32,30 @@ export type DealValuation = Record<(typeof VALUATION_KEYS)[number], ComputedFiel
 export type NumbersResponse = { id: string; source: "crustdata"; fields: DealNumbers };
 export type ValuationResponse = { id: string; source: "crustdata"; explainable: DealValuation };
 
-const PIPELINE =
-  "Computed by the Deal Desk pipeline (builder backend: data-room ingest, firm mandate, scoring/LLM); not available in this build.";
+// Defaults when a decision was not computed for the deal. Normally src/lib/numbers/local.ts (firm mandate × live
+// Crustdata research × peers) replaces every one of these with a value or a specific reason.
+const LOCAL =
+  "Not computed for this deal: local decisions need the firm mandate (Settings → Firm mandate, /settings/mandate) and live Crustdata research; a builder backend (DEALDESK_BUILDER_URL) can also supply it.";
 const REASONS: Record<DealNumberKey, string> = {
-  fitScore: `Fit score needs the firm thesis and scoring model. ${PIPELINE}`,
-  criterionSector: `Sector criterion is scored against the firm mandate. ${PIPELINE}`,
-  criterionStage: `Stage criterion is scored against the firm mandate. ${PIPELINE}`,
-  criterionGeo: `Geography criterion is scored against the firm mandate. ${PIPELINE}`,
-  criterionCheckSize: `Check-size criterion needs the round terms and the firm's check range. ${PIPELINE}`,
-  criterionMemory: `Memory criterion reads the firm brain (past decisions). ${PIPELINE}`,
-  returnMultipleLow: `Return multiples need entry price, ownership and exit model. ${PIPELINE}`,
-  returnMultipleHigh: `Return multiples need entry price, ownership and exit model. ${PIPELINE}`,
-  compsMedianMultiple: "Crustdata has no revenue or valuation multiples for comparable companies; the builder derives them from its pricing comps. Not available in this build.",
+  fitScore: `Fit score is scored against the firm mandate. ${LOCAL}`,
+  criterionSector: `Sector criterion is scored against the firm mandate. ${LOCAL}`,
+  criterionStage: `Stage criterion is scored against the firm mandate. ${LOCAL}`,
+  criterionGeo: `Geography criterion is scored against the firm mandate. ${LOCAL}`,
+  criterionCheckSize: `Check-size criterion compares the last round with the firm's check range. ${LOCAL}`,
+  criterionMemory: `Memory criterion reads the firm's past review-queue decisions. ${LOCAL}`,
+  returnMultipleLow: `Return multiples are the firm's target-return prior. ${LOCAL}`,
+  returnMultipleHigh: `Return multiples are the firm's target-return prior. ${LOCAL}`,
+  compsMedianMultiple: `The comps multiple is derived from live Crustdata peers and the firm's dilution prior. ${LOCAL}`,
   growthYoY: "",
   headcountLatest: "",
   lastFundingUsdM: "",
-  diligenceVerdict: `Diligence verdicts come from claim tie-outs against the data room. ${PIPELINE}`,
-  icMemoArrUsedM: `ARR used in the IC memo comes from verified room financials. ${PIPELINE}`,
-  icMemoValuation: `IC memo valuation comes from the pricing model. ${PIPELINE}`,
-  icMemoCompsLine: `IC memo comps line comes from the pricing model. ${PIPELINE}`,
+  diligenceVerdict: `The diligence verdict follows the screener verdict and live risk flags. ${LOCAL}`,
+  icMemoArrUsedM: `ARR used in the IC memo is the Crustdata revenue estimate (no data room is connected). ${LOCAL}`,
+  icMemoValuation: `IC memo valuation is the locally computed valuation range. ${LOCAL}`,
+  icMemoCompsLine: `IC memo comps line lists live Crustdata peers. ${LOCAL}`,
 };
 
-/** Live deal (id = company domain): the three Crustdata-backed fields computed, everything else honestly unavailable. */
+/** Live deal (id = company domain): the three Crustdata-backed fields computed; the rest stay unavailable until local.ts fills them. */
 export function liveDealNumbers(company: CompanyFields): DealNumbers {
   const out = Object.fromEntries(DEAL_NUMBER_KEYS.map((k) => [k, unavailable(REASONS[k])])) as DealNumbers;
   out.headcountLatest = company.headcountLatest;
@@ -63,7 +65,7 @@ export function liveDealNumbers(company: CompanyFields): DealNumbers {
 }
 
 export function liveDealValuation(): DealValuation {
-  const v = `Valuation needs verified revenue and the pricing model. ${PIPELINE}`;
+  const v = `Valuation is the revenue estimate × peer multiple, or the last round ÷ the firm dilution prior. ${LOCAL}`;
   return {
     low: unavailable(v),
     high: unavailable(v),

@@ -8,6 +8,8 @@ import { researchCompany } from "@/lib/live/research";
 import { companyFields } from "@/lib/numbers/company-fields";
 import { liveDealNumbers, liveDealValuation } from "@/lib/numbers/deal-numbers";
 import { localDecisions, type DecisionsResponse } from "@/lib/numbers/decisions";
+import { computeLocalDeal, type PeerSearch } from "@/lib/numbers/local";
+import { EMPTY_MANDATE, parseMandate } from "@/lib/settings/mandate";
 import { createExceptionStore } from "./store";
 import { decisionItemKey, fromDecisions, partialInputs, REVIEWED_DECISIONS, withReview } from "./decisions";
 
@@ -86,4 +88,26 @@ describe("decisions → review queue", () => {
     expect((after.decisions.fitScore as { reason: string }).reason).toMatch(/rejected.*check size unknown/);
     expect(after.decisions.screenerVerdict).toMatchObject({ status: "ok", value: "Advance" });
   });
+  it("locally computed decisions: no mandate → raised with the Settings reason; a full mandate → scored, not raised as missing", async () => {
+    const r = await researchCompany(fixtureClient(), "e2b.dev");
+    if (r.status !== "ok") throw new Error(r.status);
+    const peers: PeerSearch = { call: { id: "peers", method: "POST", path: "/company/search", body: {}, status: "ok" as const, ms: 1, cached: false, retrievedAt: at.toISOString(), creditsUsed: "1", data: [] }, matched: ["sector"] };
+    const decide = (m: typeof EMPTY_MANDATE) => {
+      const l = computeLocalDeal(r, m, peers, [], "deal:e2b.dev:decisions");
+      return localDecisions("e2b.dev", { ...liveDealNumbers(companyFields(r)), ...l.numbers }, { ...liveDealValuation(), ...l.valuation }, l.screenerVerdict);
+    };
+    const s1 = store();
+    withReview(decide(EMPTY_MANDATE), s1);
+    const fitItem = s1.list({ status: "open" }).items.find((x) => x.key.endsWith(":fitScore"))!;
+    expect(fitItem).toMatchObject({ kind: "missing_data", reason: expect.stringMatching(/\/settings\/mandate/) });
+    const p = parseMandate({ sectors: ["Artificial Intelligence"], stages: ["series_a"], geos: ["USA"], checkSizeUsd: { max: 2_000_000 }, priors: { dilutionPct: { low: 15, high: 25 }, returnMultiple: { low: 3, high: 10 } } });
+    if (!p.ok) throw new Error(p.message);
+    const s2 = store();
+    const b = withReview(decide(p.mandate), s2);
+    expect(b.decisions.fitScore).toMatchObject({ status: "ok", value: 100 });
+    expect(b.decisions.screenerVerdict).toMatchObject({ status: "ok", value: "Advance" });
+    expect(s2.list({ status: "open" }).items.filter((x) => x.kind === "missing_data").map((x) => x.key)).not.toContain(decisionItemKey("e2b.dev", "fitScore"));
+    expect(uncitedOk(b)).toEqual([]);
+  });
 });
+

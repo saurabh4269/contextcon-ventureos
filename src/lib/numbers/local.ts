@@ -39,6 +39,16 @@ const median = (xs: number[]) => {
   return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
 };
 const r1 = (n: number) => Math.round(n * 10) / 10;
+/** A multiple for display: one decimal, two below 1× so small multiples do not read as 0×. */
+const xm = (n: number) => (n < 1 ? Math.round(n * 100) / 100 : r1(n));
+/** Citations without repeats (fields built from other fields would otherwise cite the same source twice). */
+const uniq = (cs: Citation[]): Citation[] => {
+  const seen = new Set<string>();
+  return cs.filter((c) => {
+    const k = `${c.source}|${c.endpoint ?? ""}|${c.path ?? ""}|${c.retrievedAt ?? ""}`;
+    return seen.has(k) ? false : (seen.add(k), true);
+  });
+};
 const UNSET = (what: string) => `The firm mandate has no ${what} set (Settings → Firm mandate, /settings/mandate), so this criterion is not scored.`;
 
 /* ── criteria ── */
@@ -119,7 +129,7 @@ export function fitScore(criteria: Record<string, F>, m: Mandate): F {
   const met = scored.filter(([, f]) => verdict(f) === "met").length;
   const score = Math.round((100 * met) / scored.length);
   const notScored = Object.entries(criteria).filter(([, f]) => !verdict(f)).map(([k]) => k);
-  return ok(score, "Share of scored mandate criteria met × 100", `${met} of ${scored.length} scored criteria met.${notScored.length ? ` Not scored: ${notScored.join(", ")}${unset.length ? ` (mandate fields unset: ${unset.join(", ")})` : ""}.` : ""}`, scored.flatMap(([, f]) => (isOk(f) ? f.citations : [])), Object.entries(criteria).map(([name, f]) => ({ name, value: f })));
+  return ok(score, "Share of scored mandate criteria met × 100", `${met} of ${scored.length} scored criteria met.${notScored.length ? ` Not scored: ${notScored.join(", ")}${unset.length ? ` (mandate fields unset: ${unset.join(", ")})` : ""}.` : ""}`, uniq(scored.flatMap(([, f]) => (isOk(f) ? f.citations : []))), Object.entries(criteria).map(([name, f]) => ({ name, value: f })));
 }
 
 const HARD = ["Sector", "Stage", "Geography"];
@@ -151,8 +161,8 @@ export function compsMedianMultiple(peers: PeerSearch, m: Mandate): F {
   });
   const n = (call.data ?? []).length;
   if (rows.length < 2) return unavailable(`Crustdata has no valuation fields for peers, and only ${rows.length} of ${n} peers from ${call.method} ${call.path} (matched on ${peers.matched.join(", ") || "description only"}) have both a last round amount and a revenue estimate; at least 2 are needed for a median.`);
-  const med = r1(median(rows.map((x) => x.multiple)));
-  return ok(med, `Median over peers of (last round ÷ assumed dilution ${dil.low}–${dil.high}% midpoint) ÷ estimated revenue midpoint`, `${rows.length} peers (matched on ${peers.matched.join(", ") || "description"}): ${rows.slice(0, 5).map((x) => `${x.p.name} ${r1(x.multiple)}×`).join(", ")}. Crustdata has no peer valuations, so post-money is implied from round size and the firm's dilution prior (assumption).`, [crust(call, "companies[].funding.last_round_amount_usd"), crust(call, "companies[].revenue.estimated"), assumption(m, "priors.dilutionPct")], rows.slice(0, 8).map((x) => ({ name: `${x.p.name} (${x.p.domain ?? x.p.id})`, value: `${usd(x.p.lastRoundUsd!)} round, revenue ~${usd(x.rev)}, ${r1(x.multiple)}×` })));
+  const med = xm(median(rows.map((x) => x.multiple)));
+  return ok(med, `Median over peers of (last round ÷ assumed dilution ${dil.low}–${dil.high}% midpoint) ÷ estimated revenue midpoint`, `${rows.length} peers (matched on ${peers.matched.join(", ") || "description"}): ${rows.slice(0, 5).map((x) => `${x.p.name} ${xm(x.multiple)}×`).join(", ")}. Crustdata has no peer valuations, so post-money is implied from round size and the firm's dilution prior (assumption).`, [crust(call, "companies[].funding.last_round_amount_usd"), crust(call, "companies[].revenue.estimated"), assumption(m, "priors.dilutionPct")], rows.slice(0, 8).map((x) => ({ name: `${x.p.name} (${x.p.domain ?? x.p.id})`, value: `${usd(x.p.lastRoundUsd!)} round, revenue ~${usd(x.rev)}, ${xm(x.multiple)}×` })));
 }
 
 /** Valuation range: the target's estimated revenue range × the peer median multiple; without a revenue estimate,
@@ -221,7 +231,7 @@ export function icMemoArr(r: Research): F {
 export function icMemoValuation(low: F, high: F): F {
   if (!isOk(low) || !isOk(high)) return unavailable(`The IC memo valuation is the valuation range: ${low.status === "unavailable" ? low.reason : ""}`);
   const a = low.value as { amount: number }, b = high.value as { amount: number };
-  return ok(`${usd(a.amount)}–${usd(b.amount)}`, `Valuation range (${low.method})`, low.reasoning, [...low.citations, ...high.citations], [{ name: "low", value: low }, { name: "high", value: high }]);
+  return ok(`${usd(a.amount)}–${usd(b.amount)}`, `Valuation range (${low.method})`, `${low.reasoning} ${high.reasoning}`, uniq([...low.citations, ...high.citations]), [{ name: "low", value: low }, { name: "high", value: high }]);
 }
 
 export function icMemoCompsLine(peers: PeerSearch, comps: F): F {
@@ -231,7 +241,7 @@ export function icMemoCompsLine(peers: PeerSearch, comps: F): F {
   if (!list.length) return unavailable(`Crustdata ${call.method} ${call.path} returned no peers for the company's sector, stage and geography.`);
   const names = list.slice(0, 5).map((p) => `${p.name}${p.lastRoundType ? ` (${p.lastRoundType}${p.lastRoundUsd ? `, ${usd(p.lastRoundUsd)}` : ""})` : ""}`).join(", ");
   const line = `${list.length} peers matched on ${peers.matched.join(", ") || "description"}: ${names}${isOk(comps) ? `; median implied multiple ${comps.value}× revenue` : ""}.`;
-  return ok(line, "Peers from a live Crustdata company search on the company's sector, stage and geography", isOk(comps) ? comps.reasoning : comps.reason, [crust(call, "companies[]"), ...(isOk(comps) ? comps.citations : [])], list.slice(0, 8).map((p) => ({ name: p.name, value: p.domain ?? p.id })));
+  return ok(line, "Peers from a live Crustdata company search on the company's sector, stage and geography", isOk(comps) ? comps.reasoning : comps.reason, uniq([crust(call, "companies[]"), ...(isOk(comps) ? comps.citations : [])]), list.slice(0, 8).map((p) => ({ name: p.name, value: p.domain ?? p.id })));
 }
 
 /* ── all together ── */
