@@ -196,9 +196,11 @@ export function toolRegistry(extra: ToolDef[] = EXTRA_TOOLS): Map<string, ToolDe
 }
 
 const rowsOf = (data: unknown): { rows?: number; totalCount?: number | null } => {
-  const d = data as { companies?: unknown[]; profiles?: unknown[]; total_count?: number | null };
+  const d = data as { companies?: unknown[]; profiles?: unknown[]; job_listings?: unknown[]; results?: unknown[]; total_count?: number | null };
   if (Array.isArray(d?.companies)) return { rows: d.companies.length, totalCount: d.total_count ?? null };
   if (Array.isArray(d?.profiles)) return { rows: d.profiles.length, totalCount: d.total_count ?? null };
+  if (Array.isArray(d?.job_listings)) return { rows: d.job_listings.length, totalCount: d.total_count ?? null }; // search_jobs (instance C)
+  if (Array.isArray(d?.results)) return { rows: d.results.length }; // web_search (instance C)
   if (Array.isArray(data)) return { rows: data.length };
   return {};
 };
