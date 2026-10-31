@@ -92,3 +92,37 @@ export async function createDraft(cfg: GoogleConfig, m: { to: string[]; subject:
   const { data } = await googleJson<{ id: string; message?: { id?: string } }>(cfg, `${API}/drafts`, { method: "POST", body: JSON.stringify({ message: { raw: buildRawMessage(m) } }) }, f);
   return { id: data.id, messageId: data.message?.id ?? null };
 }
+
+// ── Deal workflow (src/lib/workflow): read one message in full and search by query (read only).
+// users.messages.list GET /gmail/v1/users/me/messages?q=…  ·  users.messages.get GET …/messages/{id}?format=full
+// https://developers.google.com/gmail/api/reference/rest/v1/users.messages. A workflow send goes through sendMessage above.
+export type GmailMessage = { id: string; threadId: string; from: string; fromAddress: string | null; to: string; subject: string; date: string; body: string; snippet: string };
+type Part = { mimeType?: string; body?: { data?: string }; parts?: Part[]; headers?: { name: string; value: string }[] };
+const b64url = (s: string) => Buffer.from(s.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf8");
+
+/** text/plain parts first; text/html stripped to text as a fallback. */
+export function messageText(p: Part | undefined): string {
+  if (!p) return "";
+  const plain: string[] = [], html: string[] = [];
+  const walk = (x: Part) => {
+    if (x.body?.data && x.mimeType === "text/plain") plain.push(b64url(x.body.data));
+    else if (x.body?.data && x.mimeType === "text/html") html.push(b64url(x.body.data));
+    x.parts?.forEach(walk);
+  };
+  walk(p);
+  if (plain.length) return plain.join("\n").trim();
+  return html.join("\n").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\n{3,}/g, "\n\n").trim();
+}
+
+export async function getMessage(cfg: GoogleConfig, id: string, f: typeof fetch = fetch): Promise<GmailMessage> {
+  const { data } = await googleJson<{ id: string; threadId: string; snippet?: string; internalDate?: string; payload?: Part }>(cfg, `${API}/messages/${encodeURIComponent(id)}?format=full`, {}, f);
+  const h = (n: string) => data.payload?.headers?.find((x) => x.name.toLowerCase() === n)?.value ?? "";
+  const from = parseFrom(h("from"));
+  return { id: data.id, threadId: data.threadId, from: from.name, fromAddress: from.address, to: h("to"), subject: h("subject") || "(no subject)", date: data.internalDate ? new Date(Number(data.internalDate)).toISOString() : "", body: messageText(data.payload).slice(0, 20_000), snippet: data.snippet ?? "" };
+}
+
+export async function searchMessages(cfg: GoogleConfig, q: string, max: number, f: typeof fetch = fetch): Promise<{ id: string; threadId: string }[]> {
+  const qs = new URLSearchParams({ q, maxResults: String(max) });
+  const { data } = await googleJson<{ messages?: { id: string; threadId: string }[] }>(cfg, `${API}/messages?${qs}`, {}, f);
+  return data.messages ?? [];
+}

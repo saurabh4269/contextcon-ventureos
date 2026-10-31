@@ -35,7 +35,8 @@ describe("email sending only behind the approval gate", () => {
     expect(bad.map(rel)).toEqual([]);
   });
   it("only /api/outbound/email calls sendMessage, after the allowlist check and approval consume", () => {
-    const callers = production.filter((f) => rel(f) !== GMAIL && /\bsendMessage\s*\(/.test(fs.readFileSync(f, "utf8")));
+    // the deal workflow (route + approve action) is checked in the next test; the route only hands sendMessage to the approve action
+    const callers = production.filter((f) => rel(f) !== GMAIL && !["src/app/api/workflow/[id]/route.ts", "src/lib/workflow/actions.ts"].includes(rel(f)) && /\bsendMessage\s*\(/.test(fs.readFileSync(f, "utf8")));
     expect(callers.map(rel)).toEqual([ROUTE]);
     const src = fs.readFileSync(path.join(ROOT, ROUTE), "utf8");
     const send = src.indexOf("sendMessage(cfg");
@@ -44,6 +45,18 @@ describe("email sending only behind the approval gate", () => {
     expect(src.indexOf("consumeApproval(")).toBeGreaterThan(-1);
     expect(src.indexOf("consumeApproval(")).toBeLessThan(send);
     expect(src.indexOf('mode === "dry_run"', src.indexOf("consumeApproval("))).toBeLessThan(send);
+  });
+  // The deal workflow's data-room request: the route passes sendMessage to applyAction, which sends only on the
+  // Approve click, in live mode, with no blocked recipient, after checkRecipients.
+  it("the deal workflow reaches sendMessage only through the approve action's live + allowlist gate", () => {
+    const WF = "src/app/api/workflow/[id]/route.ts", ACT = "src/lib/workflow/actions.ts";
+    const refs = production.filter((f) => rel(f) !== GMAIL && rel(f) !== ROUTE && /\bsendMessage\b/.test(fs.readFileSync(f, "utf8"))).map(rel).sort();
+    expect(refs).toEqual([WF, ACT]);
+    const act = fs.readFileSync(path.join(ROOT, ACT), "utf8");
+    const send = act.indexOf("send.sendMessage({");
+    expect(act.indexOf('outboundMode(env) === "live" && blocked.length === 0')).toBeGreaterThan(-1);
+    expect(act.indexOf('outboundMode(env) === "live" && blocked.length === 0')).toBeLessThan(send);
+    expect(act.indexOf("checkRecipients(")).toBeLessThan(send);
   });
 });
 

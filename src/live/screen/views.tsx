@@ -99,6 +99,18 @@ export function CellView({ cell, strong }: { cell: ScreenCell; strong?: boolean 
   );
 }
 
+/** "Start deal" → /workflow?start=<domain>&name=<name> (auto-starts the ten-step deal workflow); only when the row has a domain. */
+const rowDomain = (r: ScreenRow): string | null => {
+  const v = r.cells.find((c) => /domain|website/i.test(c.key) && c.status !== "unavailable")?.value;
+  return typeof v === "string" && /^(?:https?:\/\/)?(?:www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+\/?$/i.test(v) ? v.replace(/^(?:https?:\/\/)?(?:www\.)?/i, "").replace(/\/$/, "") : null;
+};
+export function StartDeal({ row }: { row: ScreenRow }) {
+  const d = rowDomain(row);
+  if (!d) return null;
+  const name = typeof row.name.value === "string" ? row.name.value : "";
+  return <a href={`/workflow?start=${encodeURIComponent(d)}&name=${encodeURIComponent(name)}`} data-testid="start-deal" className="mt-1 inline-flex h-6 items-center rounded-full bg-white px-2 text-[11px] font-medium text-zinc-600 ring-1 ring-zinc-200 hover:text-ink">Start deal →</a>;
+}
+
 /* ───────────── people ───────────── */
 
 export function PeopleList({ row }: { row: ScreenRow }) {
@@ -286,7 +298,7 @@ export function ResultView({ result }: { result: ScreenResult }) {
                 {rows.map((r) => (
                   <tr key={r.rank} data-testid="row">
                     <td className="px-3 py-2.5 font-mono text-zinc-400">{r.rank}</td>
-                    <td className="px-3 py-2.5"><CellView cell={r.name} strong />{r.why && <div className="mt-0.5 max-w-[240px] text-[11.5px] text-zinc-500">{r.why}</div>}</td>
+                    <td className="px-3 py-2.5"><CellView cell={r.name} strong />{r.why && <div className="mt-0.5 max-w-[240px] text-[11.5px] text-zinc-500">{r.why}</div>}<StartDeal row={r} /></td>
                     {columns.map((c) => { const cell = r.cells.find((x) => x.key === c.key); return <td key={c.key} className="px-3 py-2.5">{cell ? <CellView cell={cell} /> : <span className="text-zinc-400 italic">unavailable</span>}</td>; })}
                     <td className="px-3 py-2.5"><PeopleList row={r} /></td>
                   </tr>
@@ -298,7 +310,7 @@ export function ResultView({ result }: { result: ScreenResult }) {
           <ol className="space-y-3 md:hidden" data-testid="result-cards">
             {rows.map((r) => (
               <li key={r.rank} className={cx(CARD, "!rounded-xl p-3.5")} data-testid="card">
-                <div className="flex items-start gap-2"><span className="font-mono text-[12px] text-zinc-400">{r.rank}</span><div className="min-w-0 flex-1"><CellView cell={r.name} strong />{r.why && <div className="mt-0.5 text-[11.5px] text-zinc-500">{r.why}</div>}</div></div>
+                <div className="flex items-start gap-2"><span className="font-mono text-[12px] text-zinc-400">{r.rank}</span><div className="min-w-0 flex-1"><CellView cell={r.name} strong />{r.why && <div className="mt-0.5 text-[11.5px] text-zinc-500">{r.why}</div>}<StartDeal row={r} /></div></div>
                 <dl className="mt-2.5 grid grid-cols-2 gap-x-3 gap-y-2 text-[12px]">
                   {columns.map((c) => { const cell = r.cells.find((x) => x.key === c.key); return <div key={c.key} className="min-w-0"><dt className="text-[10.5px] text-zinc-400">{c.label}</dt><dd>{cell ? <CellView cell={cell} /> : <span className="text-zinc-400 italic">unavailable</span>}</dd></div>; })}
                 </dl>

@@ -85,3 +85,9 @@ export function consumeApproval(token: unknown, kind: string, payload: unknown, 
   if (a.kind !== kind || a.hash !== payloadHash(payload)) return { ok: false, reason: "mismatch", message: "The message changed after it was approved. Preview again and approve." };
   return { ok: true };
 }
+
+/** The recipients a live send would refuse (empty = all allowed). Used to label drafts before anyone approves them. */
+export function blockedRecipients(to: string[], env: Env = process.env): string[] {
+  const allow = recipientAllowlist(env);
+  return to.map(norm).filter((r) => !allow.includes(r));
+}

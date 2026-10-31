@@ -229,6 +229,28 @@ UI-only and not listed. Health results are cached 5 minutes per process (`fresh=
 
 Status never comes from timers or fixtures.
 
+## Deal workflow (/workflow)
+
+One deal through ten steps (intake, screen, data room, research, schedule, transcript, valuation, memo, pipeline, memory),
+kept in the durable store (`workflows` namespace; Postgres with `DATABASE_URL`, else JSON files, "not durable" on Vercel).
+Code: `src/lib/workflow/` (run.ts orchestrator, actions.ts person actions, public.ts browser view).
+
+- `GET /api/workflow` → `{ deals: Deal[], storage }`
+- `POST /api/workflow` `{from:"gmail", messageId}` | `{from:"ask", domain, name?}` → `201 {id}`; the run continues after the
+  response (`next/server` `after()`, `maxDuration` 300 s).
+- `GET /api/workflow/inbox` → `{ query, candidates:[{id, subject, date, domain}], hidden }`: read-only Gmail search
+  `in:inbox newer_than:90d (pitch OR deck OR raising OR "data room" OR intro OR investment)` (`INBOX_QUERY`). Only
+  pitch-like subjects that name a company domain are listed; no sender is shown (the deploy has no sign-in).
+- `GET /api/workflow/:id` → Deal, public view: addresses masked to their domain, no email body (poll while `running`).
+- `POST /api/workflow/:id` actions: `approve {step:"dataroom"|"schedule"}`, `transcript {text, source?, name?}`, `skip_transcript`,
+  `override_screen`, `decide {verdict:"invest"|"pass", note?}`, `regenerate_memo`, `resume`. Every action resumes the run.
+  `approve` sends (Gmail send / Calendar insert on the primary calendar, no attendees, sendUpdates=none) only when
+  `outboundMode()==="live"` AND every recipient is on `DEMO_RECIPIENT_ALLOWLIST`; otherwise it records the dry run.
+- Stage moves are mirrored to the deal-stage store (`GET /api/pipeline/deals` rows carry `stage`, `owner`, `workflowId`).
+- Claims ("team of 60", "grew 50% in 6 months", founded, raised) are verified against Crustdata within a tolerance
+  (`CLAIM_TOLERANCE`: headcount and raised 10%, growth 25%); outside it they are contradicted, with the Crustdata citation.
+- Screen credits are the credits the uncached calls billed, rounded to 2 decimals; a cached step says so.
+
 ## Assumptions vs the builder contract
 
 1. `inputs` is an array of `{ name, value }` (extra keys allowed); `citations` entries allow extra keys.
