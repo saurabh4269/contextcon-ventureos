@@ -76,13 +76,13 @@ function rowAction(screener: string | null, open: number): WorkRow["action"] {
 const whenLabel = (iso: string, now: Date) => (istDay(iso) === istDay(now.toISOString()) ? fmtTime(iso) : fmtDate(iso));
 
 /** Fit score from decisions, or NaN (the fit pill reads "—") when there is no ok score. */
-const fitOf = (d: DecisionsResponse | null | undefined): { score: number; reasoning: string } | null => {
+export const decisionFit = (d: DecisionsResponse | null | undefined): { score: number; reasoning: string } | null => {
   const f = d?.fields.fitScore;
   return isOk(f) && Number.isFinite(Number(f.value)) ? { score: Math.round(Number(f.value)), reasoning: f.reasoning } : null;
 };
 
 export function toWorkRow(k: KnownDeal, now: Date = new Date()): WorkRow {
-  const fit = fitOf(k.decisions);
+  const fit = decisionFit(k.decisions);
   const c = k.research?.company;
   const name = c?.name ?? k.domain;
   const sector = c?.categories[0] ?? c?.industries[0] ?? "—";
@@ -116,6 +116,16 @@ export function pipelineWorkRow(d: PipelineDealRow, now: Date = new Date()): Wor
     href: d.href,
     when: whenLabel(d.at, now),
   };
+}
+
+export type LiveRow = { row: WorkRow; at: string; source: "worked" | PipelineDealRow["source"]; deal?: KnownDeal };
+/** Known deals first (newest activity first), then pipeline companies not already known. */
+export function liveRows(deals: KnownDeal[], pipeline: PipelineDealRow[], now: Date): LiveRow[] {
+  const known = new Set(deals.map((k) => k.domain));
+  return [
+    ...deals.map((k) => ({ row: toWorkRow(k, now), at: k.lastAt, source: "worked" as const, deal: k })),
+    ...pipeline.filter((d) => !known.has(d.domain)).map((d) => ({ row: pipelineWorkRow(d, now), at: d.at, source: d.source })),
+  ];
 }
 
 /* ── inbound (Gmail, pitch-like threads, counts only) ── */
@@ -212,9 +222,8 @@ const WAITING: WaitingItem[] = [
 ];
 
 export function toTodaySummary(x: TodayInputs): TodaySummaryData {
-  const known = new Set(x.deals.map((k) => k.domain));
-  const rows = [...x.deals.map((k) => toWorkRow(k, x.now)), ...(x.pipeline ?? []).filter((d) => !known.has(d.domain)).map((d) => pipelineWorkRow(d, x.now))];
-  const unscored = x.deals.filter((k) => !fitOf(k.decisions)).length;
+  const rows = liveRows(x.deals, x.pipeline ?? [], x.now).map((r) => r.row);
+  const unscored = x.deals.filter((k) => !decisionFit(k.decisions)).length;
   const parts = [
     x.open ? `${x.open} decision${x.open === 1 ? "" : "s"} wait for you in Review.` : "Nothing waits for you in Review.",
     unscored ? `${unscored} researched deal${unscored === 1 ? " has" : "s have"} no fit score yet.` : "",

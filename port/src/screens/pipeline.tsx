@@ -110,7 +110,7 @@ function MixCard({ d }: { d: PipelineTableData }) {
           {d.stages.map((s, i) => { const c = d.conversion[i], low = c && c.rate < c.firmAvg; return (
             <div key={s.id} className="contents">
               <div className="min-w-0 flex-1">
-                <Blocks n={SEG} on={Math.max(1, Math.ceil((s.count / max) * SEG))} h={22} r={6} tone={leak.has(s.id) ? "bg-rust" : "bg-ink"} delay={0.2 + 0.06 * i} />
+                <Blocks n={SEG} on={s.count ? Math.max(1, Math.ceil((s.count / max) * SEG)) : 0} h={22} r={6} tone={leak.has(s.id) ? "bg-rust" : "bg-ink"} delay={0.2 + 0.06 * i} />
                 <div className="mt-2.5 flex min-w-0 items-baseline gap-1.5"><span className={cx("numeral text-[20px] leading-none", leak.has(s.id) && "text-rust")}><Count to={s.count} /></span><span title={s.label} className="truncate text-[11.5px] text-zinc-500">{s.short ?? s.label}</span></div>
               </div>
               {c && <div className="flex w-[54px] shrink-0 flex-col items-center">

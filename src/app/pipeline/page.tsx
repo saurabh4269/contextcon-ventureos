@@ -6,6 +6,8 @@ import { PipelineTableScreen, PipelineBoardScreen, WatchlistScreen } from "@port
 import { shellInvest, pipelineTable, pipelineBoard, watchlist, pipelineHandoff } from "@port/fixtures";
 import type { PipelineDeal } from "@port/types";
 import { usePipelineDeals } from "@/live/usePipelineDeals";
+import { useDataMode } from "@/components/datamode";
+import { LivePipelineTable } from "@/live/pipelineTable";
 
 export default function Pipeline({ searchParams }: { searchParams: Promise<{ view?: string; board?: string; handoff?: string; frame?: string; status?: "loading" | "empty" | "error"; stage?: string; q?: string; sel?: string }> }) {
   const q = use(searchParams);
@@ -19,7 +21,7 @@ export default function Pipeline({ searchParams }: { searchParams: Promise<{ vie
       stage: "sourced",
       nextStep: "Open deal",
       owner: "",
-      thesisFit: 0,
+      thesisFit: NaN, // not scored: the fit pill reads "—"
       intro: { strength: 1, via: d.source === "inbound" ? "Inbox" : "Research" },
       lastTouch: { label: "Inbox", days: 0 },
       sector: d.source === "inbound" ? "Inbound" : "Researched",
@@ -31,6 +33,9 @@ export default function Pipeline({ searchParams }: { searchParams: Promise<{ vie
   const openDeal = (id: string) => {
     router.push(id.includes(".") ? `/deal?domain=${encodeURIComponent(id)}` : `/deal?id=${encodeURIComponent(id)}`);
   };
+  const mode = useDataMode();
+  // Live mode, plain table (no fixture view/board/status param): only real rows, no fixture deals mixed in.
+  if (mode === "live" && !q.view && !q.board && !q.handoff && !q.frame && !q.status) return <LivePipelineTable pipeline={live} filter={q.stage} query={q.q} onOpenDeal={openDeal} />;
   if (q.view === "watchlist") return <WatchlistScreen shell={shellInvest} data={watchlist} />;
   if (q.board) return <PipelineBoardScreen shell={shellInvest} data={q.handoff ? pipelineHandoff(Number(q.handoff)) : pipelineBoard} onMoveStage={(id, to) => setLog((l) => [...l, id + "→" + to])} onOpenDeal={openDeal} />;
   return <PipelineTableScreen shell={shellInvest} data={data} status={q.status} filter={q.stage} query={q.q} selected={q.sel?.split(",")} onOpenDeal={openDeal} />;
