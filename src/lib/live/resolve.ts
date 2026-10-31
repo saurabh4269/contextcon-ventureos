@@ -105,6 +105,7 @@ const call = <T>(body: unknown, meta: CrustdataCallMeta, status: LiveCall["statu
   cached: meta.cached,
   retrievedAt: meta.retrievedAt,
   creditsUsed: meta.creditsUsed,
+  ...(meta.keyUsed === "backup" ? { note: meta.keyNote } : {}),
   ...(meta.stale ? { stale: true, note: meta.staleNote } : {}),
   ...(data === undefined ? {} : { data }),
 });

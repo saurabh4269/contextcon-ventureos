@@ -21,6 +21,7 @@ const fromMeta = <T>(spec: CallSpec, meta: CrustdataCallMeta, status: LiveCall["
   cached: meta.cached,
   retrievedAt: meta.retrievedAt,
   creditsUsed: meta.creditsUsed,
+  ...(meta.keyUsed === "backup" ? { note: meta.keyNote } : {}),
   ...(meta.stale ? { stale: true, note: meta.staleNote } : {}),
   ...(data === undefined ? {} : { data }),
 });

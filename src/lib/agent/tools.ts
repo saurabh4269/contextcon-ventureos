@@ -221,7 +221,7 @@ export async function runTool(ctx: ToolContext, registry: Map<string, ToolDef>, 
     const x = await def.execute(input, ctx.client);
     const used = x.meta.creditsUsed != null && x.meta.creditsUsed !== "" && Number.isFinite(Number(x.meta.creditsUsed)) ? Number(x.meta.creditsUsed) : null;
     ctx.raw.set(ref, x.data);
-    ctx.ledger.push({ ref, tool, method: x.method, path: x.path, body: x.body, status: "ok", creditsUsed: x.meta.cached ? 0 : used, creditsEstimated: est, retrievedAt: x.meta.retrievedAt, cached: x.meta.cached, ms: Date.now() - t0, ...rowsOf(x.data) });
+    ctx.ledger.push({ ref, tool, method: x.method, path: x.path, body: x.body, status: "ok", creditsUsed: x.meta.cached ? 0 : used, creditsEstimated: est, retrievedAt: x.meta.retrievedAt, cached: x.meta.cached, ms: Date.now() - t0, ...rowsOf(x.data), ...(x.meta.keyUsed === "backup" ? { key: "backup" as const, note: x.meta.keyNote } : {}) });
     const total = creditsSpent(ctx.ledger);
     const credits = { this_call: used ?? est, used_so_far: total, remaining: Math.max(0, Math.round((ctx.creditCap - total) * 100) / 100) };
     return { ref, content: JSON.stringify({ ref, endpoint: `${x.method} ${x.path}`, credits, response: prune(x.data) }) };

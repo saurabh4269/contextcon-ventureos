@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { checkEnv, format, formatJson, hasFailures, parseCredits, redact, runPings, type CheckResult, type Env } from "./preflight";
+import { checkEnv, format, formatJson, hasFailures, parseCredits, redact, runPings, SECRET_ENV, type CheckResult, type Env } from "./preflight";
 
 const SECRET = "sk-fake-secret-1234567890";
 const full: Env = { CRUSTDATA_API_KEY: SECRET, ANTHROPIC_API_KEY: "sk-ant-fake-abcdef", DATABASE_URL: "postgres://u:pw-fake-xyz@h/db" };
@@ -32,13 +32,27 @@ describe("preflight env checks", () => {
     expect(byId(checkEnv({ CRUSTDATA_API_KEY: "c", OPENAI_API_KEY: "  " }), "env.model").status).toBe("fail");
   });
 
-  it("OUTBOUND_MODE must be unset or dry_run", () => {
+  it("OUTBOUND_MODE: unset/dry_run pass, live warns with the allowlist, anything else fails", () => {
     expect(byId(checkEnv({ ...full }), "env.outbound").status).toBe("pass");
     expect(byId(checkEnv({ ...full, OUTBOUND_MODE: "dry_run" }), "env.outbound").status).toBe("pass");
-    expect(byId(checkEnv({ ...full, OUTBOUND_MODE: "live" }), "env.outbound")).toMatchObject({ status: "fail", detail: expect.stringMatching(/^live/) });
+    expect(byId(checkEnv({ ...full, OUTBOUND_MODE: "live" }), "env.outbound")).toMatchObject({ status: "warn", detail: expect.stringContaining("you@example.com") });
+    expect(byId(checkEnv({ ...full, OUTBOUND_LIVE: "1", DEMO_RECIPIENT_ALLOWLIST: "a@x.com" }), "env.outbound")).toMatchObject({ status: "warn", detail: expect.stringMatching(/^live \(OUTBOUND_LIVE\).*only to a@x\.com/) });
     const odd = byId(checkEnv({ ...full, OUTBOUND_MODE: "sendit-now" }), "env.outbound");
     expect(odd).toMatchObject({ status: "fail", detail: expect.stringContaining("unexpected value") });
     expect(odd.detail).not.toContain("sendit");
+  });
+});
+
+describe("preflight: backup key and stored Google sign-in", () => {
+  it("backup Crustdata key is optional (warn when missing)", () => {
+    expect(byId(checkEnv({ ...full }), "env.crustdata_backup").status).toBe(full.CRUSTDATA_API_KEY_BACKUP ? "pass" : "warn");
+    expect(byId(checkEnv({ ...full, CRUSTDATA_API_KEY_BACKUP: "b" }), "env.crustdata_backup").status).toBe("pass");
+    expect(SECRET_ENV).toContain("CRUSTDATA_API_KEY_BACKUP");
+  });
+  it("a stored sign-in stands in for GOOGLE_REFRESH_TOKEN", () => {
+    const env = { CRUSTDATA_API_KEY: "c", OPENAI_API_KEY: "o", GOOGLE_CLIENT_ID: "i", GOOGLE_CLIENT_SECRET: "s" };
+    expect(byId(checkEnv(env), "env.google")).toMatchObject({ status: "warn", detail: expect.stringContaining("not signed in") });
+    expect(byId(checkEnv(env, { googleStored: true }), "env.google")).toMatchObject({ status: "pass", detail: expect.stringContaining("signed in from Settings") });
   });
 });
 

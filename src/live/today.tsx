@@ -85,16 +85,27 @@ function BookCall({ onBooked }: { onBooked: () => void }) {
   const [start, setStart] = useState("");
   const [mins, setMins] = useState(DURATIONS[1]!);
   const [msg, setMsg] = useState<string | null>(null);
+  const [pending, setPending] = useState<{ body: Record<string, unknown>; token: string; when: string } | null>(null);
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !start) return setMsg("Add a title and a start time.");
     // <input type="datetime-local"> is the browser's local wall time; convert to an absolute UTC instant
     const s = new Date(start), end = new Date(s.getTime() + mins * 60_000);
-    const r = await fetch("/api/connectors/calendar/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ summary: title.trim(), start: s.toISOString(), end: end.toISOString() }) });
+    const body = { summary: title.trim(), start: s.toISOString(), end: end.toISOString() };
+    // step 1: preview → approval token; step 2 is the explicit "Approve & book" click below
+    const r = await fetch("/api/connectors/calendar/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...body, action: "preview" }) });
+    const j = (await r.json().catch(() => null)) as { message?: string; approval?: { token: string } } | null;
+    if (!r.ok || !j?.approval) return setMsg(`Not booked (HTTP ${r.status}): ${j?.message ?? r.statusText}`);
+    setPending({ body, token: j.approval.token, when: fmtDateTime(s.toISOString()) }); setMsg(null);
+  };
+  const approve = async () => {
+    if (!pending) return;
+    const r = await fetch("/api/connectors/calendar/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ ...pending.body, approvalToken: pending.token }) });
     const j = (await r.json().catch(() => null)) as { message?: string; transport?: string; label?: string } | null;
+    setPending(null);
     if (!r.ok) return setMsg(`Not booked (HTTP ${r.status}): ${j?.message ?? r.statusText}`);
-    if (j?.transport === "dry_run") return setMsg(`${j.label}: would book “${title.trim()}” for ${fmtDateTime(s.toISOString())}.`);
-    setMsg(`Booked for ${fmtDateTime(s.toISOString())}.`); setTitle(""); setStart(""); onBooked();
+    if (j?.transport === "dry_run") return setMsg(`${j.label}: would book “${String(pending.body.summary)}” for ${pending.when}.`);
+    setMsg(`Booked for ${pending.when}.`); setTitle(""); setStart(""); onBooked();
   };
   if (!open) return <button type="button" onClick={() => setOpen(true)} className="mt-3 h-8 max-sm:h-10 rounded-full bg-white px-3.5 text-[12.5px] font-medium ring-1 ring-zinc-200 hover:text-ink">Book a call</button>;
   return (
@@ -105,6 +116,7 @@ function BookCall({ onBooked }: { onBooked: () => void }) {
         <select aria-label="Duration" value={mins} onChange={(e) => setMins(Number(e.target.value))} className="h-8 max-sm:h-10 rounded-lg bg-white px-2 text-[12.5px] ring-1 ring-zinc-200">{DURATIONS.map((d) => <option key={d} value={d}>{d} min</option>)}</select>
       </div>
       <div className="flex items-center gap-2"><button type="submit" className="h-8 max-sm:h-10 rounded-full bg-ink px-3.5 text-[12.5px] font-medium text-white hover:bg-zinc-800">Book</button><button type="button" onClick={() => setOpen(false)} className="h-8 max-sm:h-10 px-2 text-[12.5px] text-zinc-500">Cancel</button><span className="text-[11.5px] text-zinc-500">Dry run unless the server allows outbound; no invitations either way.</span></div>
+      {pending && <div className="flex items-center gap-2 rounded-lg bg-white p-2 ring-1 ring-zinc-200" data-testid="book-call-approve"><span className="min-w-0 flex-1 text-[12px] text-zinc-600">Book “{String(pending.body.summary)}” for {pending.when}?</span><button type="button" onClick={() => void approve()} className="h-8 max-sm:h-10 rounded-full bg-ink px-3.5 text-[12.5px] font-medium text-white">Approve &amp; book</button><button type="button" onClick={() => setPending(null)} className="h-8 px-2 text-[12.5px] text-zinc-500">Cancel</button></div>}
       {msg && <p role="status" className="text-[12px] text-zinc-600">{msg}</p>}
     </form>
   );

@@ -1,7 +1,7 @@
 import { withCompanyEnrichFields } from "./enrich-fields";
 import { buildWatchCompanyBody } from "./watch-body";
 import { CrustdataConfigError } from "./mode";
-import { crustdataFetch, RateLimiter, CRUSTDATA_BASE_URL, CRUSTDATA_API_VERSION } from "./http";
+import { CrustdataApiError, crustdataFetch, RateLimiter, CRUSTDATA_BASE_URL, CRUSTDATA_API_VERSION } from "./http";
 import { cacheKey, type ResponseCache } from "./cache";
 import { staleFallback } from "./stale";
 import { CircuitBreaker } from "@/lib/resilience/breaker";
@@ -23,6 +23,8 @@ import type {
 
 export type CrustdataClientOptions = {
   apiKey?: string;
+  /** Second key (default CRUSTDATA_API_KEY_BACKUP): used automatically once the primary is out of credits. */
+  backupApiKey?: string;
   /** Transport override (tests inject a fetch that serves checked-in captures). Defaults to global fetch. */
   fetchImpl?: typeof fetch;
   /** Cache for successful live responses (read-only calls only; never watch create/delete). */
@@ -32,8 +34,20 @@ export type CrustdataClientOptions = {
   /** Backoff sleep override (tests pass a no-op so retries run instantly). */
   sleep?: (ms: number) => Promise<void>;
   /** Called once per live network call (not for cache hits). Never receives the API key. */
-  onLiveCall?: (e: { method: string; path: string; status: "ok" | "error"; creditsUsed: string | null; latencyMs: number; error?: string }) => void;
+  onLiveCall?: (e: { method: string; path: string; status: "ok" | "error"; creditsUsed: string | null; latencyMs: number; error?: string; key?: CrustdataKeyLabel }) => void;
 };
+
+export type CrustdataKeyLabel = "primary" | "backup";
+export const BACKUP_KEY_NOTE = "Primary Crustdata key out of credits; served with the backup key (CRUSTDATA_API_KEY_BACKUP)";
+
+/** Out of credits / quota (not a transient rate limit): 402 always; 429 or 403 only when the body says credits/quota. */
+export function isQuotaError(e: unknown): boolean {
+  if (!(e instanceof CrustdataApiError)) return false;
+  if (e.status === 402) return true;
+  if (e.status !== 429 && e.status !== 403) return false;
+  const text = `${e.message} ${JSON.stringify(e.body ?? "")}`;
+  return /credit|quota|insufficient|exhaust|balance|payment|plan limit/i.test(text);
+}
 
 type Result<T> = { data: T; meta: CrustdataCallMeta };
 
@@ -41,6 +55,9 @@ const today = () => new Date().toISOString().slice(0, 10); // UTC date of retrie
 
 export class CrustdataClient {
   private readonly apiKey: string;
+  private readonly backupApiKey: string | null;
+  /** Sticky: once the primary key runs out of credits every later call uses the backup. */
+  private keyInUse: CrustdataKeyLabel = "primary";
   private readonly fetchImpl?: typeof fetch;
   private readonly limiter = new RateLimiter();
   private readonly cache?: ResponseCache;
@@ -52,6 +69,8 @@ export class CrustdataClient {
     const key = (opts.apiKey ?? process.env.CRUSTDATA_API_KEY)?.trim();
     if (!key) throw new CrustdataConfigError("Crustdata is not configured: set CRUSTDATA_API_KEY.");
     this.apiKey = key;
+    const backup = (opts.backupApiKey ?? process.env.CRUSTDATA_API_KEY_BACKUP)?.trim();
+    this.backupApiKey = backup && backup !== key ? backup : null;
     this.fetchImpl = opts.fetchImpl;
     this.cache = opts.cache;
     this.onLiveCall = opts.onLiveCall;
@@ -88,20 +107,33 @@ export class CrustdataClient {
       }
     }
     const t0 = Date.now();
-    try {
-      const { data, creditsUsed, requestId } = await crustdataFetch<T>(
-        this.apiKey,
+    const call = (label: CrustdataKeyLabel) =>
+      crustdataFetch<T>(
+        label === "backup" && this.backupApiKey ? this.backupApiKey : this.apiKey,
         path,
         { method, ...(body === undefined ? {} : { body: JSON.stringify(body) }) },
         this.limiter,
         { timeoutMs, retries, fetchImpl: this.fetchImpl, breaker: this.breaker, sleep: this.sleep, deadlineMs: remainingMs() },
       );
+    try {
+      let label = this.keyInUse;
+      let res: Awaited<ReturnType<typeof call>>;
+      try {
+        res = await call(label);
+      } catch (e) {
+        if (label !== "primary" || !this.backupApiKey || !isQuotaError(e)) throw e;
+        this.onLiveCall?.({ method, path, status: "error", creditsUsed: null, latencyMs: Date.now() - t0, error: `primary key out of credits (${(e as CrustdataApiError).status}); switching to CRUSTDATA_API_KEY_BACKUP`, key: "primary" });
+        this.keyInUse = label = "backup";
+        res = await call(label);
+      }
+      const { data, creditsUsed, requestId } = res;
       const latencyMs = Date.now() - t0;
-      this.onLiveCall?.({ method, path, status: "ok", creditsUsed, latencyMs });
+      this.onLiveCall?.({ method, path, status: "ok", creditsUsed, latencyMs, key: label });
       if (key && this.cache) await this.cache.set(key, { data, creditsUsed, requestId, latencyMs, storedAt: Date.now() });
-      return { data, meta: { path, creditsUsed, requestId, asOf: today(), retrievedAt: new Date().toISOString(), latencyMs, cached: false } };
+      const keyMeta = label === "backup" ? { keyUsed: label, keyNote: BACKUP_KEY_NOTE } : {};
+      return { data, meta: { path, creditsUsed, requestId, asOf: today(), retrievedAt: new Date().toISOString(), latencyMs, cached: false, ...keyMeta } };
     } catch (e) {
-      this.onLiveCall?.({ method, path, status: "error", creditsUsed: null, latencyMs: Date.now() - t0, error: e instanceof Error ? e.message : String(e) });
+      this.onLiveCall?.({ method, path, status: "error", creditsUsed: null, latencyMs: Date.now() - t0, error: e instanceof Error ? e.message : String(e), key: this.keyInUse });
       const stale = await staleFallback(this.cache, key, path, e);
       if (stale) return { data: stale.data as T, meta: stale.meta };
       throw e;

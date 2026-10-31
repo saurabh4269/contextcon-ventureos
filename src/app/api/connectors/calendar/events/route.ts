@@ -2,11 +2,13 @@
 // POST /api/connectors/calendar/events {summary, start, end, description?, attendees?} → 201 { status:"ok", event }
 //      (book-call flow). With OUTBOUND_MODE=dry_run (default) nothing is written: 200 {transport:"dry_run", wouldSend}.
 //      Live mode inserts with sendUpdates=none. Both append to memory ("meeting.dry_run" / "meeting.booked").
+//      {action:"preview", …} returns the draft + a single-use approval token. Live inserts need that token
+//      (approvalToken, 428 without it) and every attendee must be on DEMO_RECIPIENT_ALLOWLIST (403 otherwise).
 import { NextResponse } from "next/server";
 import { insertEvent, listUpcoming } from "@/lib/google/calendar";
 import { NO_STORE, withGoogle } from "@/lib/google/route";
 import { recordMemory } from "@/lib/memory/store";
-import { dryRun, outboundMode } from "@/lib/outbound";
+import { checkRecipients, consumeApproval, createApproval, dryRun, outboundMode } from "@/lib/outbound";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,7 +23,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const b = (await req.json().catch(() => null)) as { summary?: unknown; start?: unknown; end?: unknown; description?: unknown; attendees?: unknown } | null;
+  const b = (await req.json().catch(() => null)) as { action?: unknown; approvalToken?: unknown; summary?: unknown; start?: unknown; end?: unknown; description?: unknown; attendees?: unknown } | null;
   const bad = (message: string) => NextResponse.json({ status: "error", message }, { status: 400 });
   if (!b || typeof b !== "object" || Array.isArray(b)) return bad("body must be a JSON object {summary, start, end, description?, attendees?}");
   if (typeof b.summary !== "string" || !b.summary.trim() || b.summary.length > MAX_SUMMARY) return bad(`summary is required (≤ ${MAX_SUMMARY} chars)`);
@@ -33,10 +35,19 @@ export async function POST(req: Request) {
   if (attendees.length > MAX_ATTENDEES) return bad(`at most ${MAX_ATTENDEES} attendees`);
   if (!attendees.every((a) => typeof a === "string" && EMAIL.test(a))) return bad("attendees must be email addresses");
   const draft = { calendar: "primary", summary: b.summary as string, start: new Date(b.start as string).toISOString(), end: new Date(b.end as string).toISOString(), attendees: attendees as string[], sendUpdates: "none" };
-  if (outboundMode() === "dry_run") {
+  const mode = outboundMode();
+  if (draft.attendees.length) {
+    const rc = checkRecipients(draft.attendees);
+    if (!rc.ok) return NextResponse.json({ status: "blocked", message: rc.message, blocked: rc.blocked, allowlist: rc.allowlist }, { status: 403, headers: NO_STORE });
+  }
+  const approvalPayload = { ...draft, description: typeof b.description === "string" ? b.description : null };
+  if (b.action === "preview") return NextResponse.json({ status: "ok", mode, draft, approval: createApproval("google_calendar.events.insert", approvalPayload) }, { headers: NO_STORE });
+  if (mode === "dry_run") {
     await recordMemory({ kind: "meeting.dry_run", actor: { type: "user" }, subject: null, summary: `Dry run: would book “${draft.summary}” (not sent)`, data: { start: draft.start, end: draft.end, attendees: draft.attendees.length }, source: "api:/api/connectors/calendar/events" });
     return NextResponse.json(dryRun("google_calendar.events.insert", draft), { status: 200, headers: NO_STORE });
   }
+  const ap = consumeApproval(b.approvalToken, "google_calendar.events.insert", approvalPayload);
+  if (!ap.ok) return NextResponse.json({ status: "not_approved", reason: ap.reason, message: ap.message }, { status: 428, headers: NO_STORE });
   return withGoogle(async (cfg) => {
     const event = await insertEvent(cfg, { summary: b.summary as string, start: new Date(b.start as string).toISOString(), end: new Date(b.end as string).toISOString(), description: typeof b.description === "string" ? b.description : undefined, attendees: attendees as string[] });
     await recordMemory({ kind: "meeting.booked", actor: { type: "user" }, subject: { type: "event", id: event.id, label: event.summary }, summary: `Booked “${event.summary}”`, data: { start: event.start, end: event.end, attendees: event.attendees }, source: "api:/api/connectors/calendar/events" });

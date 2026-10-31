@@ -15,6 +15,7 @@ import { liveShell } from "./shell";
 import { failureMessage, useLiveJson } from "./useLiveJson";
 import { UnavailablePage } from "./unavailable";
 import { ResearchForm } from "./deal";
+import { Outreach } from "./outreach";
 
 const str = (v: unknown) => String(v);
 const pts = (v: unknown) => `${fmtInt(v)} / 100`;
@@ -42,6 +43,8 @@ function MemoFor({ id }: { id: string }) {
   );
   const f = res.data.fields;
   const drafted = isOk(f.icMemoValuation) && isOk(f.diligenceVerdict);
+  // email body = the memo's own computed values (unavailable ones say so, never a placeholder number)
+  const summary = [`IC memo · ${res.data.dealId}`, "", ...ROWS.flatMap((g) => [`${g.group}`, ...g.rows.map(([k, label, fmt]) => { const v = f[k]; return `  ${label}: ${isOk(v) ? fmt(v.value) : "unavailable"}`; }), ""]), `Open: /memo?id=${res.data.dealId}`].join("\n");
   return (
     <Page active="pipeline" shell={liveShell} top={top}>
       <div className="mx-auto w-full max-w-[720px] px-6 pt-8 pb-16 max-lg:pb-24 @max-[720px]/main:px-4 @max-[720px]/main:pt-5" data-testid="memo">
@@ -54,6 +57,7 @@ function MemoFor({ id }: { id: string }) {
             {g.rows.map(([k, label, fmt]) => <FieldRow key={k} label={label} f={f[k]} fmt={fmt} testId={`memo-field-${k}`} />)}
           </section>
         ))}
+        <Outreach dealId={res.data.dealId} summary={summary} />
         <p className="mt-4 text-[12px] text-zinc-400">Source: GET /api/deals/{res.data.dealId}/decisions · <Link href={`/deal?domain=${encodeURIComponent(res.data.companyDomain)}`} className="underline max-sm:inline-block max-sm:py-3">open the deal</Link></p>
       </div>
     </Page>

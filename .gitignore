@@ -20,3 +20,10 @@ a16z/
 
 # Local Claude Code settings
 .claude/
+
+# Local Google sign-in saved by Settings › Connectors (refresh token)
+.dealdesk/
+
+# Demo env bundle
+demo-kit/
+dealdesk.env

@@ -13,7 +13,7 @@ export type ToolExecution = {
   path: string; // Crustdata endpoint, e.g. "/company/search"
   body: Record<string, unknown>;
   data: unknown; // raw Crustdata response
-  meta: { creditsUsed: string | null; retrievedAt: string; cached: boolean };
+  meta: { creditsUsed: string | null; retrievedAt: string; cached: boolean; keyUsed?: "primary" | "backup"; keyNote?: string };
 };
 
 /**
@@ -47,6 +47,9 @@ export type LedgerCall = {
   totalCount?: number | null;
   error?: string;
   upstreamStatus?: number;
+  /** "backup" when the primary Crustdata key was out of credits and CRUSTDATA_API_KEY_BACKUP served this call */
+  key?: "backup";
+  note?: string;
 };
 
 // ── Result ───────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -115,7 +118,7 @@ export type ScreenEvent =
   | { type: "thinking"; step: number } // a model turn started
   | { type: "plan"; step: number; text: string } // model narration: plan, verification, relax/re-query decisions
   | { type: "tool_call"; step: number; ref: string; tool: string; endpoint: string; input: Record<string, unknown>; estCredits: number }
-  | { type: "tool_result"; step: number; ref: string; tool: string; status: LedgerCall["status"]; rows?: number; totalCount?: number | null; creditsUsed: number | null; ms: number; error?: string }
+  | { type: "tool_result"; step: number; ref: string; tool: string; status: LedgerCall["status"]; rows?: number; totalCount?: number | null; creditsUsed: number | null; ms: number; error?: string; key?: "backup" }
   | { type: "verify"; text: string; stats: ScreenResult["citationStats"] } // server-side citation check
   | { type: "final"; result: ScreenResult }
   | { type: "model_unavailable"; message: string }
