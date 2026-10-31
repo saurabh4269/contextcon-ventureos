@@ -9,13 +9,13 @@ report an error as "no match".**
 | Failure | What happens |
 |---|---|
 | 500 / 502 / 503 / 504 | Retried up to 2× with full-jitter exponential backoff (≈250 ms + 0–400 ms, then + 0–800 ms), **read endpoints only** |
-| Timeout (30 s per attempt) / connection error | Same retries for reads. A write (`POST /watch/company`, `DELETE /watch/company/:id`) is never replayed once it may have reached Crustdata; a write that never connected is retried once |
+| Timeout (30 s per attempt) / connection error | Same retries for reads. A write (`POST /watch/company`, `DELETE /watch/company/:id`) is never replayed once it may have reached Crustdata (any response, a reset, a body that dies mid-read); it is resent once only when the connection provably never opened (`ECONNREFUSED`, `ENOTFOUND`, `EAI_AGAIN`) |
 | 2xx that is not JSON (HTML error page, truncated body, empty body) | Treated as an outage (retried), then `CrustdataMalformedResponseError`. Never parsed into data, never "no match" |
 | 429 | Waits `Retry-After` / `X-RateLimit-Reset` (≤ 15 s total, ≤ 3 retries), then a 429 failure with `retry in N s` |
 | 400 / 401 / 403 / 404 / 422 | Not retried: these are answers. 401/403 say "Crustdata rejected the request" so an operator fixes the key |
-| Repeated outages on one route | **Circuit breaker** (per route, 4 consecutive outages → open 30 s). Calls fail fast instead of waiting on a dead upstream; one half-open trial call after the cooldown. 4xx and 429 never trip it |
+| Repeated outages on one route | **Circuit breaker** (per route, 4 consecutive outages — 5xx, timeouts, transport errors, malformed 2xx — → open 30 s). Calls fail fast instead of waiting on a dead upstream; one half-open trial call after the cooldown. 4xx and 429 never trip it |
 | Crustdata down and a previous response exists | **Stale-cache fallback**: the last good response (up to 7 days old) is served with `meta.stale = true` and the note `Crustdata unavailable (HTTP 503); showing the response cached at 31 Oct 2026, 13:00 IST`. Its `retrievedAt` is the original fetch time, so every citation stays truthful. Answers (4xx) are never served stale |
-| Slow everything | **Per-route deadline** (AsyncLocalStorage): every call made by a `/api/live/*` route (incl. retries and backoff) stops at 40 s (research: 55 s, under `maxDuration` 60). Parallel calls that run out of time become `unavailable` gaps; the rest of the run is still returned |
+| Slow everything | **Per-route deadline** (AsyncLocalStorage): every call made by a `/api/live/*` route (incl. retries and backoff) stops at 40 s (research: 55 s, under `maxDuration` 60). Parallel calls that run out of time become `unavailable` gaps; the rest of the run is still returned. The local rate limiter never waits past the deadline either |
 
 Read endpoints (replayable): `/company/{identify,enrich,search,search/autocomplete}`, `/person/{identify,enrich,search,search/autocomplete}`,
 `/job/search`, `/web/{search,enrich}/live`, and any `GET`. A replay after a timeout may bill a read twice; retries are bounded.

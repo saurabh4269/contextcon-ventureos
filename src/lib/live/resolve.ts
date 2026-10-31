@@ -114,12 +114,21 @@ const identifyData = (c: Suggestion): IdentifyData => ({ id: c.companyId, name: 
 const didYouMean = (s: Suggestion[]) =>
   s.length ? ` Did you mean ${s.map((x) => (x.domain ? `${x.name ?? x.domain} (${x.domain})` : x.name ?? `#${x.companyId}`)).join(", ")}?` : "";
 
+/** The label a company is named after: "app.razorpay.com" → "razorpay", "flipkart.co.in" → "flipkart", "strpe.com" → "strpe". */
+export function brandLabel(domain: string): string {
+  const labels = domain.split(".");
+  labels.pop(); // TLD
+  // second-level public suffixes such as co.in, com.au, co.uk
+  if (labels.length >= 2 && labels.at(-1)!.length <= 3 && /^(co|com|net|org|ac|gov|edu|ltd|plc)$/.test(labels.at(-1)!)) labels.pop();
+  return labels.at(-1) ?? domain;
+}
+
 /**
  * "Did you mean" for a domain with no identify match: identify the first label as a name (0 credits). Suggestions
  * only, never auto-picked. Best effort — if this lookup fails, the honest no_match still stands (the call says why).
  */
 export async function suggestForDomain(client: CrustdataClient, domain: string): Promise<{ suggestions: Suggestion[]; message: string; suggest: LiveCall }> {
-  const sBody = { names: [domain.split(".")[0]!], exact_match: false };
+  const sBody = { names: [brandLabel(domain)], exact_match: false };
   const t0 = Date.now();
   try {
     const sRes = await client.identifyCompany(sBody);

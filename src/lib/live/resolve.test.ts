@@ -249,3 +249,16 @@ describe("resolveCompany on a broken identify body", () => {
     await expect(resolveCompany(client, { kind: "domain", domain: "razorpay.com", raw: "razorpay.com" })).rejects.toThrow(/not the documented top-level array/);
   });
 });
+
+describe("brandLabel", () => {
+  it.each([
+    ["strpe.com", "strpe"],
+    ["app.razorpay.com", "razorpay"],
+    ["flipkart.co.in", "flipkart"],
+    ["shop.example.com.au", "example"],
+    ["e2b.dev", "e2b"],
+  ])("%s → %s", async (domain, label) => {
+    const { brandLabel } = await import("./resolve");
+    expect(brandLabel(domain)).toBe(label);
+  });
+});
