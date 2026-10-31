@@ -10,7 +10,7 @@ import { DealScreen } from "@port/screens/deal";
 import { Page, TopBar } from "@port/components/shell";
 import { Btn } from "@port/components/ui";
 import type { LoadStatus, ShellData } from "@port/types";
-import { noMatchSignals, placeholderDeal, toLiveDeal, toValuationSection, withDecisionFit } from "@/lib/adapters/deal";
+import { noMatchSignals, placeholderDeal, toLiveDeal, toValuationSection, withDecisionFit, withFitPending } from "@/lib/adapters/deal";
 import type { ResearchResult } from "@/lib/live/types";
 import type { DecisionsResponse } from "@/lib/numbers/decisions";
 import type { DealSection } from "@port/types";
@@ -45,7 +45,7 @@ function LiveDealFor({ shell, domain, tab }: { shell: ShellData; domain: string;
   }, [ok]);
 
   const research = ok ? toLiveDeal(ok) : null;
-  const base = research ? (val.state === "ok" ? withDecisionFit(research, val.data.fields) : research) : noMatch ? { ...placeholderDeal(domain), signals: noMatchSignals(domain, noMatch.calls.identify, noMatch.requestedAt) } : placeholderDeal(domain);
+  const base = research ? (val.state === "ok" ? withDecisionFit(research, val.data.fields) : val.state === "loading" ? withFitPending(research) : research) : noMatch ? { ...placeholderDeal(domain), signals: noMatchSignals(domain, noMatch.calls.identify, noMatch.requestedAt) } : placeholderDeal(domain);
   const data = ok && val.state === "ok"
     ? { ...base, sections: { ...base.sections, valuation: withReviewNote(toValuationSection(val.data.fields), val.data.review?.open.length ?? 0) }, outline: [...base.outline, { id: "valuation", label: "Valuation", state: "warn" as const }] }
     : base;

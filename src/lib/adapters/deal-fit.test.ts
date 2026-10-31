@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { ok, unavailable, type ComputedField } from "@/lib/fields";
 import { researchCompany } from "@/lib/live/research";
 import type { ResearchResult } from "@/lib/live/types";
-import { fitContributions, toLiveDeal, withDecisionFit } from "./deal";
+import { fitContributions, toLiveDeal, withDecisionFit, withFitPending } from "./deal";
 
 const now = new Date("2026-10-31T06:00:00Z");
 const cite = { source: "Crustdata", endpoint: "POST /company/enrich", path: "[0].matches[0].company_data.taxonomy", retrievedAt: "2026-10-31T05:00:00.000Z" };
@@ -79,5 +79,14 @@ describe("withDecisionFit", () => {
     const d = withDecisionFit(await deal(), fields({ fitScore: unavailable("No firm mandate is set.") }));
     expect(d.header.fit).toBeUndefined();
     expect(d.signals!.fit.unscored!.reason).toMatch(/mandate/);
+  });
+});
+
+describe("withFitPending", () => {
+  it("while decisions load the tile is pending (\"…\"), with no base number", async () => {
+    const d = withFitPending(await deal());
+    expect(d.signals!.fit.unscored).toEqual({ reason: "Scoring against the firm mandate…", pending: true });
+    expect(d.signals!.fit.base.value).toBeNull();
+    expect(d.header.fit).toBeUndefined();
   });
 });

@@ -884,7 +884,7 @@ export interface SignalGraphData {
   fit: {
     label: string;
     /** No score can be computed (e.g. no firm thesis/scoring model): the tile shows "—" and this reason, never a number. */
-    unscored?: { reason: string };
+    unscored?: { reason: string; /** the score is still being computed: the tile shows "…", not "—" */ pending?: boolean };
     /** `value` null when unscored (no thesis model) — rendered as "—". */
     base: { label: string; value: number | null };
     /** Firm's "strong" line; absent when there is no firm thesis to take it from. */

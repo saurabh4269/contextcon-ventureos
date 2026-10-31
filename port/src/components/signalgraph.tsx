@@ -491,7 +491,10 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
   /** Distance from the bottom of the signals list to the hub's centre line: the tile centres on it so the bundle runs level. */
   align?: number;
 }) {
-  const f = d.fit, un = f.unscored, delta = un ? 0 : score - (f.base.value ?? 0), pct = (v: number) => `${Math.max(0, Math.min(100, v))}%`;
+  const f = d.fit, un = f.unscored;
+  // A score built only from contributions (base 0) reads "…" until the first one lands: never a made-up "0 / 100".
+  const building = !un && f.base.value === 0 && f.contributions.length > 0 && f.contributions.every((k) => landed(k.id) === 0);
+  const delta = un || building ? 0 : score - (f.base.value ?? 0), pct = (v: number) => `${Math.max(0, Math.min(100, v))}%`;
   const rec = f.recommendation;
   const pending = !failed && !loading && T !== Infinity && T < S.decide;
   const tileRef = useRef<HTMLDivElement>(null);
@@ -505,7 +508,7 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
     <div data-sg="fit" className="relative flex flex-col rounded-[20px] bg-white px-4 pt-3.5 pb-4 @max-[679px]/sg:sticky @max-[679px]/sg:left-0 @max-[679px]/sg:w-[100cqw]" style={{ boxShadow: "var(--dd-e2)" }}>
       <div data-sg="fit-list">
         <div className="flex items-baseline justify-between"><span className="text-[14px] font-medium text-ink">Signals into fit</span><span className="tnum text-[12px] text-zinc-500">{f.contributions.filter((k) => landed(k.id) > 0).length}/{f.contributions.length}</span></div>
-        <div className="mt-1.5 flex items-center justify-between border-b border-zinc-100 pb-1 text-[11.5px] text-zinc-500"><span className="truncate">{f.base.label}</span><span className="tnum ml-3 w-9 shrink-0 text-center font-medium text-zinc-700">{un || f.base.value == null ? "—" : f.base.value}</span></div>
+        <div className="mt-1.5 flex items-center justify-between border-b border-zinc-100 pb-1 text-[11.5px] text-zinc-500"><span className="truncate">{f.base.label}</span><span className="tnum ml-3 w-9 shrink-0 text-center font-medium text-zinc-700">{un?.pending ? "…" : un || f.base.value == null ? "—" : f.base.value}</span></div>
         {f.contributions.map((k) => {
           const u = landed(k.id), up = k.weight > 0, ev = k.source ?? pathOf(d, k.call, k.chip);
           return (
@@ -526,8 +529,8 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
         <span aria-hidden className="absolute -top-10 -right-8 size-32 rounded-full" style={{ background: "radial-gradient(closest-side, rgba(255,214,170,.45), transparent)" }} />
         <div className="relative flex items-center justify-between"><span className="text-[11px] font-medium tracking-[.08em] text-[#ffd9bd] uppercase">{f.label}</span>{decided > 0 && !un && <span style={{ opacity: decided }} className={cx("inline-flex h-6 items-center rounded-full px-2.5 text-[12px] font-medium", BAND[fitBand(score)])}>{f.bands[fitBand(score)]}</span>}</div>
         <div className="relative mt-1 flex items-end gap-1.5">
-          <span className="numeral text-[46px] leading-[0.95]">{un ? "—" : score}</span>
-          {!un && <span className="mb-1.5 text-[12px] text-white/60">/ 100</span>}
+          <span className="numeral text-[46px] leading-[0.95]">{un?.pending || building ? "…" : un ? "—" : score}</span>
+          {!un && !building && <span className="mb-1.5 text-[12px] text-white/60">/ 100</span>}
           {delta !== 0 && <span className="tnum mb-2 ml-auto rounded-full bg-white/12 px-2 py-[2px] text-[10.5px] font-medium ring-1 ring-white/20">{delta > 0 ? "+" : "−"}{Math.abs(delta)} from signals</span>}
         </div>
         {un ? <p className="relative mt-2 line-clamp-3 text-[11px] leading-[15px] text-white/80">{un.reason}</p> : <div className="relative mt-2 flex items-center gap-2.5">

@@ -426,6 +426,12 @@ function scoreTimeline(g: SignalGraphData, contributions: SignalContribution[]):
   return { timeline: [...rest, ...scores, done].sort((a, b) => a.at - b.at), frames };
 }
 
+/** While GET /api/deals/:id/decisions is in flight: the tile reads "…" with what it is waiting for (no number). */
+export function withFitPending(d: DealData): DealData {
+  if (!d.signals) return d;
+  return { ...d, signals: { ...d.signals, fit: { ...d.signals.fit, label: "Fit score", unscored: { reason: "Scoring against the firm mandate…", pending: true }, base: { ...d.signals.fit.base, value: null } } } };
+}
+
 /**
  * Fit tile + header pill from the decision engine's fitScore / screenerVerdict (pass the decisions response `fields`,
  * which also carry the mandate criteria). An ok numeric fitScore becomes the header pill and the tile's score: split
