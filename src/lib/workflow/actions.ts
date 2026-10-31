@@ -1,7 +1,7 @@
 // Person actions on a deal. Each mutates the deal; the API then resumes advance(). approve() is the only place a send
 // can happen: live only when outboundMode()==="live" AND no recipient is blocked; otherwise it records the dry run.
 import { blockedRecipients, checkRecipients, dryRun, outboundMode } from "@/lib/outbound";
-import { userName } from "@/lib/deals/stages";
+import { userName } from "@/lib/deals/stage";
 import { stepOf, type Deal } from "./types";
 
 export type Senders = {

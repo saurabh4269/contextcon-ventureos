@@ -18,7 +18,7 @@ import type { Meeting } from "@/lib/google/calendar";
 import type { DecisionsResponse } from "@/lib/numbers/decisions";
 import type { ResearchResult } from "@/lib/live/types";
 import type { PipelineDealRow } from "@/lib/inbox/pipeline";
-import { isClosed, type DealStage } from "@/lib/deals/stages";
+import { isClosed, type DealStage } from "@/lib/deals/stage";
 
 type F = ComputedField<unknown>;
 type ResearchOk = Extract<ResearchResult, { status: "ok" }>;

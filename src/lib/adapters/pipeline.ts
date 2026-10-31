@@ -4,7 +4,7 @@
 // deal-stage store (src/lib/deals/stages.ts): a deal nobody moved is Sourced and Unassigned. Portfolio and Passed deals
 // leave the table (Passed counts in the header). Values with no source (next date, conversion) are "—" or absent.
 import type { PipelineDeal, PipelineStat, PipelineTableData, Stage, StageId, WorkRow } from "@port/types";
-import { isClosed, type DealStage } from "@/lib/deals/stages";
+import { isClosed, type DealStage } from "@/lib/deals/stage";
 import type { LiveRow } from "./today";
 
 const DAY_MS = 86_400_000;

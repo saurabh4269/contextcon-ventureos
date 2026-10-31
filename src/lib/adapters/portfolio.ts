@@ -9,7 +9,7 @@ import type { StorageInfo } from "@/lib/store/docs";
 
 export const NO_KPIS = "No KPI source connected (ARR, burn, runway)";
 
-const src = (c?: Citation): SourceRef => (c ? { kind: /crustdata/i.test(c.source) ? "crust" : /transcript/i.test(c.source) ? "call" : "db", label: `${c.source}${c.path ? ` · ${c.path}` : ""}` } : { kind: "db", label: "Deal workflow" });
+const src = (c?: Citation): SourceRef => (c ? { kind: /crustdata/i.test(c.source) ? "crust" : /transcript/i.test(c.source) ? "call" : "db", label: c.source.replace(/\s*\(.*\)\s*$/, "") } : { kind: "db", label: "Deal workflow" });
 const initial = (name: string) => name[0]?.toUpperCase() ?? "—";
 
 function panelFor(r: PortfolioCompanyRow): PortfolioPanel {

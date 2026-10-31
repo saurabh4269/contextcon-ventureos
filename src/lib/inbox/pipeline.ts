@@ -1,5 +1,5 @@
 import { dealNameFromInbox, normalizeDomain } from "./company";
-import type { DealStage, StageRecord } from "@/lib/deals/stages";
+import type { DealStage, StageRecord } from "@/lib/deals/stage";
 
 export type PipelineDealSource = "inbound" | "opened" | "researched" | "tracked";
 

@@ -3,7 +3,7 @@
 // KPI source (ARR, burn, runway, cash) in this build, so none is returned.
 import type { Fact } from "@/lib/workflow/types";
 import type { Deal } from "@/lib/workflow/types";
-import type { StageRecord } from "@/lib/deals/stages";
+import type { StageRecord } from "@/lib/deals/stage";
 
 export type PortfolioCompanyRow = {
   domain: string;

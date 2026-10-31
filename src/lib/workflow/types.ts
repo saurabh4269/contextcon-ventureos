@@ -2,7 +2,7 @@
 // shown on one timeline (/workflow?id=). Steps that would contact a person produce drafts that wait for an approve
 // click; steps that need a person's judgement (transcript, IC decision) wait for them. Nothing here is a fixture.
 import type { Citation } from "@/lib/fields";
-import { STAGE_LABEL, type DealStage } from "@/lib/deals/stages";
+import { STAGE_LABEL, type DealStage } from "@/lib/deals/stage";
 
 export const STEPS = [
   { id: "intake", title: "Founder email intake", agent: "Inbox agent" },
