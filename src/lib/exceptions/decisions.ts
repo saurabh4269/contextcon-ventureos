@@ -5,6 +5,7 @@
 // and labelled as theirs; a rejected low-confidence decision is withheld with the reason. Pure functions; the route
 // owns the store. Nothing is invented — the only values that appear are Crustdata/builder ones or the person's own.
 import { isOk, ok, unavailable, type ComputedField } from "@/lib/fields";
+import { parseArrM, parseScore } from "@/lib/numbers/parse";
 import { enforceCited } from "@/lib/provenance";
 import type { DecisionKey, DecisionsResponse } from "@/lib/numbers/decisions";
 import type { Derived } from "./rules";
@@ -73,6 +74,21 @@ export function fromDecisions(r: DecisionsResponse, resolvedKeys: ReadonlySet<st
   };
 }
 
+/** A person's typed value → the decision's value: fit score 0..100, ARR in USD M, text otherwise. Garbage → an error, never NaN. */
+export function parseEntered(k: DecisionKey, raw: string): { value: string | number } | { error: string } {
+  const text = raw.trim();
+  if (!text) return { error: "it was empty" };
+  if (k === "fitScore") {
+    const n = parseScore(text);
+    return n == null ? { error: "a fit score is a number from 0 to 100" } : { value: n };
+  }
+  if (k === "icMemoArrUsedM") {
+    const n = parseArrM(text);
+    return n == null ? { error: "ARR is a positive amount such as 2.5, $2.5M or $750k (USD)" } : { value: n };
+  }
+  return { value: text };
+}
+
 /** Apply resolved review items to the response: a person's edit fills the decision (cited to the review item); a rejected
  *  low-confidence decision is withheld. Then every field is re-checked (enforceCited). */
 export function applyDecisionReviews(r: DecisionsResponse, items: readonly ExceptionItem[]): DecisionsResponse {
@@ -87,11 +103,16 @@ export function applyDecisionReviews(r: DecisionsResponse, items: readonly Excep
   for (const [k, it] of latest) {
     const res = it.resolution!;
     const dk = k as DecisionKey;
-    if (res.action === "edit" && res.value) {
+    if (res.action === "edit" && res.value != null) {
+      const entered = parseEntered(dk, res.value);
+      if ("error" in entered) {
+        decisions[dk] = unavailable(`Withheld: the value you entered for ${LABEL[dk]} (${JSON.stringify(res.value.slice(0, 60))}) was not used (nothing was stored): ${entered.error}.`);
+        continue;
+      }
       decisions[dk] = ok(
-        res.value,
+        entered.value,
         "Entered by you in the review queue",
-        `${LABEL[dk]} was ${isOk(r.decisions[dk]) ? "replaced" : "unavailable"}; you entered ${res.value} on review. This is your value, not Crustdata's or the builder's.`,
+        `${LABEL[dk]} was ${isOk(r.decisions[dk]) ? "replaced" : "unavailable"}; you entered ${entered.value} on review. This is your value, not Crustdata's or the builder's.`,
         [{ source: "Deal Desk review queue (entered by you)", endpoint: `POST /api/exceptions/${it.id}`, path: "resolution.value", retrievedAt: res.at, url: `/review?item=${encodeURIComponent(it.id)}` }],
         [{ name: "entered by", value: res.by }, ...(res.note ? [{ name: "note", value: res.note }] : [])],
       );

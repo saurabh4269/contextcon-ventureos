@@ -4,6 +4,7 @@
 // needs it says so.
 import fs from "node:fs";
 import path from "node:path";
+import { parseUsdAmount } from "@/lib/numbers/parse";
 import { docStore, type DocStore, type StorageInfo } from "@/lib/store/docs";
 
 export type Range = { low: number; high: number };
@@ -32,11 +33,15 @@ const list = (v: unknown, field: string): string[] => {
   if (v == null) return [];
   const arr = typeof v === "string" ? v.split(",") : Array.isArray(v) ? v : null;
   if (!arr) throw new Error(`${field} must be a list of strings`);
-  return [...new Set(arr.map((x) => String(x).trim()).filter(Boolean))].slice(0, 30);
+  if (arr.some((x) => typeof x !== "string" && typeof x !== "number")) throw new Error(`${field} must be a list of strings`);
+  const seen = new Set<string>(); // case-insensitive: "AI, ai" is one entry (first spelling kept)
+  return arr.map((x) => String(x).trim()).filter((x) => x && !seen.has(x.toLowerCase()) && !!seen.add(x.toLowerCase())).slice(0, 30);
 };
-const pos = (v: unknown, field: string): number | undefined => {
+const pos = (v: unknown, field: string, money = false): number | undefined => {
   if (v == null || v === "") return undefined;
-  const n = typeof v === "number" ? v : Number(v);
+  // "1.5M", "$2,000,000", "250k" are read; booleans, objects, NaN, Infinity and other currencies are rejected
+  const p = parseUsdAmount(v);
+  const n = p && (money || !p.suffixed) ? p.amount : NaN;
   if (!Number.isFinite(n) || n <= 0) throw new Error(`${field} must be a positive number`);
   return n;
 };
@@ -69,7 +74,7 @@ export function parseMandate(body: unknown, now = new Date()): { ok: true; manda
   const b = body as Record<string, unknown>;
   try {
     const check = (b.checkSizeUsd ?? {}) as Record<string, unknown>;
-    const min = pos(check.min, "checkSizeUsd.min"), max = pos(check.max, "checkSizeUsd.max");
+    const min = pos(check.min, "checkSizeUsd.min", true), max = pos(check.max, "checkSizeUsd.max", true);
     if (min != null && max != null && min > max) throw new Error("checkSizeUsd.min must be ≤ max");
     const priors = (b.priors ?? {}) as Record<string, unknown>;
     return {

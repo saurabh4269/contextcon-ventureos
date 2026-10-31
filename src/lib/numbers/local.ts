@@ -8,6 +8,9 @@ import type { LiveCall, ResearchResult } from "@/lib/live/types";
 import type { ExceptionItem } from "@/lib/exceptions/types";
 import { unsetMandateFields, type Mandate } from "@/lib/settings/mandate";
 import { ENRICH_ROOT } from "./company-fields";
+import { canonCountry } from "./geo";
+import { roundM } from "./parse";
+import { norm } from "./text";
 import type { DealNumbers, DealValuation } from "./deal-numbers";
 
 type Research = Extract<ResearchResult, { status: "ok" }>;
@@ -32,7 +35,6 @@ const MANDATE_ENDPOINT = "GET /api/settings/mandate";
 // A mandate from MANDATE_JSON has no save time; its values are cited to the server env, read at readAt.
 const mandateCite = (m: Mandate, path: string): Citation => ({ source: m.origin === "env" ? "Firm mandate (MANDATE_JSON, server env)" : "Firm mandate (entered in Settings)", endpoint: MANDATE_ENDPOINT, path, url: "/settings/mandate", retrievedAt: m.updatedAt ?? m.readAt ?? undefined });
 const crust = (call: LiveCall, path: string): Citation => ({ source: "Crustdata", endpoint: `${call.method} ${call.path}`, path, retrievedAt: call.retrievedAt ?? undefined, ...(call.stale ? { stale: true, note: call.note } : {}) });
-const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const usd = (n: number) => fmtMoney(money(n, "USD"));
 const median = (xs: number[]) => {
   const s = [...xs].sort((a, b) => a - b);
@@ -60,7 +62,7 @@ export function criterionSector(r: Research, m: Mandate): F {
   const tags = [...c.industries, ...c.categories];
   if (!tags.length && !c.description) return unavailable(`Crustdata returned no industries, categories or description for ${c.domain}.`);
   const hay = norm([...tags, c.description ?? ""].join(" | "));
-  const hit = m.sectors.find((s) => hay.includes(norm(s)));
+  const hit = m.sectors.find((s) => norm(s) && ` ${hay} `.includes(` ${norm(s)} `)); // whole words: "AI" is not in "retail"
   return ok(hit ? "met" : "not met", "Mandate sectors matched against the company's Crustdata industries, categories and description", hit ? `“${hit}” appears in ${c.name}'s taxonomy/description.` : `None of the mandate sectors (${m.sectors.join(", ")}) appear in ${tags.slice(0, 4).join(", ") || "the description"}.`, [crust(r.calls.enrich, `${ENRICH_ROOT}.taxonomy`), mandateCite(m, "sectors")], [
     { name: "mandate sectors", value: m.sectors.join(", ") },
     { name: "company industries/categories", value: tags.slice(0, 6).join(", ") || null },
@@ -83,7 +85,12 @@ export function criterionGeo(r: Research, m: Mandate): F {
   const { hq, country } = r.company;
   if (!hq && !country) return unavailable(`Crustdata returned no headquarters or country for ${r.company.domain}.`);
   const where = norm([hq ?? "", country ?? ""].join(" "));
-  const hit = m.geos.find((g) => norm(g) === norm(country ?? "") || ` ${where} `.includes(` ${norm(g)} `));
+  // known countries compare by canonical key (US = USA = United States, IN = India) against the country and each HQ part
+  const places = new Set([country, ...(hq ?? "").split(",")].map((x) => canonCountry(x ?? "")).filter((x): x is string => !!x));
+  const hit = m.geos.find((g) => {
+    const key = canonCountry(g);
+    return key ? places.has(key) : norm(g) === norm(country ?? "") || ` ${where} `.includes(` ${norm(g)} `);
+  });
   return ok(hit ? "met" : "not met", "Company headquarters/country compared with the mandate geographies", `HQ ${hq ?? "—"} (${country ?? "—"}); mandate: ${m.geos.join(", ")}.`, [crust(r.calls.enrich, `${ENRICH_ROOT}.locations`), mandateCite(m, "geos")], [
     { name: "headquarters", value: hq ?? null },
     { name: "country", value: country ?? null },
@@ -156,7 +163,7 @@ export function compsMedianMultiple(peers: PeerSearch, m: Mandate): F {
   if (!dil) return unavailable("Crustdata has no peer valuations; turning peers' round sizes into post-money needs the firm's dilution prior, which is unset (Settings → Firm mandate, /settings/mandate).");
   const rows = (call.data ?? []).flatMap((p) => {
     const rev = p.revenueLowUsd != null && p.revenueHighUsd != null ? (p.revenueLowUsd + p.revenueHighUsd) / 2 : undefined;
-    if (!p.lastRoundUsd || !rev) return [];
+    if (p.lastRoundUsd == null || rev == null || !(p.lastRoundUsd > 0) || !(rev > 0) || !(p.revenueLowUsd! >= 0)) return []; // zero/negative inputs give no usable multiple
     const post = p.lastRoundUsd / (((dil.low + dil.high) / 2) / 100);
     return [{ p, post, rev, multiple: post / rev }];
   });
@@ -174,8 +181,9 @@ export function valuationRange(r: Research, comps: F, m: Mandate): { low: F; hig
   const enrichRev = crust(r.calls.enrich, `${ENRICH_ROOT}.revenue.estimated`);
   if (isOk(comps) && rev?.lowUsd != null && rev?.highUsd != null) {
     const mult = comps.value as number;
+    const lowRev = Math.min(rev.lowUsd, rev.highUsd), highRev = Math.max(rev.lowUsd, rev.highUsd); // low <= high even if the range arrives swapped
     const mk = (base: number, side: string) => ok(money(Math.round(base * mult), "USD"), "Estimated revenue × peer median multiple", `${side}: ${c.name} revenue estimate ${usd(base)} × ${mult}× (peer median).`, [enrichRev, ...comps.citations], [{ name: "revenue estimate (USD)", value: base }, { name: "peer median multiple", value: comps }]);
-    return { low: mk(rev.lowUsd, "Low"), high: mk(rev.highUsd, "High") };
+    return { low: mk(lowRev, "Low"), high: mk(highRev, "High") };
   }
   const dil = m.priors.dilutionPct;
   const round = c.funding.lastRoundUsd;
@@ -223,7 +231,7 @@ export function icMemoArr(r: Research): F {
   const rev = r.company.revenue;
   if (rev?.lowUsd == null || rev?.highUsd == null) return unavailable(`Crustdata returned no revenue estimate for ${r.company.domain} (revenue.estimated), and no data room is connected for actual ARR.`);
   const mid = (rev.lowUsd + rev.highUsd) / 2;
-  return ok(r1(mid / 1e6), "Midpoint of Crustdata's estimated annual revenue range, USD M (an estimate, not reported ARR)", `${usd(rev.lowUsd)}–${usd(rev.highUsd)} estimated annual revenue.`, [crust(r.calls.enrich, `${ENRICH_ROOT}.revenue.estimated`)], [
+  return ok(roundM(mid / 1e6), "Midpoint of Crustdata's estimated annual revenue range, USD M (an estimate, not reported ARR)", `${usd(rev.lowUsd)}–${usd(rev.highUsd)} estimated annual revenue.`, [crust(r.calls.enrich, `${ENRICH_ROOT}.revenue.estimated`)], [
     { name: "revenue low (USD)", value: rev.lowUsd },
     { name: "revenue high (USD)", value: rev.highUsd },
   ]);

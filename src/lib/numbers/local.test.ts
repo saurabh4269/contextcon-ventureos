@@ -45,7 +45,7 @@ describe("computeLocalDeal", () => {
     expect(reason(d.numbers.compsMedianMultiple!)).toMatch(/dilution prior/);
     expect(reason(d.valuation.low!)).toMatch(/dilution prior/);
     // the revenue estimate is Crustdata data, not a firm prior: still computed
-    expect(val(d.numbers.icMemoArrUsedM!)).toBe(0.8);
+    expect(val(d.numbers.icMemoArrUsedM!)).toBe(0.75);
   });
 
   it("every criterion met → fit 100, Advance, Proceed to diligence; return multiples are labelled assumptions", async () => {
