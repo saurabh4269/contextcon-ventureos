@@ -99,6 +99,22 @@ greeting from the same facts; it is not set in this build.)
 
 **Data:** Crustdata (company, person, job, web), Gmail and Google Calendar (read), ElevenLabs. Nothing is seeded.
 
+### Architecture
+
+![Architecture](docs/architecture/architecture.svg)
+
+PNG fallback: [docs/architecture/architecture.png](docs/architecture/architecture.png) · Mermaid source: [architecture.mmd](docs/architecture/architecture.mmd)
+
+### The stack (bottom to top)
+
+| Layer | What's in it |
+|---|---|
+| **05 · You decide** | Ask (research agent) · Agent (sourcing) · Today · Deal · Person · IC memo · Review queue · voice. The partner makes the call. |
+| **04 · Trust layer** | Every value comes with method, inputs and citations, or "unavailable" plus a reason. ISO currency, UTC stored and shown in IST, outbound dry run by default. |
+| **03 · Firm memory** | Append-only Postgres event log: `GET/POST /api/memory/events`, SSE `/api/memory/stream` |
+| **02 · Agents** | Specialists running in parallel per request (table below) |
+| **01 · Sources** | Live only: Crustdata API `2025-11-01`, Gmail (read-only), Google Calendar |
+
 ### Where it calls Crustdata
 
 All calls go through one client (`src/lib/crustdata/client.ts` → `http.ts`): header `x-api-version: 2025-11-01`, per-route
@@ -175,14 +191,44 @@ trust guards (`src/test/guards.test.ts`). An opt-in live contract suite: `npm ru
 | Saurabh Gupta | Product, engineering | [saurabh4269](https://github.com/saurabh4269) |
 | Shiwani Mishra | <!-- VERIFY: role --> | <!-- VERIFY --> |
 
-## Code history (honest note)
+## Code history (honest note): work that predates 10:30 AM IST
 
-- Building at the event started at 10:30 IST. The first commit, `451e4d9` (10:53 IST, 259 files), is the **Deal Desk web
-  UI as previously deployed** to contextcon.ventureos.xyz, written before the event. It contained screens with sample data.
-- Built during the event (every later commit, see `git log`): the Crustdata client port and rewrite to documented request
-  shapes, all `/api/live/*` routes, the `ComputedField` contract and explainable numbers, removal of all demo/fixture
-  modes, live deal and person pages, organizational memory, Gmail/Calendar connectors, outbound dry-run, ElevenLabs voice
-  (TTS, STT), the sourcing agent, and these docs. <!-- VERIFY: add shell/mascot/mobile commits -->
-- Some commits carry a different author identity from the team's; they were made from the team's coding-agent
-  environment. <!-- VERIFY: Saurabh to confirm wording -->
-- Design references, plans and research notes from before the event are allowed by the rules and are not in this repo.
+The rules say code is written from 10:30 AM IST on 31 Oct. Every commit in this repo is dated after that: the first is 10:53 IST. **But some of the code was written before 10:30**, and we want that to be plain.
+
+**Existed before 10:30 IST on 31 Oct:**
+
+| What | Evidence | Size |
+|---|---|---|
+| The Deal Desk web UI (screens, components, logos, Next.js shell), imported in the root commit `451e4d9` "Deal Desk web UI as deployed to contextcon.ventureos.xyz" (committed 10:53 IST) | `git show --stat 451e4d9` | **259 files, 20,048 lines**: `port/` 161 files / 16,672 lines (screens, components, the 25 sample-data files, logos) · `public/` 70 files / 111 lines (logos) · `src/` 19 files / 474 lines (route shells) · 9 root files / 2,791 lines (mostly `package-lock.json`) |
+| Its design history: a separate local mock-up repo whose first commit is at **30 Oct 23:31 IST**, with 7 commits through **31 Oct 08:17 IST** (v1 → v3.2 redesign) | That repo's git reflog | — |
+| A Crustdata backend ("builder repo") with the client, query builders, rate limits and cache. Our live audits ran against it at about **10:05–10:25 IST** (audit chunks timestamped **10:12–10:19 IST**). | Audit notes | Its client was ported in `a04e8be` (below) |
+
+**Built today, after 10:30 IST** (`git log`, times in IST):
+
+| Time | Commit | What | Files | +/− |
+|---|---|---|---|---|
+| 10:53 | `451e4d9` | Import of the pre-existing UI (above) | 259 | +20,048 |
+| 11:03 | `3ed5f36` | Integration plan | 1 | +123 |
+| 11:10 | `a04e8be` | **Port** of the Crustdata client from the builder repo, with fixes; regenerated OpenAPI types (~14k lines of YAML and generated TS), captured responses for tests | 55 | +20,416 / −173 |
+| 11:23 | `34a755e` | Live API routes: research, people, person, jobs, news, comps, integrations | 24 | +1,040 / −29 |
+| 11:29 | `70d9dea` | Live Settings › Connectors | 12 | +304 / −14 |
+| 11:30 | `d63a56c` | `ComputedField` contract, `/api/deals/:id/numbers` and `/valuation` | 13 | +466 / −12 |
+| 11:41 | `50183ba` | `docs/API.md` | 1 | +149 |
+| 11:42 | `4b0a852` | Live `/deal?domain=` | 9 | +496 / −24 |
+| 11:47 | `e6c3a55` | Live `/person?linkedin=` | 3 | +103 / −1 |
+| 12:12 | `82875ff` | Organisational memory (Postgres), IST and money formatter | 35 | +449 / −1 |
+| 12:22 | `ccf42bf` | Removed demo and fixture modes | 33 | +214 / −458 |
+| 12:22 | `790faaa` | UI without fixtures: unavailable states, memory panel, explainable valuation and memo | 77 | +1,056 / −472 |
+| 12:30 | `53d6384` | Voice greeting and orb (ElevenLabs) | 17 | +958 / −7 |
+| 12:36 | `bf68800` | Gmail and Google Calendar connectors | 18 | +715 / −28 |
+| 12:39 | `bb45486` | `OUTBOUND_MODE` dry run by default | 6 | +70 / −12 |
+| 12:40 | `95d019c` | Docs, `.env.example` | 4 | +170 / −144 |
+| 12:41 | `be4f7b8` | Ignore local settings | 1 | +3 |
+| 12:43 | `e32cc4c` | Hydration fix, `?tab=valuation` | 4 | +9 / −4 |
+| 12:46 | `25c3316` | Live click-through verification, autoplay check, credit ledger | 40 | +164 |
+| 12:46 | `7886cd7` | Report commit list | 1 | +15 |
+| 13:15 | `accaf77` | Architecture diagram | 4 | +236 |
+
+After 13:15 IST (see `git log`): the shell (collapsible sidebar, mobile drawer, Dex mascot, account menu), ElevenLabs speech-to-text and the conversational voice session, the deterministic Sourcing agent (`/agent`), the LLM research agent (`/ask`), Crustdata resilience (retries, deadlines, circuit breaker, stale-cache fallback, did-you-mean), the exception review queue (`/review`), the reasons-and-sources panel and citation enforcement, the responsive pass, and these docs.
+
+Authorship: 14 early commits carry the author identity `Yogesh <you@example.com>`, the identity of the coding-agent environment the team used; all others are Saurabh Gupta. Design references, plans and research notes from before the event are allowed by the rules and are not in this repo.
