@@ -206,6 +206,7 @@ export function RangeChart({ v, w = 640, rowH = 30, labelW = 128, showMethods = 
   const padT = 34, axisH = 22, H = padT + rows.length * rowH + axisH + (footnote ? 18 : 0);
   const config: ChartConfig = { range: { label: "Range", color: INK } };
   const over = v.ask !== undefined && v.ask > v.high;
+  const capped = Number.isFinite(v.cap); // no cap (NaN) in live data: no cap marker or line
   function Shape(props: { x?: number; y?: number; width?: number; height?: number; payload?: RRow }) {
     const { x = 0, y = 0, width = 0, height = 0, payload } = props;
     const bh = payload?.ours ? 12 : 9, cy = y + height / 2 + (stacked ? 8 : 0);
@@ -232,8 +233,10 @@ export function RangeChart({ v, w = 640, rowH = 30, labelW = 128, showMethods = 
           );
         })}
         {/* cap marker on our row + pills */}
-        <circle cx={X(v.cap)} cy={b.mid(rows.length - 1) + (stacked ? 8 : 0)} r="4.5" fill="#fff" stroke={INK} strokeWidth="1.75" />
-        <Pill x={X(v.cap)} y={p.y - 14} text={`cap ${money(v.cap)}`} tone="ink" />
+        {capped && <>
+          <circle cx={X(v.cap)} cy={b.mid(rows.length - 1) + (stacked ? 8 : 0)} r="4.5" fill="#fff" stroke={INK} strokeWidth="1.75" />
+          <Pill x={X(v.cap)} y={p.y - 14} text={`cap ${money(v.cap)}`} tone="ink" />
+        </>}
         {v.ask !== undefined && (() => { const t = `Ask ${money(v.ask)}`, pw = Math.round(t.length * 10.5 * 0.56 + 14), ax = Math.min(X(v.ask), p.x + p.width + 40 - pw / 2); return <>
           <Pill x={ax} y={p.y - 14} text={t} tone="rustSoft" />
           {over && !stacked && X(v.ask) - X(v.cap) > 150 && <text x={ax - pw / 2 - 7} y={p.y - 10.5} textAnchor="end" fontSize="10" fontWeight="600" fill={RUST}>+{money(v.ask - v.high)} above our high</text>}
@@ -243,7 +246,7 @@ export function RangeChart({ v, w = 640, rowH = 30, labelW = 128, showMethods = 
     );
   }
   return (
-    <ChartContainer config={config} className="dd-chart aspect-auto w-full" style={{ height: H }} initialDimension={{ width: w, height: H }} role="img" aria-label={`${ourLabel} ${money(v.low)} to ${money(v.high)}, cap ${money(v.cap)}${v.ask !== undefined ? `, ask ${money(v.ask)}` : ""}`}>
+    <ChartContainer config={config} className="dd-chart aspect-auto w-full" style={{ height: H }} initialDimension={{ width: w, height: H }} role="img" aria-label={`${ourLabel} ${money(v.low)} to ${money(v.high)}${capped ? `, cap ${money(v.cap)}` : ""}${v.ask !== undefined ? `, ask ${money(v.ask)}` : ""}`}>
       <BarChart data={rows} layout="vertical" margin={{ top: padT, right: stacked ? 2 : 48, bottom: footnote ? 18 : 0, left: 0 }} barCategoryGap={0}>
         <defs>
           <linearGradient id={`rm${id}`} x1="0" x2="1" y1="0" y2="0"><stop offset="0" stopColor="#d4d4d8" /><stop offset="1" stopColor="#e4e4e7" /></linearGradient>
@@ -257,14 +260,14 @@ export function RangeChart({ v, w = 640, rowH = 30, labelW = 128, showMethods = 
           tick={(t: TickP) => { const r = rows[t.payload.index]; return <text x={0} y={Number(t.y) + 4} fontSize={12} fill={r?.ours ? INK : MUTED} fontWeight={r?.ours ? 600 : 400} style={F}>{t.payload.value}</text>; }} />
         <ReferenceArea x1={v.low} x2={v.high} fill={INK} fillOpacity={0.04} ifOverflow="hidden" />
         {over && <ReferenceArea x1={v.high} x2={v.ask} fill={`url(#rh${id})`} fillOpacity={1} ifOverflow="hidden" />}
-        <ReferenceLine x={v.cap} stroke={INK} strokeWidth={1.25} />
+        {capped && <ReferenceLine x={v.cap} stroke={INK} strokeWidth={1.25} />}
         {v.ask !== undefined && <ReferenceLine x={v.ask} stroke={RUST} strokeWidth={1.25} strokeDasharray="3 2.5" />}
         <ChartTooltip cursor={{ fill: "rgba(9,9,11,.03)" }} content={({ active, payload }) => {
           const r = active && payload?.[0]?.payload as RRow | undefined; if (!r) return null;
           return <TipCard title={r.label} rows={[
             { c: r.ours ? INK : "#d4d4d8", k: "Range", v: `${money(r.range[0])}–${money(r.range[1])}`, strong: true },
             { k: "Midpoint", v: money(r.mid) },
-            { c: INK, k: "vs cap", v: `${r.mid - v.cap >= 0 ? "+" : "−"}${money(Math.abs(r.mid - v.cap))}` },
+            ...(capped ? [{ c: INK, k: "vs cap", v: `${r.mid - v.cap >= 0 ? "+" : "−"}${money(Math.abs(r.mid - v.cap))}` }] : []),
             ...(v.ask !== undefined ? [{ c: RUST, k: "vs ask", v: `${r.range[1] - v.ask >= 0 ? "+" : "−"}${money(Math.abs(r.range[1] - v.ask))} at high`, dash: true }] : []),
           ]} note={r.ours ? v.capRationale : undefined} />;
         }} />

@@ -283,11 +283,12 @@ export function Delta({ a, b, tone = "rust" }: { a: string; b: string; tone?: "r
 
 /* Valuation label used everywhere: "Our range $117–149M · cap $133M". Hover/focus explains the cap. */
 export function CapRange({ v, className, open = false, short = false }: { v: Valuation; className?: string; open?: boolean; short?: boolean }) {
+  const capped = Number.isFinite(v.cap); // live data may have no cap (NaN): "cap —", the tooltip gives the reason
   return (
     <span className={cx("group relative inline-flex cursor-help items-baseline gap-1 whitespace-nowrap", className)} tabIndex={0}>
-      <span>{short ? "" : "Our range "}{fmtRange(v)}</span><span className="text-zinc-400">·</span><span className="border-b border-dotted border-zinc-400">cap {fmtMoney(v.cap, v.unit)}</span>
+      <span>{short ? "" : "Our range "}{fmtRange(v)}</span><span className="text-zinc-400">·</span><span className="border-b border-dotted border-zinc-400">cap {capped ? fmtMoney(v.cap, v.unit) : "—"}</span>
       <span role="tooltip" className={cx("pointer-events-none absolute top-full left-0 z-30 mt-2 w-[290px] whitespace-normal rounded-xl border border-zinc-200 bg-white p-3 text-left text-[12px] leading-snug font-normal text-zinc-700 shadow-[0_12px_32px_-12px_rgba(9,9,11,.3)]", open ? "block" : "hidden group-hover:block group-focus:block")}>
-        <span className="block font-medium text-ink">Why cap at {fmtMoney(v.cap, v.unit)}?</span>
+        <span className="block font-medium text-ink">{capped ? `Why cap at ${fmtMoney(v.cap, v.unit)}?` : "No cap"}</span>
         <span className="mt-1 block">{v.capRationale}</span>
         <span className="mt-2 flex items-center gap-1.5 whitespace-nowrap text-[11px] text-zinc-500"><span className="rounded border border-zinc-200 px-1 font-mono">{v.source.label}</span>{v.ask !== undefined && <span className="ml-auto text-rust">Ask {fmtMoney(v.ask, v.unit)}</span>}</span>
       </span>
