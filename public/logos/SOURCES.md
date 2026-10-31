@@ -1,0 +1,37 @@
+# Logo sources
+- companies/*.svg: logo marks (icon only, wordmark dropped) from logoipsum.com free placeholder logos, set on a white 32px tile. Mapping in port/src/fixtures/logos.ts.
+- tools/*.svg: Simple Icons (CC0) via cdn.simpleicons.org; slack.svg from simple-icons@13 (removed from later versions).
+- tools/crustdata.png: Crustdata's own favicon from crustdata.com.
+
+## Connector icons (added for Connectors screen)
+- googlemeet.svg — Simple Icons (CC0), brand hex #00897B
+- hubspot.svg — Simple Icons (CC0), brand hex #FF7A59
+- salesforce.svg — Simple Icons (CC0), brand hex #00A1E0
+- crunchbase.svg — Simple Icons (CC0), brand hex #0288D1
+- dropbox.svg — Simple Icons (CC0), brand hex #0061FF
+- microsoftoutlook.svg — Simple Icons (CC0), brand hex #0078D4
+- microsoftteams.svg — Simple Icons (CC0), brand hex #6264A7
+- linkedin.svg — Simple Icons (CC0), brand hex #0A66C2
+- airtable.svg — Simple Icons (CC0), brand hex #18BFFF
+- microsoftexcel.svg — Simple Icons (CC0), brand hex #217346
+- docusign.svg — Simple Icons (CC0), brand hex #FFCC22
+- angellist.svg — Simple Icons (CC0), brand hex #000000
+- quickbooks.svg — Simple Icons (CC0), brand hex #2CA01C
+- anthropic.svg — Simple Icons (CC0), brand hex #191919
+- openai.svg — Simple Icons (CC0), brand hex #000000
+- otter.png — otter.ai official apple-touch-icon (256×256, Webflow CDN), transparent padding trimmed to the mark (no redraw)
+- gong.svg — gong.io official favicon (svg)
+- clay.png — clay.com official favicon ((512, 512))
+- plaid.png — plaid.com official favicon ((180, 180))
+- fireflies.png — fireflies.ai official favicon ((512, 512))
+- harmonic.png — harmonic.ai official favicon ((256, 256))
+- granola.svg — granola.ai official favicon (svg)
+- agentmail.png — agentmail.to official favicon ((256, 256))
+- attio.png — attio.com official favicon via Google s2 favicon service ((32, 32))
+- carta.png — carta.com official favicon ((180, 180))
+- docsend.png — docsend.com official favicon via Google s2 favicon service ((128, 128))
+- pitchbook.png — pitchbook.com official favicon via Google s2 favicon service ((32, 32))
+- dealcloud.png — dealcloud.com (Intapp) official favicon via Google s2 favicon service ((48, 48))
+- visible.png — visible.vc official favicon ((180, 180))
+- affinity.png — affinity.co official apple-touch-icon (180×180). (Simple Icons 'affinity' is the unrelated Serif app, so it is not used.)
+- AI model: anthropic.svg / openai.svg (Simple Icons) are both available; pick the one matching the configured model.

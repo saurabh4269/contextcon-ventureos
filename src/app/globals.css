@@ -1,0 +1,160 @@
+@import "tailwindcss";
+@source "../../port/src";
+
+@theme {
+  --color-canvas: #fafafa;
+  --color-ink: #09090b;
+  --color-rust: #9c440f;
+  --color-rust-50: #fbf3ee;
+  --color-rust-100: #f5e3d7;
+  --color-ok: #3d6b4f;
+  --color-ok-50: #eff5f0;
+  --color-ok-100: #d9e8dd;
+  --color-warn: #8a5b12;
+  --color-warn-50: #fbf5e8;
+  --color-warn-100: #f0e2bf;
+  --font-serif: "Newsreader Variable", "Newsreader", Georgia, serif;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+  /* v3.1 · shadcn/ui tokens (chart.tsx) */
+  --color-background: #ffffff;
+  --color-foreground: #09090b;
+  --color-border: #e4e4e7;
+  --color-muted: #f4f4f5;
+  --color-muted-foreground: #71717a;
+  /* v3.1 · chart palette */
+  --color-chart-ink: #09090b;
+  --color-chart-ink-2: #3f3f46;
+  --color-chart-rust: #9c440f;
+  --color-chart-rust-2: #c2652b;
+  --color-chart-ok: #3d6b4f;
+  --color-chart-grid: #ececef;
+  --color-chart-axis: #a1a1aa;
+}
+
+html, body { background: #f8f8f7; color: #09090b; }
+body { font-family: var(--font-sans); -webkit-font-smoothing: antialiased; font-feature-settings: "ss01", "cv11"; }
+.tnum { font-variant-numeric: tabular-nums; }
+.serif { font-family: var(--font-serif); font-optical-sizing: auto; letter-spacing: -0.012em; }
+.hairline { border-color: #ececee; }
+.dotgrid { background-image: radial-gradient(#e4e4e7 1px, transparent 1px); background-size: 14px 14px; }
+
+/* ───── v3 design system: elevation, wells, grain, chart kit tokens ───── */
+:root {
+  --dd-hair: #ececee;
+  --dd-grid: #eeeef0;
+  --dd-axis: #a1a1aa;
+  --dd-stroke: 1.25px;
+  --dd-e1: 0 0 0 1px rgba(9,9,11,.055), 0 1px 1px rgba(9,9,11,.03), 0 2px 4px -2px rgba(9,9,11,.05);
+  --dd-e2: 0 0 0 1px rgba(9,9,11,.06), 0 1px 2px rgba(9,9,11,.04), 0 8px 24px -12px rgba(9,9,11,.14);
+  --dd-e3: 0 0 0 1px rgba(9,9,11,.07), 0 2px 4px rgba(9,9,11,.04), 0 24px 48px -20px rgba(9,9,11,.28);
+}
+body { background-color: #f8f8f7; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .025 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+.card { background: #fff; border: 0; border-radius: 14px; box-shadow: var(--dd-e1); position: relative; }
+.card-raised { background: linear-gradient(#fff, #fff) padding-box; border-radius: 16px; box-shadow: var(--dd-e2); position: relative; }
+.card-raised::before, .card::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.9); }
+.well { background: linear-gradient(180deg, #fbfbfa 0%, #f6f6f5 100%); border-radius: 12px; box-shadow: inset 0 0 0 1px rgba(9,9,11,.05), inset 0 1px 2px rgba(9,9,11,.03); }
+.eyebrow { font-size: 10.5px; letter-spacing: .09em; text-transform: uppercase; font-weight: 550; color: #71717a; }
+.eyebrow-mark::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 7px; border-radius: 1.5px; background: #09090b; vertical-align: 1px; }
+.numeral { font-family: var(--font-serif); font-variant-numeric: tabular-nums lining-nums; font-optical-sizing: auto; letter-spacing: -0.02em; }
+.hatch-rust { background-image: repeating-linear-gradient(135deg, rgba(156,68,15,.55) 0 1px, transparent 1px 5px); background-color: rgba(156,68,15,.07); }
+.divider-v { width: 1px; align-self: stretch; background: linear-gradient(180deg, transparent, #e4e4e7 18%, #e4e4e7 82%, transparent); }
+.row-hover:hover { background: #fafafa; }
+
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ───── v3.1 chart kit (shadcn charts / Recharts) ───── */
+.dd-chart { font-family: var(--font-sans); font-feature-settings: "tnum"; }
+.dd-chart .recharts-cartesian-axis-tick-value { font-size: 10.5px; fill: #a1a1aa; }
+.dd-chart .recharts-surface { overflow: visible; }
+.dd-chart .recharts-wrapper, .dd-chart .recharts-surface:focus { outline: none; }
+.dd-tip { min-width: 168px; border-radius: 12px; background: rgba(255,255,255,.96); backdrop-filter: blur(8px); box-shadow: var(--dd-e3); padding: 9px 11px; font-size: 11.5px; }
+
+/* ---------- v3.2 · agent motion + mono variant ---------- */
+/* "Thinking" text: a soft highlight sweeps across the running step's words. */
+.shimmer { --sh-a: #3f3f46; --sh-b: #d4d4d8; background: linear-gradient(100deg, var(--sh-a) 0%, var(--sh-a) 38%, var(--sh-b) 50%, var(--sh-a) 62%, var(--sh-a) 100%); background-size: 260% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: dd-shimmer 1.9s linear infinite; }
+.shimmer-ink { --sh-a: #09090b; --sh-b: #b4b4bb; }
+.shimmer-frozen { animation-play-state: paused; animation-delay: -0.75s; }
+@keyframes dd-shimmer { from { background-position: 115% 0; } to { background-position: -15% 0; } }
+@media (prefers-reduced-motion: reduce) { .shimmer { animation: none; color: var(--sh-a); background: none; } }
+.dot-grid { background-image: radial-gradient(circle, #d9d9de 1px, transparent 1.2px); background-size: 16px 16px; background-position: 8px 8px; }
+/* Mono: same layout, sienna and serif swapped for ink and the UI sans, cooler canvas. */
+.mono { --color-rust: #18181b; --color-rust-50: #f4f4f5; --color-rust-100: #e4e4e7; background: #fbfbfb; }
+.mono .serif, .mono .numeral { font-family: var(--font-sans); letter-spacing: -0.025em; font-weight: 500; }
+.mono aside:first-child { background: #fbfbfb; }
+.mono .hatch-rust { background-image: repeating-linear-gradient(135deg, rgba(24,24,27,.4) 0 1px, transparent 1px 5px); background-color: rgba(24,24,27,.05); }
+.glow-warm { --glow: #5a8f6c; --glow-soft: rgba(90,143,108,.14); --glow-halo: rgba(90,143,108,.45); --ink-edge: #3f3f46; }
+.glow-sienna { --glow: #c2652b; --glow-soft: rgba(194,101,43,.16); --glow-halo: rgba(194,101,43,.5); --ink-edge: #3f3f46; }
+.shimmer-sienna { --sh-a: #3a1a07; --sh-b: #e3a173; }
+/* v3.3 · "thinking" text: ink with a wide sienna sweep, readable mid-animation */
+.shimmer-think { --sh-a: #27272a; --sh-b: #d0773a; background-image: linear-gradient(100deg, var(--sh-a) 0%, var(--sh-a) 30%, var(--sh-b) 46%, #f0b48a 50%, var(--sh-b) 54%, var(--sh-a) 70%, var(--sh-a) 100%); background-size: 220% 100%; animation-duration: 1.6s; }
+@media (prefers-reduced-motion: reduce) { .shimmer-think { background: none; color: var(--sh-a); } }
+.glow-mono { --glow: #18181b; --glow-soft: rgba(24,24,27,.08); --glow-halo: rgba(24,24,27,.35); --ink-edge: #18181b; }
+.dash-flow { animation: dd-dash 0.9s linear infinite; }
+@keyframes dd-dash { to { stroke-dashoffset: -16; } }
+.mono header { background: rgba(251,251,251,.85); }
+
+/* v3.2 · fade for chart overlays rendered inside recharts layers (framer remounts there) */
+.dd-fade{animation:dd-fade .4s ease-out both}
+@keyframes dd-fade{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){.dd-fade{animation:none}}
+
+/* v3.2 · live rail travelling dot */
+.live-dot{animation:dd-live 1.6s cubic-bezier(.45,0,.25,1) infinite}
+@keyframes dd-live{0%{transform:translateY(0);opacity:0}15%{opacity:1}80%{opacity:1}100%{transform:translateY(var(--live-d));opacity:0}}
+/* v3.2 · a dot travelling along a dotted connector (connect modal) */
+.dd-travel{animation:dd-travel 1.1s cubic-bezier(.4,0,.2,1) infinite}
+@keyframes dd-travel{0%{left:0;opacity:0}15%{opacity:1}85%{opacity:1}100%{left:calc(100% - 7px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.dd-travel{animation:none;left:50%}}
+
+/* v3.3 · Deal Desk orb: our signature. A sienna/amber/cream glass sphere, CSS only. Size via --orb.
+   Layers: halo · body (base, two counter-turning ribbons, a folded ring, caustic) · rim · highlight · crescent. */
+.dd-orb { --o: var(--orb, 56px); position: relative; display: inline-block; flex: none; width: var(--o); height: var(--o); }
+.dd-orb i { position: absolute; display: block; border-radius: 9999px; pointer-events: none; }
+.dd-orb .o-halo { inset: -28%; background: radial-gradient(circle at 50% 60%, rgba(214,110,44,.34), rgba(240,170,100,.13) 44%, transparent 68%); filter: blur(calc(var(--o) * .07)); animation: dd-orb-halo 7s ease-in-out infinite; }
+.dd-orb .o-body { inset: 0; overflow: hidden; isolation: isolate;
+  background: radial-gradient(circle at 42% 36%, #fffdf8 0%, #fff1dc 20%, #fad7ac 42%, #eea566 64%, #cf6b31 84%, #a4481a 100%);
+  box-shadow: 0 calc(var(--o) * .26) calc(var(--o) * .4) calc(var(--o) * -.2) rgba(156,68,15,.62), 0 calc(var(--o) * .05) calc(var(--o) * .1) calc(var(--o) * -.04) rgba(90,35,5,.3);
+  animation: dd-orb-breathe 7s ease-in-out infinite; }
+.dd-orb .o-swirl { inset: -20%; border-radius: 0; background: conic-gradient(from 10deg, transparent 0deg, rgba(255,242,222,.95) 40deg, transparent 95deg, transparent 170deg, rgba(255,222,176,.75) 215deg, transparent 265deg); filter: blur(calc(var(--o) * .05)); mix-blend-mode: soft-light; animation: dd-orb-spin 14s linear infinite; }
+.dd-orb .o-swirl2 { inset: -20%; border-radius: 0; background: conic-gradient(from 160deg, transparent 0deg, rgba(110,34,2,.6) 55deg, transparent 110deg, transparent 200deg, rgba(150,58,12,.45) 250deg, transparent 300deg); filter: blur(calc(var(--o) * .06)); mix-blend-mode: multiply; opacity: .7; animation: dd-orb-spin 22s linear infinite reverse; }
+/* a folded glass ribbon, like light caught inside the sphere */
+.dd-orb .o-fold { inset: 8%; background: radial-gradient(ellipse 62% 34% at 46% 58%, transparent 56%, rgba(255,238,214,.7) 64%, rgba(255,238,214,.1) 72%, transparent 76%); filter: blur(calc(var(--o) * .028)); mix-blend-mode: screen; opacity: .7; animation: dd-orb-spin 30s linear infinite; }
+.dd-orb .o-core { inset: 0; background: radial-gradient(circle at 26% 86%, rgba(196,92,30,.62), rgba(196,92,30,.18) 22%, transparent 42%), radial-gradient(circle at 62% 84%, rgba(255,214,150,.9), rgba(255,186,112,.25) 22%, transparent 42%); mix-blend-mode: normal; }
+/* rim: fresnel lift on the edge, darker lower lip, hairline */
+.dd-orb .o-rim { inset: 0; box-shadow: inset calc(var(--o) * -.06) calc(var(--o) * -.07) calc(var(--o) * .12) rgba(255,200,140,.75), inset 0 0 calc(var(--o) * .05) rgba(255,244,230,.9), inset 0 calc(var(--o) * -.1) calc(var(--o) * .2) rgba(120,44,6,.28), inset 0 calc(var(--o) * .05) calc(var(--o) * .09) rgba(255,255,255,.85), inset 0 0 0 1px rgba(255,255,255,.35); }
+.dd-orb .o-spec { left: 14%; top: 7%; width: 50%; height: 34%; background: radial-gradient(ellipse 34% 26% at 40% 40%, #fff 0%, rgba(255,255,255,.95) 45%, transparent 100%), radial-gradient(ellipse at 50% 45%, rgba(255,255,255,.7), rgba(255,255,255,.2) 50%, transparent 72%); transform: rotate(-26deg); filter: blur(calc(var(--o) * .006)); }
+/* crescent caustic along the lower right edge */
+.dd-orb .o-glint { inset: 0; background: radial-gradient(circle at 36% 30%, transparent 63%, rgba(255,240,220,.85) 70%, transparent 75%), radial-gradient(circle at 74% 70%, rgba(255,255,255,.9) 0, rgba(255,255,255,0) 5%); }
+.dd-orb[data-state="thinking"] .o-swirl { animation-duration: 2.8s; }
+.dd-orb[data-state="thinking"] .o-swirl2 { animation-duration: 4.2s; }
+.dd-orb[data-state="thinking"] .o-fold { animation-duration: 5s; }
+.dd-orb[data-state="thinking"] .o-body, .dd-orb[data-state="thinking"] .o-halo { animation-duration: 2.2s; }
+@keyframes dd-orb-breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.035); } }
+@keyframes dd-orb-halo { 0%, 100% { opacity: .7; transform: scale(.94); } 50% { opacity: 1; transform: scale(1.05); } }
+@keyframes dd-orb-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .dd-orb i { animation: none !important; } }
+
+/* v3.3 · citation chip flash when its [n] marker is clicked */
+.dd-cite-on { animation: dd-cite .9s ease-out; }
+@keyframes dd-cite { 0% { box-shadow: 0 0 0 0 rgba(156,68,15,.35); } 100% { box-shadow: 0 0 0 6px rgba(156,68,15,0); } }
+
+/* v3.3 · pending-answer skeleton lines (thinking state) */
+.dd-skel { background: linear-gradient(90deg, #efe9e2 0%, #efe9e2 35%, #f9f4ee 50%, #efe9e2 65%, #efe9e2 100%); background-size: 240% 100%; animation: dd-skel 1.8s linear infinite; }
+@keyframes dd-skel { from { background-position: 120% 0; } to { background-position: -20% 0; } }
+@media (prefers-reduced-motion: reduce) { .dd-skel { animation: none; } }
+/* v3.3 · streamed answers: under reduced motion everything is simply there (overrides framer's inline styles) */
+@media (prefers-reduced-motion: reduce) { [data-stream], [data-stream] * { opacity: 1 !important; transform: none !important; filter: none !important; } }
+
+/* v3.4 · agent flow canvas: running node ring, soft canvas grid */
+.flow-grid { background-color: #fbfbfa; background-image: radial-gradient(circle, #dcdcdf 1px, transparent 1.3px); background-size: 20px 20px; }
+.flow-ring { animation: dd-flow-ring 1.6s ease-out infinite; }
+@keyframes dd-flow-ring { 0% { box-shadow: 0 0 0 0 rgba(194,101,43,.32), var(--dd-e2); } 70% { box-shadow: 0 0 0 10px rgba(194,101,43,0), var(--dd-e2); } 100% { box-shadow: 0 0 0 0 rgba(194,101,43,0), var(--dd-e2); } }
+.flow-ring-frozen { box-shadow: 0 0 0 5px rgba(194,101,43,.14), var(--dd-e2); }
+@media (prefers-reduced-motion: reduce) { .flow-ring { animation: none; box-shadow: 0 0 0 5px rgba(194,101,43,.14), var(--dd-e2); } }
+
+/* v4 · IC memo: "Print or save as PDF" prints the paper only (sidebar, rails, toolbars hidden). */
+@media print {
+  body:has([data-memo-paper]) aside, body:has([data-memo-paper]) header, body:has([data-memo-paper]) [data-print-hide] { display: none !important; }
+  body:has([data-memo-paper]) main { min-width: 0 !important; }
+}
