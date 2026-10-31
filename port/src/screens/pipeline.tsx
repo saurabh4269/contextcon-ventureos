@@ -243,9 +243,10 @@ function PipelineState({ kind, title, body, action, onAction }: { kind: "empty" 
 function PipelineSkeleton() {
   return (
     <div aria-busy="true" aria-live="polite" className="mt-5 space-y-4">
-      <div className="grid grid-cols-4 gap-4 @max-[900px]/main:grid-cols-2">{Array.from({ length: 4 }, (_, i) => <div key={i} className={cx(CARD, "space-y-3 p-5")}><Skeleton className="h-4 w-1/2" /><Skeleton className="h-8 w-2/3" /><Skeleton className="h-3 w-1/3" /></div>)}</div>
-      <div className={cx(CARD, "grid grid-cols-[2.3fr_1fr] gap-8 p-5")}><div className="space-y-3"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-[74px]" /></div><div className="space-y-2.5">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-3" />)}</div></div>
-      <div className={cx(CARD, "space-y-3 p-4")}><Skeleton className="h-9 w-1/2 rounded-full" />{Array.from({ length: 6 }, (_, i) => <Skeleton key={i} className="h-11" />)}</div>
+      <div className="grid grid-cols-4 gap-4 @max-[900px]/main:grid-cols-2">{Array.from({ length: 4 }, (_, i) => <div key={i} className={cx(CARD, "h-[123px] space-y-3 p-5 @max-[900px]/main:h-[162px]")}><Skeleton className="h-4 w-1/2" /><Skeleton className="h-8 w-2/3" /><Skeleton className="h-3 w-1/3" /></div>)}</div>
+      <div className={cx(CARD, "grid h-[139px] grid-cols-[2.3fr_1fr] gap-8 p-5 @max-[900px]/main:h-[235px] @max-[900px]/main:grid-cols-1")}><div className="space-y-3"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-[74px]" /></div><div className="space-y-2.5 @max-[900px]/main:hidden">{Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-3" />)}</div></div>
+      <div className={cx(CARD, "h-[392px] p-4 @max-[900px]/main:h-[440px]")}><Skeleton className="h-9 w-1/2 rounded-full" /><div className="mt-[40px]">{Array.from({ length: 4 }, (_, i) => <div key={i} className="flex h-[60px] items-center"><Skeleton className="h-11 w-full" /></div>)}</div></div>
+      <div className={cx(CARD, "h-[118px] space-y-3 p-5")}><Skeleton className="h-4 w-1/4" /><Skeleton className="h-4 w-1/2" /></div>
     </div>
   );
 }

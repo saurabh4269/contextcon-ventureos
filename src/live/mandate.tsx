@@ -5,6 +5,7 @@ import { Page, TopBar } from "@port/components/shell";
 import type { Mandate } from "@/lib/settings/mandate";
 import { fmtDateTime } from "@/lib/format";
 import { liveShell } from "./shell";
+import { Skeleton } from "@port/components/states";
 
 type Form = Record<"sectors" | "stages" | "geos" | "checkMin" | "checkMax" | "dilLow" | "dilHigh" | "retLow" | "retHigh", string>;
 const toForm = (m: Mandate): Form => ({
@@ -36,12 +37,18 @@ export function MandateSettings() {
   const [form, setForm] = useState<Form | null>(null);
   const [meta, setMeta] = useState<{ updatedAt: string | null; unset: string[]; note: string; partners?: Mandate["partners"] }>({ updatedAt: null, unset: [], note: "" });
   const [msg, setMsg] = useState<string>("");
+  const [failed, setFailed] = useState<string | null>(null);
   const load = (d: { mandate: Mandate; unset: string[]; source?: { note: string } }) => {
     setForm(toForm(d.mandate));
     setMeta({ updatedAt: d.mandate.updatedAt, unset: d.unset, note: d.source?.note ?? "", partners: d.mandate.partners });
   };
   useEffect(() => {
-    fetch("/api/settings/mandate").then((r) => r.json()).then(load, (e) => setMsg(`Could not load the mandate: ${e}`));
+    fetch("/api/settings/mandate", { cache: "no-store" }).then(async (r) => {
+      const d = await r.json().catch(() => null);
+      // an error body is not a mandate: say so instead of rendering an empty (or crashing) form
+      if (!r.ok || !d?.mandate) return setFailed(d?.message ?? `Could not load the mandate (HTTP ${r.status}).`);
+      load(d);
+    }, (e) => setFailed(`Could not load the mandate: ${e instanceof Error ? e.message : String(e)}`));
   }, []);
   const save = async () => {
     if (!form) return;
@@ -70,6 +77,8 @@ export function MandateSettings() {
           {meta.note ? ` ${meta.note}` : ""}
           {meta.unset.length ? ` Unset: ${meta.unset.join(", ")}.` : ""}
         </p>
+        {!form && !failed && <div aria-busy="true" aria-live="polite" className="mt-4 h-[676px] space-y-2 rounded-xl bg-white p-4 ring-1 ring-zinc-200/80 @max-[720px]/main:h-[751px]">{Array.from({ length: 9 }, (_, i) => <Skeleton key={i} className="h-[58px]" />)}</div>}
+        {failed && <p role="alert" className="mt-4 text-[12.5px] text-red-700">{failed}</p>}
         {form && (
           <form className="mt-4 space-y-2 rounded-xl bg-white p-4 text-[12.5px] ring-1 ring-zinc-200/80" onSubmit={(e) => (e.preventDefault(), void save())}>
             {FIELDS.map((f, i) => (

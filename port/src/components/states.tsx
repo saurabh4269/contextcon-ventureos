@@ -2,10 +2,14 @@
 // Shared loading / empty / error blocks. Every screen renders these when `status` is not "ready".
 import { AlertTriangle, Inbox } from "lucide-react";
 import type { ReactNode } from "react";
-import { Btn, cx } from "./ui";
+import { Btn, CARD, cx } from "./ui";
 
 export function Skeleton({ className }: { className?: string }) {
   return <div className={cx("rounded-md bg-zinc-100 motion-safe:animate-pulse", className)} />;
+}
+/** A skeleton card: the same surface as every screen's cards, with pulse bars inside. Size it with `className`. */
+export function SkCard({ className, children }: { className?: string; children?: ReactNode }) {
+  return <div className={cx(CARD, "overflow-hidden", className)}>{children}</div>;
 }
 /** Generic three-block skeleton that roughly matches every screen's layout. */
 export function ScreenSkeleton({ cols = "grid-cols-[220px_1fr_360px]" }: { cols?: string }) {

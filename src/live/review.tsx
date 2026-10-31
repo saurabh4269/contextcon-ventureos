@@ -24,6 +24,7 @@ import {
 } from "@/lib/exceptions/types";
 import { CitePop } from "./agent/Cite";
 import { liveShell } from "./shell";
+import { ReviewSkeleton } from "@port/components/skeletons";
 import { failureMessage, useLiveJson } from "./useLiveJson";
 
 const GREEN = "#2f9a5c";
@@ -354,13 +355,13 @@ export function ReviewScreen({ runId }: { runId: string | null }) {
             {data && <span className={cx("text-[20px] tnum", data.open > 0 ? "text-rust" : "text-zinc-400")} data-testid="review-open">{data.open}</span>}
           </h1>
           <p className="mt-2 max-w-[680px] text-[13px] text-zinc-500">Agents finish everything they can verify on Crustdata; only these items need a person. Approve, reject or edit — the run finishes when its last item is resolved.</p>
-          {data && <p className="mt-1 text-[11.5px] text-zinc-400" data-testid="review-storage">{data.storage.note}</p>}
+          {data ? <p className="mt-1 text-[11.5px] text-zinc-400" data-testid="review-storage">{data.storage.note}</p> : res.state === "loading" && <p aria-hidden className="mt-1 h-[17px]" />}
         </div>
 
         {!data || !view ? (
           res.state === "failed"
             ? <p role="alert" className="mt-8 text-[12.5px] text-zinc-600">{failureMessage(res, "Review queue")}</p>
-            : <p className="mt-8 text-[12.5px] text-zinc-400">Loading review queue…</p>
+            : <ReviewSkeleton />
         ) : view.items.length === 0 && view.runs.length === 0 ? (
           <div data-testid="review-empty" className="mx-auto mt-14 max-w-[560px] rounded-xl border border-dashed border-zinc-300 bg-zinc-50/60 p-7 text-center">
             <p className="text-[13px] text-zinc-600">Nothing needs you. Exceptions appear here when an agent run (Assistant / Sourcing agent) hits something it cannot verify, or before anything is sent.</p>

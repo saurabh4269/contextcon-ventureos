@@ -8,7 +8,8 @@ import { ConnectorsPage, type ConnectorsView } from "../components/connectors";
 import { Rise } from "../components/motion";
 import { AutonomyControl, Segmented, Chip } from "../components/firm";
 import { WallBadge } from "../components/wall";
-import { ScreenSkeleton, ErrorState, EmptyState } from "../components/states";
+import { ErrorState, EmptyState } from "../components/states";
+import { SettingsSkeleton } from "../components/skeletons";
 import { TOOL_NAME } from "../components/tools";
 import type { FirmConfig, ScreenStatus, SettingsData, SettingsSection, ShellData, AccessDeniedRow } from "../types";
 
@@ -17,6 +18,8 @@ export type SettingsConnectorsOnly = Pick<SettingsData, "isAdmin" | "connectors"
 const isFull = (d: SettingsData | SettingsConnectorsOnly): d is SettingsData => "config" in d && !!d.config;
 
 export interface SettingsScreenProps extends ScreenStatus {
+  /** connector tiles the loading skeleton draws when the Connectors section is open (the catalogue is known up front) */
+  loadingCards?: number;
   shell: ShellData;
   data: SettingsData;
   section?: SettingsSection;
@@ -76,7 +79,7 @@ export function SettingsScreen(props: Omit<SettingsScreenProps, "data"> & { data
   const label = SECTIONS.find((s) => s.id === section)?.label ?? "Settings";
   return (
     <Page active="settings" shell={p.shell} top={<TopBar crumbs={[{ label: "Settings" }, { label }]} ctx="Settings" />}>
-      {status === "loading" ? <ScreenSkeleton cols="grid-cols-[220px_1fr_340px]" /> : status === "error" ? <ErrorState message={p.error} onRetry={p.onRetry} /> : (
+      {status === "loading" ? <SettingsSkeleton connectors={section === "connectors" ? p.loadingCards ?? 0 : 0} /> : status === "error" ? <ErrorState message={p.error} onRetry={p.onRetry} /> : (
       <div className={cx("grid flex-1 grid-cols-1 content-start @min-[720px]/main:content-stretch @min-[720px]/main:grid-cols-[200px_minmax(0,1fr)]", !wide && "@min-[1180px]/main:grid-cols-[220px_minmax(0,1fr)_340px]")}>
         {/* Phone: the section list becomes a scrolling chip row above the content. */}
         <nav className="border-b border-zinc-200/70 px-3 py-2 @min-[720px]/main:row-span-2 @min-[720px]/main:border-r @min-[720px]/main:border-b-0 @min-[720px]/main:pt-5 @min-[720px]/main:pb-0">

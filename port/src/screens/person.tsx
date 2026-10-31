@@ -400,10 +400,10 @@ function Toast({ t, onDone }: { t: PersonToast | null; onDone: () => void }) {
 
 function PersonSkeleton() {
   return (
-    <div aria-busy="true" aria-live="polite" className="mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-5 px-7 pt-6 pb-16 max-lg:pb-24 @min-[900px]/main:grid-cols-[minmax(0,1fr)_340px] @max-[720px]/main:px-4">
-      <div className={cx(CARD, "@min-[900px]/main:col-span-2 flex overflow-hidden items-center gap-5 p-6")}><span className="size-16 shrink-0 overflow-hidden rounded-full"><Skeleton className="size-full" /></span><div className="flex-1 space-y-2"><Skeleton className="h-7 w-56" /><Skeleton className="h-4 w-80" /></div><Skeleton className="h-9 w-56 rounded-full" /></div>
-      <div className={cx(CARD, "space-y-5 p-6")}><Skeleton className="h-8 w-2/3" />{Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex gap-3"><span className="size-7 shrink-0 overflow-hidden rounded-full"><Skeleton className="size-full" /></span><Skeleton className="h-5 flex-1" /></div>)}</div>
-      <div className="space-y-4">{[2, 5, 4].map((n, i) => <div key={i} className={cx(CARD, "space-y-2.5 p-5")}><Skeleton className="h-4 w-1/3" />{Array.from({ length: n - 1 }).map((_, j) => <Skeleton key={j} className="h-3.5" />)}</div>)}</div>
+    <div aria-busy="true" aria-live="polite" className="mx-auto grid w-full max-w-[1240px] grid-cols-1 items-start gap-5 px-7 pt-6 pb-16 max-lg:pb-24 @min-[900px]/main:grid-cols-[minmax(0,1fr)_340px] @max-[720px]/main:px-4">
+      <div className={cx(CARD, "@min-[900px]/main:col-span-2 flex h-[193px] overflow-hidden items-center gap-5 p-6 @max-[720px]/main:h-[342px]")}><span className="size-16 shrink-0 overflow-hidden rounded-full"><Skeleton className="size-full" /></span><div className="flex-1 space-y-2"><Skeleton className="h-7 w-56" /><Skeleton className="h-4 w-80 max-w-full" /></div><Skeleton className="h-9 w-56 rounded-full @max-[720px]/main:hidden" /></div>
+      <div className={cx(CARD, "h-[386px] space-y-5 p-6 @max-[720px]/main:h-[590px]")}><Skeleton className="h-8 w-2/3" />{Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex gap-3"><span className="size-7 shrink-0 overflow-hidden rounded-full"><Skeleton className="size-full" /></span><Skeleton className="h-5 flex-1" /></div>)}</div>
+      <div className="space-y-4">{["h-[58px]", "h-[309px] @max-[720px]/main:h-[291px]", "h-[235px] @max-[720px]/main:h-[270px]", "h-[107px]"].map((h, i) => <div key={i} className={cx(CARD, "space-y-2.5 p-5", h)}><Skeleton className="h-4 w-1/3" />{i > 0 && <Skeleton className="h-3.5" />}</div>)}</div>
     </div>
   );
 }

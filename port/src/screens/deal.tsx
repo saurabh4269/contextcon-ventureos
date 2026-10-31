@@ -13,7 +13,8 @@ import { AlertCard, type AlertInit } from "../components/dealalert";
 import { DealSectionView, CARD } from "../components/dealsections";
 import { Src, SrcPop, srcIcon, Pill, Btn, IconBtn, IconMenu, Waterfall, StepDot, Confidence, Kbd, HL, Undo, cx } from "../components/ui";
 import { Rise, GrowUp } from "../components/motion";
-import { ScreenSkeleton, ErrorState } from "../components/states";
+import { ErrorState } from "../components/states";
+import { DealSkeleton } from "../components/skeletons";
 import { WallBadge, Masked } from "../components/wall";
 import { ROUTES } from "../routes";
 import type { DealData, EmailDraft, EvidenceItem, LoadStatus, OutlineItem, RestrictedDeal, ScreenStatus, ShellData, SourceRef } from "../types";
@@ -115,7 +116,7 @@ export function DealScreen(p: DealScreenProps) {
   }, [onOutline, outline.map((o) => `${o.id}${o.selected ? "*" : ""}`).join()]); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <Page active="pipeline" shell={p.shell} top={<TopBar crumbs={[{ label: "Pipeline", href: ROUTES.pipeline }, { label: name }]} ctx={name} />}>
-      {status === "loading" ? <ScreenSkeleton cols="grid-cols-[200px_minmax(0,1fr)_360px]" /> : status === "error" ? <ErrorState message={p.error} onRetry={p.onRetry} /> : <>
+      {status === "loading" ? <DealSkeleton /> : status === "error" ? <ErrorState message={p.error} onRetry={p.onRetry} /> : <>
       <DealHead h={d.header} walled={d.walled} primary={<><IconBtn icon={<FolderOpen />} label="Data room" onClick={p.onOpenRoom} href={p.onOpenRoom ? undefined : ROUTES.dataRoom(id)} /><IconBtn icon={<FileText />} label="IC memo" onClick={p.onOpenMemo} href={p.onOpenMemo ? undefined : ROUTES.memo(id)} /></>} />
       {/* Phone: one column, the outline becomes a scrolling tab strip. Tablet: outline + content, the rail drops below.
           Desktop: outline · content · rail. With the assistant docked the rail steps aside. */}

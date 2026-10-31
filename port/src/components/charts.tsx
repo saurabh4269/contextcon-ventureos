@@ -202,7 +202,7 @@ export function RangeChart({ v, w = 640, rowH = 30, labelW = 128, showMethods = 
   if (stacked) { labelW = 0; rowH = Math.max(rowH, 40); }
   const rows: RRow[] = [...(showMethods ? v.methods ?? [] : []).map((m) => ({ label: m.label, range: [m.low, m.high] as [number, number], ours: false, mid: (m.low + m.high) / 2 })), { label: ourLabel, range: [v.low, v.high], ours: true, mid: (v.low + v.high) / 2 }];
   const ticks = niceTicks(v.axis.min, v.axis.max, 5);
-  const u = v.unit, money = (n: number) => `$${fmt(n)}${u}`;
+  const u = v.unit, money = (n: number) => (Number.isFinite(n) ? `$${fmt(n)}${u}` : "—"); // unpriced: never "$NaNM"
   const padT = 34, axisH = 22, H = padT + rows.length * rowH + axisH + (footnote ? 18 : 0);
   const config: ChartConfig = { range: { label: "Range", color: INK } };
   const over = v.ask !== undefined && v.ask > v.high;
@@ -220,6 +220,7 @@ export function RangeChart({ v, w = 640, rowH = 30, labelW = 128, showMethods = 
       <g style={F} pointerEvents="none">
         {rows.map((r, i) => {
           const cy = b.mid(i);
+          if (!stacked && !(Number.isFinite(r.range[0]) && Number.isFinite(r.range[1]))) return null; // unpriced row: no labels at a made-up position
           return stacked ? (
             <g key={r.label}>
               <text x={p.x} y={cy - 5} fontSize="11.5" fill={r.ours ? INK : MUTED} fontWeight={r.ours ? 600 : 400}>{r.label}</text>

@@ -30,6 +30,8 @@ export function useKnownDeals(opts: { withDeals?: boolean } = {}): Fetched<Known
     setRes({ state: "loading" });
     const ex = await getJson<ExceptionsResponse>("/api/exceptions?status=all");
     if (ex.state !== "ok") return setRes(ex as Fetched<KnownDeals>);
+    // a body that is not the queue (a proxy page, an old server) is a failure, not an empty list
+    if (!Array.isArray(ex.data?.items) || !Array.isArray(ex.data?.runs)) return setRes({ state: "failed", status: 200, body: { status: "error", message: "The review queue answered with an unexpected body." } });
     const base = knownDeals(ex.data, MAX_DEALS);
     const deals = withDeals
       ? await Promise.all(base.map(async (k) => {

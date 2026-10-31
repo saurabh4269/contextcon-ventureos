@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Page, TopBar } from "@port/components/shell";
+import { Skeleton } from "@port/components/states";
 import { cx } from "@port/components/ui";
 import { shellInvest } from "@port/fixtures";
 import type { Citation } from "@/lib/fields";
@@ -188,7 +189,7 @@ function Timeline({ id }: { id: string }) {
     void load();
   };
   if (err && !deal) return <p className="text-[13px] text-red-700">{err}</p>;
-  if (!deal) return <p className="text-[13px] text-zinc-500">Loading…</p>;
+  if (!deal) return <TimelineSkeleton />;
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -236,11 +237,22 @@ function Timeline({ id }: { id: string }) {
   );
 }
 
+/** Same blocks as the loaded timeline: header row, stage bar, then the ten step cards. */
+function TimelineSkeleton() {
+  return (
+    <div aria-busy="true" className="space-y-4">
+      <div className="h-[60px] space-y-2"><Skeleton className="h-[30px] w-1/2" /><Skeleton className="h-[22px]" /></div>
+      <ol className="relative space-y-3 border-l border-zinc-200 pl-6">{STEPS.map((s, i) => <li key={s.id} className={cx("rounded-xl border border-zinc-200 bg-white p-4", i < 4 ? "h-[120px]" : "h-[55px]")}><Skeleton className="h-5 w-1/2" />{i < 4 && <Skeleton className="mt-2 h-4 w-3/4" />}</li>)}</ol>
+    </div>
+  );
+}
+
 function Start({ start, name }: { start?: string; name?: string }) {
   const router = useRouter();
   const [deals, setDeals] = useState<Deal[] | null>(null);
   const [storage, setStorage] = useState<StorageInfo | undefined>();
   const [inbox, setInbox] = useState<{ candidates?: Candidate[]; query?: string; message?: string; hidden?: number } | null>(null);
+  const [dealsErr, setDealsErr] = useState<string | null>(null);
   const [domain, setDomain] = useState(start ?? "");
   const [err, setErr] = useState<string | null>(null);
   const begun = useRef(false);
@@ -253,8 +265,16 @@ function Start({ start, name }: { start?: string; name?: string }) {
   }, [router]);
   useEffect(() => {
     if (start && !begun.current) { begun.current = true; void begin({ from: "ask", domain: start, name }); return; }
-    void fetch("/api/workflow", { cache: "no-store" }).then((r) => r.json()).then((j) => { setDeals(j.deals ?? []); setStorage(j.storage); }, () => setDeals([]));
-    void fetch("/api/workflow/inbox", { cache: "no-store" }).then((r) => r.json()).then(setInbox).catch(() => setInbox({ message: "Inbox unavailable" }));
+    // a failing list is an error, not "No deals yet"
+    void fetch("/api/workflow", { cache: "no-store" }).then(async (r) => {
+      const j = await r.json().catch(() => null);
+      if (!r.ok || !Array.isArray(j?.deals)) { setDealsErr(j?.message ?? `Could not load deals (HTTP ${r.status}).`); setDeals([]); return; }
+      setDeals(j.deals); setStorage(j.storage);
+    }, (e) => { setDealsErr(`Could not load deals: ${e instanceof Error ? e.message : String(e)}`); setDeals([]); });
+    void fetch("/api/workflow/inbox", { cache: "no-store" }).then(async (r) => {
+      const j = await r.json().catch(() => null);
+      setInbox(r.ok && j ? j : { message: j?.message ?? `Inbox unavailable (HTTP ${r.status}).` });
+    }).catch(() => setInbox({ message: "Inbox unavailable" }));
   }, [start, name, begin]);
   return (
     <div className="space-y-6">
@@ -269,7 +289,7 @@ function Start({ start, name }: { start?: string; name?: string }) {
       <section className="rounded-xl border border-zinc-200 bg-white p-4">
         <h2 className="text-[14px] font-semibold text-ink">Start from inbox</h2>
         <p className="text-[12px] text-zinc-500">Read-only Gmail search{inbox?.query ? `: ${inbox.query}` : ""}</p>
-        {!inbox ? <p className="mt-2 text-[12.5px] text-zinc-500">Searching…</p> : inbox.candidates ? (
+        {!inbox ? <div aria-busy="true" className="mt-2 divide-y divide-zinc-100">{[0, 1].map((i) => <div key={i} className="flex items-center gap-3 py-2"><div className="min-w-0 flex-1 space-y-1.5"><Skeleton className="h-[14px] w-2/3" /><Skeleton className="h-[14px] w-1/3" /></div><Skeleton className="h-7 w-[84px]" /></div>)}</div> : inbox.candidates ? (
           inbox.candidates.length ? (
             <ul className="mt-2 divide-y divide-zinc-100">
               {inbox.candidates.map((c) => (
@@ -285,7 +305,7 @@ function Start({ start, name }: { start?: string; name?: string }) {
       <section className="rounded-xl border border-zinc-200 bg-white p-4">
         <h2 className="text-[14px] font-semibold text-ink">Deals</h2>
         <StorageNote storage={storage} />
-        {!deals ? <p className="mt-2 text-[12.5px] text-zinc-500">Loading…</p> : deals.length ? (
+        {!deals ? <div aria-busy="true" className="mt-2 divide-y divide-zinc-100">{[0, 1].map((i) => <div key={i} className="py-2"><Skeleton className="h-[18px] w-1/2" /></div>)}</div> : dealsErr ? <p role="alert" className="mt-2 text-[12.5px] text-red-700">{dealsErr}</p> : deals.length ? (
           <ul className="mt-2 divide-y divide-zinc-100">
             {deals.map((d) => {
               const w = d.steps.find((s) => s.status === "waiting" || s.status === "running" || s.status === "error");

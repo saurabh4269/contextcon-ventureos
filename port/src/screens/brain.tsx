@@ -16,7 +16,8 @@ import { StagePill } from "../components/dealbits";
 import { MiniBars } from "../components/charts";
 import { MemoryGrowth, Composition, PassReasons, OutcomeScore, PriorViz } from "../components/brainviz";
 import { Sheet, PillBtn, Popover, downloadText } from "../components/sheet";
-import { ScreenSkeleton, ErrorState, EmptyState } from "../components/states";
+import { ErrorState, EmptyState } from "../components/states";
+import { BrainSkeleton } from "../components/skeletons";
 import type { BrainData, Memory, ScreenStatus, ShellData, ThesisLine, ThesisProposal } from "../types";
 
 export type ProposalDecision = "approve" | "reject";
@@ -255,8 +256,8 @@ export function BrainScreen(p: BrainScreenProps) {
 
   return (
     <Page active="brain" shell={p.shell} top={top} overlay={mcpOpen ? <McpSheet mcp={d.mcp} onClose={() => setMcpOpen(false)} /> : undefined}>
-      {status === "loading" ? <ScreenSkeleton cols="grid-cols-[300px_1fr]" /> : status === "error" ? <ErrorState message={p.error} onRetry={p.onRetry} /> : status === "empty" ? <EmptyState title="Nothing learned yet" body="Memories appear after your first passes, memos and IC decisions. Connect Gmail and your IC notes to start." /> : (
-      <div className="mx-auto grid w-full max-w-[1240px] grid-cols-[300px_minmax(0,1fr)] items-start gap-5 px-7 pt-7 pb-16">
+      {status === "loading" ? <BrainSkeleton /> : status === "error" ? <ErrorState message={p.error} onRetry={p.onRetry} /> : status === "empty" ? <EmptyState title="Nothing learned yet" body="Memories appear after your first passes, memos and IC decisions. Connect Gmail and your IC notes to start." /> : (
+      <div className="mx-auto grid w-full max-w-[1240px] grid-cols-[300px_minmax(0,1fr)] items-start gap-5 px-7 pt-7 pb-16 @max-[900px]/main:grid-cols-1 @max-[720px]/main:px-4">
         <div className="flex flex-col gap-4">
           <KindNav d={d} kind={kind} onKind={onKind} />
           <McpCard mcp={d.mcp} onOpen={() => setMcpOpen(true)} />
@@ -289,7 +290,7 @@ export function BrainScreen(p: BrainScreenProps) {
                   {d.proposals.length ? d.proposals.map((x, i) => <ProposalRow key={x.id} p={x} primary={i === 0} done={decided[x.id]} onDecide={(dec) => decide(x, dec)} onUndo={() => undoDecision(x.id)} />) : <div className="border-t border-zinc-100 px-5 py-6 text-[13px] text-zinc-500">No proposals. Deal Desk suggests thesis changes after 3+ outcomes point the same way.</div>}
                 </section>
               </Rise>
-              <Rise i={2} className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-4">
+              <Rise i={2} className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-4 @max-[720px]/main:grid-cols-1">
                 <section className={cx(CARD, "p-5")}>
                   <H sub="What happened after we decided">Outcomes</H>
                   <div className="mt-4 rounded-[14px] bg-[#fafaf9] px-3.5 py-3 ring-1 ring-zinc-200/60"><OutcomeScore outcomes={d.outcomes} /></div>
@@ -311,7 +312,7 @@ export function BrainScreen(p: BrainScreenProps) {
                   </div>
                 </section>
               </Rise>
-              <Rise i={3} className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-4">
+              <Rise i={3} className="grid grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)] gap-4 @max-[720px]/main:grid-cols-1">
                 <button type="button" onClick={() => onKind("pass")} className={cx(CARD, "group p-5 text-left")}>
                   <H sub={`Based on ${d.passCount} passes`} right={<ArrowUpRight className="size-4 text-zinc-300 transition-colors group-hover:text-ink" />}>Pass reasons</H>
                   <div className="mt-3"><PassReasons reasons={d.passReasons} total={d.passCount} /></div>

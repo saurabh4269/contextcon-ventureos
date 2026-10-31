@@ -51,7 +51,6 @@ export const SCREENS = [
   { id: "mandates", path: "/mandates", keys: [] },
   { id: "slack", path: "/slack", keys: [] },
   { id: "preview-slack", path: "/preview/slack", keys: [] },
-  { id: "home", path: "/", keys: [] },
 ];
 
 const CLS_INIT = `
@@ -81,7 +80,7 @@ function collectBoxes() {
     else if (tag === "table" || el.getAttribute("role") === "table") role = "table";
     else if (tag === "tr" || el.getAttribute("role") === "row" || (tag === "li" && boxy)) role = "row";
     else if ((tag === "svg" && r.width >= 60 && r.height >= 30) || tag === "canvas" || /recharts-wrapper/.test(cls)) role = "chart";
-    else if ((tag === "section" || tag === "article" || (boxy && radius >= 8)) && r.width >= 80 && r.height >= 28) role = "card";
+    else if ((tag === "section" || tag === "article" || (boxy && radius >= 8 && !["button", "a", "label", "input", "select", "textarea", "span"].includes(tag))) && r.width >= 120 && r.height >= 48) role = "card"; // controls are not layout blocks
     if (!role) continue;
     out.push({ role, tag, x: num(r.left + sx), y: num(r.top + sy), w: num(r.width), h: num(r.height), cls: cls.slice(0, 70), text: (el.textContent || "").trim().slice(0, 24) });
   }
@@ -129,7 +128,7 @@ async function runOne(browser, screen, width, final) {
     if (!key) return route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ status: "error", message: "no mock" }) });
     if (!mine.has(key)) {
       // an API the screen shows in its shell (e.g. the Review count): always empty and instant
-      const body = key === "exceptions" ? FALLBACK_EXCEPTIONS : { status: "ok" };
+      const body = key === "exceptions" ? FALLBACK_EXCEPTIONS : API[key].empty.body;
       return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) });
     }
     if (hold) await gate;

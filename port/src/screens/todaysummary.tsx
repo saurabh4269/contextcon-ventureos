@@ -13,7 +13,7 @@ import { LiveRail } from "../components/liverail";
 import { NextMeetings } from "../components/meeting";
 import { ConnectChip } from "../components/connect";
 import { InboundChart } from "../components/charts";
-import { ScreenSkeleton, EmptyState, ErrorState } from "../components/states";
+import { Skeleton, SkCard, EmptyState, ErrorState } from "../components/states";
 import { CompanyLogo, cx } from "../components/ui";
 import { FitPill, StagePill as SPill, Checkbox, OwnerChip, DecisionBtn, type PillTone } from "../components/dealbits";
 import { Rise } from "../components/motion";
@@ -150,6 +150,25 @@ export function WorkList({ rows, filter, onFilter, onAction, waiting, me }: { me
   );
 }
 
+/** Loading state: the loaded page's grid, with each card at its loaded height (4 work rows). */
+function TodaySkeleton() {
+  const bars = (n: number) => Array.from({ length: n }, (_, i) => <Skeleton key={i} className="h-3.5" />);
+  return (
+    <div aria-busy="true" aria-live="polite" className="mx-auto grid w-full max-w-[1240px] grid-cols-[320px_minmax(0,1fr)] gap-5 px-7 pt-7 pb-16 @max-[1040px]/main:grid-cols-1">
+      <div className="flex flex-col gap-4 @max-[1040px]/main:order-2 @max-[1040px]/main:grid @max-[1040px]/main:grid-cols-2">
+        <SkCard className="h-[324px] space-y-3 p-5 @max-[1040px]/main:h-[423px] group-data-[dock=open]/page:hidden"><Skeleton className="size-9 rounded-full" /><Skeleton className="mt-8 h-[74px]" /><Skeleton className="h-8 w-2/3" /><Skeleton className="h-11" /></SkCard>
+        <SkCard className="h-[265px] space-y-3 p-5 @max-[1040px]/main:h-[423px]"><Skeleton className="h-4 w-1/2" />{bars(2)}<Skeleton className="h-[120px]" /></SkCard>
+        <SkCard className="h-[127px] space-y-3 p-5"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-9" /></SkCard>
+      </div>
+      <div className="flex min-w-0 flex-col gap-4">
+        <div className="flex items-end justify-between px-1 pt-1 pb-2"><div className="min-w-0 flex-1"><Skeleton className="h-9 w-[479px] max-w-full @max-[720px]/main:h-[72px] @max-[720px]/main:w-[262px]" /><Skeleton className="mt-2.5 h-[21px] w-2/3" /></div><Skeleton className="h-[52px] w-[88px]" /></div>
+        <SkCard className="h-[346px] space-y-3 p-4"><Skeleton className="h-9 w-2/3 rounded-full" />{Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-[48px]" />)}</SkCard>
+        <div className="grid flex-1 grid-cols-2 items-stretch gap-4"><SkCard className="h-full min-h-[290px] space-y-3 p-5 @max-[1040px]/main:min-h-[95px]"><Skeleton className="h-4 w-1/3" /><Skeleton className="h-10" /></SkCard></div>
+      </div>
+    </div>
+  );
+}
+
 export function TodaySummaryScreen({ shell, data, overlay, filter: f0 = "all", onAction, onAsk, onExpand, onMeeting, activeMeeting, waiting, status = "ready", error, onRetry }: {
   shell: ShellData; data: TodaySummaryData; overlay?: ReactNode; filter?: "all" | WorkStage;
   onAction?: (rowId: string, kind: WorkAction) => void; onAsk?: (q: string) => void; onExpand?: () => void; onMeeting?: (id: string) => void; activeMeeting?: string; waiting?: Record<string, ToolId>;
@@ -161,7 +180,7 @@ export function TodaySummaryScreen({ shell, data, overlay, filter: f0 = "all", o
   // the work comes first, the metric and waiting cards pair up underneath, and the Ask card hides (the dock replaces it).
   return (
     <Page active="today" shell={shell} overlay={overlay} top={top}>
-      {status === "loading" ? <ScreenSkeleton cols="grid-cols-[320px_1fr]" /> : status === "error" ? <ErrorState message={error} onRetry={onRetry} /> : (
+      {status === "loading" ? <TodaySkeleton /> : status === "error" ? <ErrorState message={error} onRetry={onRetry} /> : (
       <div className="mx-auto grid w-full max-w-[1240px] grid-cols-[320px_minmax(0,1fr)] gap-5 px-7 pt-7 pb-16 @max-[1040px]/main:grid-cols-1">
         <div className="flex flex-col gap-4 @max-[1040px]/main:order-2 @max-[1040px]/main:grid @max-[1040px]/main:grid-cols-2">
           <AskCard d={data.ask} onAsk={onAsk} onExpand={onExpand} />

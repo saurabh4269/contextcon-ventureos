@@ -27,7 +27,7 @@ export function LiveSettings({ shell, initialSection, view }: { shell: ShellData
   return (
     <SettingsScreen shell={shell} data={{ isAdmin: false, connectors }} section={section} onSection={setSection} connectorsView={view}
       unavailable={() => <UnavailableBlock screen="settings" />}
-      status={status} error={res.state === "failed" ? failureMessage(res, "Couldn’t load connector status") : undefined} onRetry={() => void res.reload(true)}
+      loadingCards={connectorCatalogue.items.length} status={status} error={res.state === "failed" ? failureMessage(res, "Couldn’t load connector status") : undefined} onRetry={() => void res.reload(true)}
       onConnect={async (id) => {
         const info = env(id);
         if (!LIVE_UI_IDS.has(id) || !info) throw new Error("Not available in this build yet — this tile is part of the catalogue only.");

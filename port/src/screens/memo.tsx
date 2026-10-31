@@ -6,7 +6,8 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { Page, TopBar } from "../components/shell";
 import { Src, SrcPop, Btn, StepDot, Avatar, Severity, Waterfall, CapRange, cx, IconMenu } from "../components/ui";
 import { Rise, useReducedMotion } from "../components/motion";
-import { ScreenSkeleton, ErrorState, EmptyState } from "../components/states";
+import { ErrorState, EmptyState } from "../components/states";
+import { MemoSkeleton } from "../components/skeletons";
 import { PriorsStrip } from "../components/priors";
 import { RangeChart } from "../components/charts";
 import { GrowthCard } from "../components/growthcard";
@@ -100,7 +101,7 @@ export function MemoScreen(p: MemoScreenProps) {
   if (status !== "ready" || !d.doc) {
     return (
       <Page active="pipeline" shell={p.shell} top={<TopBar crumbs={crumbs} ctx="IC memo" right={status === "ready" ? <IconMenu icon={<Download />} label="Export memo" title={d.exportNote} w={250} items={exportItems()} /> : undefined} />}>
-        {status === "loading" ? <ScreenSkeleton cols="grid-cols-[208px_1fr_340px]" />
+        {status === "loading" ? <MemoSkeleton />
           : status === "error" ? <ErrorState message={p.error} onRetry={p.onRetry} />
           : status === "empty" ? <EmptyState title="No memo yet" body={`Deal Desk drafts the IC memo for ${d.company.name} once diligence finishes.`} action={<Link href={ROUTES.deal(d.company.id)} className="inline-flex h-9 items-center rounded-full bg-ink px-4 text-[13px] font-medium text-white hover:bg-zinc-800">Open the deal</Link>} />
           : <LegacyMemo {...p} />}
@@ -183,7 +184,7 @@ function DocMemo(p: MemoScreenProps & { doc: MemoDoc; exportItems: (onMd?: () =>
 
   return (
     <Page active="pipeline" shell={p.shell} top={<TopBar crumbs={p.crumbs} ctx="IC memo" right={<IconMenu icon={<Download />} label="Export memo" title="Export this draft" w={250} items={p.exportItems(download)} />} />}>
-      <div className="grid flex-1 grid-cols-[208px_minmax(0,1fr)_340px] @max-[1120px]/main:grid-cols-[196px_minmax(0,1fr)_296px]">
+      <div className="grid flex-1 grid-cols-[208px_minmax(0,1fr)_340px] @max-[1120px]/main:grid-cols-[196px_minmax(0,1fr)_296px] @max-[900px]/main:grid-cols-1">
         {/* Template rail */}
         <nav data-print-hide aria-label="Memo sections" className="sticky top-[52px] flex h-[calc(100vh-52px)] flex-col border-r border-zinc-200/70 px-3 pt-6 pb-4">
           <div className="eyebrow px-2">IC memo template</div>

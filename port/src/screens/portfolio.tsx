@@ -14,7 +14,8 @@ import { Src, Spark, cx, CompanyLogo, CARD, Undo } from "../components/ui";
 import { StagePill, type PillTone } from "../components/dealbits";
 import { Sheet, PillBtn, Popover, downloadText, csvRow } from "../components/sheet";
 import { Rise, Count, Grow } from "../components/motion";
-import { ScreenSkeleton, ErrorState, EmptyState } from "../components/states";
+import { ErrorState, EmptyState } from "../components/states";
+import { PortfolioSkeleton } from "../components/skeletons";
 import type { PortfolioCompany, PortfolioData, PortfolioDoc, PortfolioPanel, ReportTile, ScreenStatus, ShellData, Tone } from "../types";
 
 export interface PortfolioScreenProps extends ScreenStatus {
@@ -296,7 +297,7 @@ export function PortfolioScreen(p: PortfolioScreenProps) {
   return (
     <Page active="portfolio" shell={p.shell} top={top}
       overlay={doc && open ? <DocSheet key={open} doc={doc} decision={open === "decision" ? x.decision : undefined} onClose={() => setOpen(null)} done={!!done[open === "decision" ? x.action.id : open]} onDone={() => { const k = open === "decision" ? x.action.id : open; setDone((s) => ({ ...s, [k]: doc.primary.done })); }} onUndo={() => undo(open === "decision" ? x.action.id : open)} /> : undefined}>
-      {status === "loading" ? <ScreenSkeleton cols="grid-cols-[1fr_360px]" /> : status === "error" ? <ErrorState message={p.error} onRetry={p.onRetry} /> : status === "empty" || d.companies.length === 0 ? <EmptyState title="No portfolio companies yet" body="Closed deals land here with their memo, model and data room. You can also import a fund from Carta in Settings." /> : (
+      {status === "loading" ? <PortfolioSkeleton /> : status === "error" ? <ErrorState message={p.error} onRetry={p.onRetry} /> : status === "empty" || d.companies.length === 0 ? <EmptyState title="No portfolio companies yet" body="Closed deals land here with their memo, model and data room. You can also import a fund from Carta in Settings." /> : (
       <div className="mx-auto flex w-full max-w-[1240px] flex-col gap-5 px-7 pt-7 pb-16">
         <div className="flex items-end justify-between px-1 pt-1">
           <div><h1 className="serif text-[36px] leading-none tracking-[-0.02em]">Portfolio</h1><p className="mt-2.5 text-[14px] text-zinc-500">{d.fundLabel} · {d.companies.length} companies{d.sub ? ` · ${d.sub}` : ""}</p></div>
@@ -306,7 +307,7 @@ export function PortfolioScreen(p: PortfolioScreenProps) {
           </button>
         </div>
         <Rise i={0}><Stats d={d} onFilter={setFilter} /></Rise>
-        <div className="grid grid-cols-[minmax(0,1fr)_360px] items-start gap-5 @max-[1120px]/main:grid-cols-[minmax(0,1fr)_340px]">
+        <div className="grid grid-cols-[minmax(0,1fr)_360px] items-start gap-5 @max-[1120px]/main:grid-cols-[minmax(0,1fr)_340px] @max-[900px]/main:grid-cols-1">
           <div className="flex min-w-0 flex-col gap-5">
             <Rise i={1}><Table d={d} filter={filter} setFilter={setFilter} sel={sel} onSelect={select} /></Rise>
             {(d.live || d.reports.length > 0) && <Rise i={2} className="grid grid-cols-2 items-stretch gap-4">
