@@ -164,7 +164,7 @@ export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onS
             </motion.div>
           )}
         </AnimatePresence>
-        <motion.div layout={!r} className="mt-4 grid grid-cols-2 gap-4 min-[1360px]:grid-cols-3 @max-[720px]/main:grid-cols-1 @max-[720px]/main:gap-3">
+        <motion.div layout={!r} className="mt-4 grid grid-cols-2 gap-4 min-[1360px]:grid-cols-3 @max-[820px]/main:grid-cols-1 @max-[720px]/main:gap-3">
           <AnimatePresence initial={false} mode="popLayout">
             {grid.flatMap((c, i) => {
               const head = tab === "all" && c.status === "available" && i > 0 && grid[i - 1].status !== "available";
@@ -361,9 +361,9 @@ function Featured({ c, f, cat, agents, onConnect, onManage }: { c: Connector; f:
             <BadgeCheck aria-label="Connected" className="size-[18px] shrink-0 fill-ok text-white" strokeWidth={2} />
             <span className="hidden truncate text-[12px] text-zinc-500 min-[1360px]:inline">{cat}</span>
           </div>
-          <p className="truncate text-[13.5px] text-zinc-600 @max-[720px]/main:whitespace-normal">{f.headline}</p>
+          <p className="truncate text-[13.5px] text-zinc-600 @max-[960px]/main:whitespace-normal">{f.headline}</p>
         </div>
-        <div className="flex shrink-0 items-center gap-4 @max-[720px]/main:w-full @max-[720px]/main:justify-between">
+        <div className="flex shrink-0 items-center gap-4 @max-[960px]/main:w-full @max-[960px]/main:justify-between">
           <AgentStack c={c} agents={agents} />
           <span className="hidden h-5 w-px bg-[#ead8c6] min-[1360px]:block" />
           <StatusLine c={c} />
