@@ -28,17 +28,39 @@ type FieldSnap = { value: unknown; endpoint: string | null; path: string | null 
 
 const list = (xs: string[]) => (xs.length <= 1 ? xs.join("") : `${xs.slice(0, -1).join(", ")} and ${xs.at(-1)}`);
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
-const istHour = (now: Date) => Number(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hourCycle: "h23", timeZone: DISPLAY_TZ }).format(now));
-// conventional greeting boundaries (local IST hour), not data
-const salutation = (now: Date) => (istHour(now) < 12 ? "Good morning" : istHour(now) < 17 ? "Good afternoon" : "Good evening");
+
+/** The client's IANA time zone if valid, else DISPLAY_TZ (Asia/Kolkata). */
+export function resolveTimeZone(tz: unknown): string {
+  if (typeof tz !== "string" || !tz || tz.length > 64) return DISPLAY_TZ;
+  try { new Intl.DateTimeFormat("en-US", { timeZone: tz }); return tz; } catch { return DISPLAY_TZ; }
+}
+/** A client-reported local hour if it is an integer 0..23, else null. */
+export function parseHour(h: unknown): number | null {
+  const n = typeof h === "number" ? h : typeof h === "string" && /^\d{1,2}$/.test(h.trim()) ? Number(h) : NaN;
+  return Number.isInteger(n) && n >= 0 && n <= 23 ? n : null;
+}
+export const hourIn = (now: Date, tz: string) => Number(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hourCycle: "h23", timeZone: tz }).format(now));
+// conventional greeting boundaries (the user's local hour), not data
+export const salutation = (hour: number) => (hour >= 5 && hour < 12 ? "Good morning" : hour >= 12 && hour < 17 ? "Good afternoon" : hour >= 17 && hour < 22 ? "Good evening" : "Working late");
+/** An opening salutation (with an optional name), e.g. "Good morning, Saurabh." / "Hi there!" */
+const SALUTATION_RE = /^\s*(?:[Gg]ood\s+(?:morning|afternoon|evening|night|day)|[Ww]orking late|[Hh]ello|[Hh]i|[Hh]ey)\b(?:\s+there)?(?:,?\s*[A-Z][\w'-]*(?=[.!,]))?\s*[.!,]?\s*/;
+/** Drop a leading salutation (non-Today screens start directly with their content, even if a model adds one). */
+export function stripSalutation(text: string): string {
+  const out = text.replace(SALUTATION_RE, "");
+  return out ? out[0]!.toUpperCase() + out.slice(1) : text;
+}
 
 type Feed<T> = { status: "ok"; items: T[]; since?: string | null } | { status: "unavailable" | "error"; reason: string };
 
-export function composeGreeting(input: { name?: string | null; memory: Memory; connectors: IntegrationInfo[]; inbox?: Feed<InboxThread>; meetings?: Feed<Meeting>; now?: Date }): Omit<Greeting, "composer" | "status" | "generatedAt"> {
+/** `tz` / `hour` come from the client (validated by the caller or here); the client's hour wins, then its time zone, then IST. */
+export function composeGreeting(input: { name?: string | null; memory: Memory; connectors: IntegrationInfo[]; inbox?: Feed<InboxThread>; meetings?: Feed<Meeting>; now?: Date; tz?: string | null; hour?: number | null }): Omit<Greeting, "composer" | "status" | "generatedAt"> {
   const now = input.now ?? new Date();
   const sources: GreetingSource[] = [];
-  const facts: Record<string, unknown> = {};
-  const parts: string[] = [`${salutation(now)}${input.name ? `, ${input.name}` : ""}.`];
+  const tz = resolveTimeZone(input.tz);
+  const hour = parseHour(input.hour) ?? hourIn(now, tz);
+  const opening = `${salutation(hour)}${input.name ? `, ${input.name}` : ""}.`;
+  const facts: Record<string, unknown> = { salutation: opening, localHour: hour, timeZone: tz };
+  const parts: string[] = [opening];
 
   // 1 · what came in since the last greeting
   if (input.memory.status !== "ok") {
@@ -114,13 +136,14 @@ export function composeGreeting(input: { name?: string | null; memory: Memory; c
 }
 
 /** Rephrase with the configured model (Anthropic, else OpenAI: same selection as the research agent) without adding facts. Throws on failure (caller reports it). */
-export async function rephraseWithLlm(draft: string, facts: Record<string, unknown>, env: Record<string, string | undefined>, f: typeof fetch = fetch): Promise<string> {
+export async function rephraseWithLlm(draft: string, facts: Record<string, unknown>, env: Record<string, string | undefined>, f: typeof fetch = fetch, opts: { greet?: boolean } = {}): Promise<string> {
   // OpenAI path uses the light model with low reasoning: this is phrasing, spoken within seconds
   const oa = env.OPENAI_API_KEY?.trim();
   const model = !env.ANTHROPIC_API_KEY?.trim() && oa ? openaiModel(oa, env.OPENAI_FAST_MODEL?.trim() || DEFAULT_OPENAI_FAST_MODEL, f, { reasoningEffort: "low" }) : modelFromEnv(env, f);
   if (!model) throw new Error("no AI model key set (OPENAI_API_KEY or ANTHROPIC_API_KEY)");
   const turn = await model.complete({
-    system: "You are the Deal Desk voice assistant speaking to a venture investor. Turn the factual draft into warm, natural speech, or answer the question in the facts if there is one. Use ONLY the facts given; never add companies, numbers, events or dates; if the facts do not answer the question, say so. Keep every number exactly. Plain text, no markdown, under 90 words.",
+    system: "You are the Deal Desk voice assistant speaking to a venture investor. Turn the factual draft into warm, natural speech, or answer the question in the facts if there is one. Use ONLY the facts given; never add companies, numbers, events or dates; if the facts do not answer the question, say so. Keep every number exactly. Plain text, no markdown, under 90 words. "
+      + (opts.greet ? "Open with the salutation in the facts exactly as written; never use a different time of day." : "Do not greet: no salutation (good morning/afternoon/evening, hello), no name; start directly with the content."),
     messages: [{ role: "user", text: `Facts (JSON): ${JSON.stringify(facts)}\n\nDraft: ${draft}\n\nWrite what to say.` }],
     tools: [],
     maxTokens: 4000,
