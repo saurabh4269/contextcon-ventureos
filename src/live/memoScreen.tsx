@@ -4,7 +4,7 @@
 // Without an id: the most recent deal worked on this server (GET /api/exceptions), else the screen's empty state.
 import { MemoScreen } from "@port/screens/memo";
 import type { MemoData, ShellData } from "@port/types";
-import { toLiveMemo } from "@/lib/adapters/memo";
+import { REVENUE_LABEL, toLiveMemo } from "@/lib/adapters/memo";
 import type { DecisionsResponse } from "@/lib/numbers/decisions";
 import type { ResearchResult } from "@/lib/live/types";
 import { useLiveCoverage } from "@/components/datamode";
@@ -40,6 +40,6 @@ function MemoFor({ shell, id }: { shell: ShellData; id: string }) {
 const shellMemo = (id: string, name: string): MemoData => ({
   company: { id, name, initial: name[0]?.toUpperCase() ?? "—" },
   outline: [], meta: { draft: "", citations: 0, unsupported: 0 }, title: name,
-  recommendation: { verdict: "", valuation: { basis: "pre-money", currency: "USD", unit: "M", low: NaN, high: NaN, cap: NaN, capRationale: "", source: { kind: "crust", label: "" }, axis: { min: 0, max: 1 } }, valuationCite: 0, verifiedArr: { value: "—", cite: 0 }, flags: [] },
+  recommendation: { verdict: "", valuation: { basis: "pre-money", currency: "USD", unit: "M", low: NaN, high: NaN, cap: NaN, capRationale: "", source: { kind: "crust", label: "" }, axis: { min: 0, max: 1 } }, valuationCite: 0, verifiedArr: { value: "—", cite: 0, label: REVENUE_LABEL }, flags: [] },
   conditions: [], bridge: [], questions: [], sources: [], activity: [], exportNote: "",
 });

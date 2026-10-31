@@ -18,10 +18,12 @@ const LABEL: Record<string, string> = {
   criterionSector: "Sector", criterionStage: "Stage", criterionGeo: "Geography", criterionCheckSize: "Check size", criterionMemory: "Firm memory",
   valuationRange: "Valuation range", valuationLow: "Valuation (low)", valuationHigh: "Valuation (high)", valuationCap: "Valuation cap", founderAsk: "Founder ask",
   returnMultipleLow: "Return multiple (low)", returnMultipleHigh: "Return multiple (high)", compsMedianMultiple: "Comps median multiple",
-  icMemoArrUsedM: "Revenue used", icMemoValuation: "Memo valuation", icMemoCompsLine: "Comps line",
+  icMemoArrUsedM: "Est. revenue (Crustdata)", icMemoValuation: "Memo valuation", icMemoCompsLine: "Comps line",
   growthYoY: "Headcount growth", headcountLatest: "Headcount", lastFundingUsdM: "Last funding round",
 };
 const label = (k: string) => LABEL[k] ?? k;
+/** The memo box caption for the revenue figure (port default "Verified ARR" is for founder-provided, checked numbers). */
+export const REVENUE_LABEL = "Est. revenue (Crustdata)";
 
 /** USD money or a plain number already in $M → $M, rounded to 2 decimals (null when neither). */
 const toM = (v: unknown): number | null => {
@@ -110,8 +112,9 @@ export function toLiveMemo(domain: string, d: DecisionsResponse, research: Resea
       verdict: isOk(verdict) ? String(verdict.value) : "No recommendation yet",
       valuation,
       valuationCite: citeOf("valuationLow"),
-      // Crustdata's estimated revenue midpoint (not verified): "~" marks the estimate; the cite gives its source.
-      verifiedArr: { value: arrM != null ? `~$${arrM}M` : "—", cite: citeOf("icMemoArrUsedM") },
+      // Crustdata's estimated revenue midpoint, not founder-provided or checked: never labelled "verified". "~" marks
+      // the estimate; the cite gives its source.
+      verifiedArr: { value: arrM != null ? `~$${arrM}M` : "—", cite: citeOf("icMemoArrUsedM"), label: REVENUE_LABEL },
       flags: riskFlags(verdict),
     },
     // Before close: every decision the review queue holds for a person.

@@ -410,7 +410,7 @@ function LegacyMemo(p: MemoScreenProps) {
             <div className="serif mt-1 text-[28px] leading-tight">{r.verdict}</div>
             <div className="mt-3 grid grid-cols-[2.5fr_1fr_.8fr] gap-3 text-[12.5px]">
               <div><div className="text-zinc-500">{v.basis === "EV" ? "Enterprise value" : "Pre-money"}</div><div className="tnum mt-0.5 whitespace-nowrap text-[15px] font-semibold"><CapRange v={v} /><C n={r.valuationCite} /></div></div>
-              <div><div className="text-zinc-500">Verified ARR</div><div className="tnum text-[18px] font-semibold">{r.verifiedArr.value}<C n={r.verifiedArr.cite} /></div></div>
+              <div><div className="text-zinc-500">{r.verifiedArr.label ?? "Verified ARR"}</div><div className="tnum text-[18px] font-semibold">{r.verifiedArr.value}<C n={r.verifiedArr.cite} /></div></div>
               <div className="min-w-0"><div className="text-zinc-500">Red flags</div><div className="mt-1.5 flex items-center gap-2"><Severity levels={r.flags} size={11} /><span className="tnum font-semibold">{r.flags.length}</span></div></div>
             </div>
           </div>

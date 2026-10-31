@@ -477,7 +477,7 @@ export interface MemoData {
   outline: OutlineItem[];
   meta: { draft: string; citations: number; unsupported: number };
   title: string;
-  recommendation: { verdict: string; valuation: Valuation; valuationCite: number; verifiedArr: { value: string; cite: number }; flags: FlagLevel[] };
+  recommendation: { verdict: string; valuation: Valuation; valuationCite: number; /** `label` overrides the "Verified ARR" caption (live data: an estimate is never called verified) */ verifiedArr: { value: string; cite: number; label?: string }; flags: FlagLevel[] };
   conditions: { id: ID; text: string; cite: number; showValuation?: boolean }[];
   bridge: BridgePart[];
   disagreement?: { you: string; agent: string; cite: number };

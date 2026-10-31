@@ -51,6 +51,8 @@ describe("toLiveMemo", () => {
     expect(m.recommendation.valuation.ask).toBeUndefined();
     expect(m.recommendation.valuation.capRationale).toMatch(/term sheet/);
     expect(m.recommendation.verifiedArr.value).toBe("~$0.8M");
+    // a Crustdata estimate is never captioned "verified"
+    expect(m.recommendation.verifiedArr.label).toBe("Est. revenue (Crustdata)");
     expect(m.conditions.map((c) => c.text)).toEqual(["Fit score: approve, reject or enter it in Review"]);
     expect(m.questions).toContain("Stage: No last round type.");
     expect(m.bridge).toEqual([]);
