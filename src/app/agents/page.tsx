@@ -11,6 +11,14 @@ type AgentInfo = { id: string; name: string; what: string; href?: string; open?:
 
 const AGENTS: AgentInfo[] = [
   {
+    id: "screening", name: "Research agent (LLM)", href: "/ask", open: "Open",
+    what: "Any natural-language request: the model plans, picks Crustdata tools, checks every row against the ask, re-queries or relaxes (disclosed), and answers with a ranked table. Every value is checked against the cited Crustdata response before it is shown. Without a model key it says so and offers the Sourcing agent.",
+    route: "POST /api/live/screen (NDJSON step stream)",
+    endpoints: ["POST /company/search", "POST /company/enrich", "POST /person/search", "POST /person/enrich", "POST /company/identify", "POST /job/search", "POST /web/search/live"],
+    tools: ["search_companies", "search_people", "enrich_companies", "enrich_person", "identify_company", "company_signals", "find_founders", "search_jobs", "web_search"],
+    needs: "OpenAI (OPENAI_API_KEY) or Anthropic key + Crustdata",
+  },
+  {
     id: "sourcing", name: "Sourcing agent", href: "/agent", open: "Open",
     what: "A free-text request becomes a Crustdata search. Constraints are relaxed one at a time (disclosed, never padded), every company is verified, founders and their past employers are found, and the list is ranked with a stated reason. Deterministic: no LLM.",
     route: "POST /api/sourcing/run (NDJSON step stream)",

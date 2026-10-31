@@ -3,7 +3,7 @@
 // Crustdata call stream in live; the answer is a ranked, cited table (cards on mobile). No sample data: before the
 // first ask the page is just the input; a missing model or a failed run says so.
 import { ArrowUp, Square } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Page, TopBar } from "@port/components/shell";
 import { Orb } from "@port/components/assistant";
 import { cx } from "@port/components/ui";
@@ -66,8 +66,18 @@ export function AskBody({ state, onAsk, onStop }: { state: ScreenState; onAsk: (
   );
 }
 
-export function LiveAsk({ shell }: { shell: ShellData }) {
+/** Run `q` through `ask` the first time only (a ref survives re-renders and StrictMode's double effect). */
+export function autorunOnce(done: { current: boolean }, q: string | undefined, ask: (q: string) => void) {
+  if (done.current || !q?.trim()) return;
+  done.current = true;
+  ask(q.trim());
+}
+
+/** `initialQuery` (from /ask?q=…) is run once on mount — the dock, sidebar search and voice hand questions over this way. */
+export function LiveAsk({ shell, initialQuery }: { shell: ShellData; initialQuery?: string }) {
   const { state, ask, stop } = useScreen();
+  const autoran = useRef(false);
+  useEffect(() => autorunOnce(autoran, initialQuery, ask), [initialQuery, ask]);
   const lead = (
     <span className="flex min-w-0 items-baseline gap-2">
       <span className="text-[13px] font-medium text-ink">Assistant</span><span className="text-zinc-300">/</span>

@@ -249,14 +249,14 @@ const DOCK_BLANK: AssistantData = { title: "Ask Deal Desk", context: "All deals"
 
 /**
  * "/" and the sidebar Search row: focus the page's own search box when it has one (e.g. Pipeline); otherwise go to the
- * agent page, which hosts the "find companies" request box.
+ * research agent (/ask), which hosts the natural-language request box.
  */
 function useSearch() {
   const router = useContext(AppRouterContext);
   return useCallback(() => {
     const box = document.querySelector<HTMLInputElement>('main input[type="search"], main input[aria-label^="Search" i]');
     if (box) { box.focus(); box.select?.(); return; }
-    if (router) router.push("/agent"); else window.location.assign("/agent");
+    if (router) router.push("/ask"); else window.location.assign("/ask");
   }, [router]);
 }
 

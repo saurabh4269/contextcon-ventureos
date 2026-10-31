@@ -43,25 +43,17 @@ export function reduce(s: RunState, e: AgentEvent): RunState {
   }
 }
 
-/* ───────────── seam for the LLM screener ─────────────
- * The LLM-driven screener (branch feature/nl-screener, POST /api/live/screen, src/lib/agent/*) is not merged and its
- * contract is not fixed, so this build always runs the deterministic Sourcing agent. When it lands: set
- * SCREENER_ENDPOINT, POST the request there first, and fall back to /api/sourcing/run when it answers
- * `model_unavailable` (no model key) — mapping its events to AgentEvent before returning (or return its own stream
- * and branch in the reader below). Nothing else in the page needs to change: it only consumes AgentEvent lines.
+/* ───────────── relation to the LLM screener ─────────────
+ * Natural-language requests go to the LLM research agent first (/ask → POST /api/live/screen, src/lib/agent/*), which
+ * has its own event contract (ScreenEvent). This page is its no-model fallback, not a proxy: when the screener answers
+ * `model_unavailable`, /ask keeps that honest state and links here with the same text (/agent?q=…). So this hook always
+ * runs the deterministic Sourcing agent and never adapts screener events.
  */
-export const SCREENER_ENDPOINT: string | null = null;
 export const SOURCING_ENDPOINT = "/api/sourcing/run";
 
-/** Open the run stream for `q`. Today: the Sourcing agent. Later: the screener first, this as the fallback. */
+/** Open the Sourcing agent's NDJSON run stream for `q`. */
 export async function openRun(q: string, signal: AbortSignal, fetchImpl: typeof fetch = fetch): Promise<Response> {
-  const post = (url: string) => fetchImpl(url, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q }), signal });
-  if (SCREENER_ENDPOINT) {
-    const res = await post(SCREENER_ENDPOINT).catch(() => null);
-    const unavailable = !res || (!res.ok && (await res.clone().json().catch(() => null) as { code?: string; status?: string } | null)?.code === "model_unavailable");
-    if (res && !unavailable) return res; // TODO(screener merge): adapt its events to AgentEvent here
-  }
-  return post(SOURCING_ENDPOINT);
+  return fetchImpl(SOURCING_ENDPOINT, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q }), signal });
 }
 
 export function useAgentRun(onFinish?: (s: RunState) => void) {

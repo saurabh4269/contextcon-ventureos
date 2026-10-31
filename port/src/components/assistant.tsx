@@ -379,11 +379,11 @@ function anchorLastQuestion(root: HTMLElement | null, scroller?: HTMLElement | n
 }
 export function AssistantDock({ data, onSuggestion: onSuggestionProp, onSend: onSendProp, onClose, top, expandHref }: { data: AssistantData; expandHref?: string; onSuggestion?: (action: string) => void; onSend?: (text: string) => void; onClose?: () => void; /** v3.2 · optional block under the header, e.g. LiveRail */ top?: ReactNode }) {
   const ask = useAsk();
-  // No assistant model wired by the host: a question (or suggestion) runs the deterministic Sourcing agent at /agent.
+  // Default (host passes no handler): a question (or suggestion) opens the research agent at /ask?q=…, which runs it.
   const router = useRouter();
-  const toAgent = (t: string) => { ask?.setOpen(false); router.push(`/agent?q=${encodeURIComponent(t)}`); };
-  const onSend = onSendProp ?? toAgent;
-  const onSuggestion = onSuggestionProp ?? toAgent;
+  const toAsk = (t: string) => { ask?.setOpen(false); router.push(`/ask?q=${encodeURIComponent(t)}`); };
+  const onSend = onSendProp ?? toAsk;
+  const onSuggestion = onSuggestionProp ?? toAsk;
   const empty = data.messages.length === 0;
   const thinking = data.messages[data.messages.length - 1]?.thinking;
   const { liveId, followDelay } = useStream(data);

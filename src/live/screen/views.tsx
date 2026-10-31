@@ -322,7 +322,11 @@ export function ScreenRun({ state, onRetry }: { state: ScreenState; onRetry?: ()
           <Cpu className="mx-auto size-5 text-zinc-400" />
           <div className="serif mt-2 text-[20px]">Model unavailable</div>
           <p className="mt-1 text-[12.5px] text-zinc-500">{state.message}</p>
-          <a href="/settings?section=connectors" className="mt-3 inline-flex h-8 items-center rounded-full bg-white px-3.5 text-[12.5px] font-medium text-zinc-700 ring-1 ring-zinc-200 hover:text-ink">Connectors</a>
+          <div className="mt-3 flex flex-wrap justify-center gap-2">
+            {/* Fallback: the deterministic (no-LLM) Sourcing agent runs the same text at /agent?q=… */}
+            {state.query && <a href={`/agent?q=${encodeURIComponent(state.query)}`} data-testid="sourcing-fallback" className="inline-flex h-10 items-center rounded-full bg-ink px-4 text-[12.5px] font-medium text-white hover:bg-ink/90 sm:h-8">Run rules-based Sourcing agent</a>}
+            <a href="/settings?section=connectors" className="inline-flex h-10 items-center rounded-full bg-white px-3.5 text-[12.5px] font-medium text-zinc-700 ring-1 ring-zinc-200 hover:text-ink sm:h-8">Connectors</a>
+          </div>
         </div>
       )}
       {state.phase === "error" && (

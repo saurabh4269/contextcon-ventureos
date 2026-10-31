@@ -239,3 +239,34 @@ describe("Ask page body", () => {
     expect(h).toContain('aria-label="Stop"');
   });
 });
+
+describe("/ask?q= autorun and the Sourcing fallback", () => {
+  it("autorunOnce runs a non-blank query exactly once, trimmed", async () => {
+    const { autorunOnce } = await import("../ask");
+    const asked: string[] = [];
+    const done = { current: false };
+    autorunOnce(done, "  Indian B2B SaaS  ", (q) => asked.push(q));
+    autorunOnce(done, "  Indian B2B SaaS  ", (q) => asked.push(q)); // re-render / StrictMode second effect
+    expect(asked).toEqual(["Indian B2B SaaS"]);
+    const blank = { current: false };
+    autorunOnce(blank, "   ", (q) => asked.push(q));
+    autorunOnce(blank, undefined, (q) => asked.push(q));
+    expect(asked).toHaveLength(1);
+    expect(blank.current).toBe(false);
+  });
+
+  it("model_unavailable offers a one-tap link to the rules-based Sourcing agent with the same text", async () => {
+    const q = "US fintech & payments, 50–500 people";
+    const { state } = await run(mockFetch(new Response(ndjson([{ type: "model_unavailable", message: "No AI model is configured" }]), { status: 503 })), q);
+    const h = html(state);
+    expect(h).toContain('data-testid="model-unavailable"');
+    expect(h).toContain("No AI model is configured");
+    expect(h).toContain(`href="/agent?q=${encodeURIComponent(q).replace(/&/g, "&amp;")}"`);
+    expect(h).toContain('data-testid="sourcing-fallback"');
+  });
+
+  it("no fallback link on other failures", async () => {
+    const { state } = await run(mockFetch(new Response(ndjson([{ type: "error", message: "Crustdata 500" }]), { status: 200 })));
+    expect(html(state)).not.toContain("sourcing-fallback");
+  });
+});
