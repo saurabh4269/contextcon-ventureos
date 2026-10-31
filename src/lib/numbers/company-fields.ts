@@ -3,6 +3,7 @@
 // thesis, the deal pipeline or an LLM is `unavailable` with the reason.
 import { ok, unavailable, type Citation, type ComputedField } from "@/lib/fields";
 import type { LiveCall, ResearchResult } from "@/lib/live/types";
+import { fmtMoney, money } from "@/lib/format";
 
 type Research = Extract<ResearchResult, { status: "ok" }>;
 
@@ -23,8 +24,8 @@ export type CompanyFieldKey =
   | "headcountGrowth6m"
   | "growthYoY"
   | "headcountGrowthQoQ"
-  | "fundingTotalUsdM"
-  | "lastFundingUsdM"
+  | "fundingTotal"
+  | "lastFunding"
   | "lastRoundType"
   | "lastFundingDate"
   | "webMonthlyVisitors"
@@ -60,14 +61,15 @@ export function companyFields(r: Research): CompanyFields {
     headcountGrowth6m: pct("six_months", "6-month"),
     growthYoY: pct("yoy", "year-over-year"),
     headcountGrowthQoQ: pct("qoq", "quarter-over-quarter"),
-    fundingTotalUsdM:
+    // Money stays {amount, currency}: Crustdata reports these fields in USD (the `_usd` suffix), so the currency is USD.
+    fundingTotal:
       c.funding.totalUsd == null
         ? missing("funding.total_investment_usd", en)
-        : ok(round1(c.funding.totalUsd / 1e6), "total_investment_usd ÷ 1,000,000", `Total raised across all rounds: $${round1(c.funding.totalUsd / 1e6)}M.`, [cite(en, `${ENRICH_ROOT}.funding.total_investment_usd`)], [{ name: "funding.total_investment_usd", value: c.funding.totalUsd }]),
-    lastFundingUsdM:
+        : ok(money(c.funding.totalUsd, "USD"), "Read as reported; currency USD per the field name (total_investment_usd)", `Total raised across all rounds: ${fmtMoney(money(c.funding.totalUsd, "USD"))}.`, [cite(en, `${ENRICH_ROOT}.funding.total_investment_usd`)], [{ name: "funding.total_investment_usd", value: c.funding.totalUsd }]),
+    lastFunding:
       c.funding.lastRoundUsd == null
         ? missing("funding.last_round_amount_usd", en)
-        : ok(round1(c.funding.lastRoundUsd / 1e6), "last_round_amount_usd ÷ 1,000,000", `Last round (${c.funding.lastRoundType ?? "type unknown"}${c.funding.lastDate ? `, ${c.funding.lastDate}` : ""}): $${round1(c.funding.lastRoundUsd / 1e6)}M.`, [cite(en, `${ENRICH_ROOT}.funding.last_round_amount_usd`)], [
+        : ok(money(c.funding.lastRoundUsd, "USD"), "Read as reported; currency USD per the field name (last_round_amount_usd)", `Last round (${c.funding.lastRoundType ?? "type unknown"}${c.funding.lastDate ? `, ${c.funding.lastDate}` : ""}): ${fmtMoney(money(c.funding.lastRoundUsd, "USD"))}.`, [cite(en, `${ENRICH_ROOT}.funding.last_round_amount_usd`)], [
             { name: "funding.last_round_amount_usd", value: c.funding.lastRoundUsd },
             { name: "funding.last_round_type", value: c.funding.lastRoundType ?? null },
           ]),

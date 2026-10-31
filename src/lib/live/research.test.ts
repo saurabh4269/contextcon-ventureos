@@ -1,10 +1,10 @@
+import { fixtureClient } from "@/test/crustdata";
 import { describe, expect, it } from "vitest";
-import { createCrustdataClient, CrustdataApiError, type CrustdataClient } from "@/lib/crustdata";
+import { CrustdataApiError, type CrustdataClient } from "@/lib/crustdata";
 import { researchCompany, lookupCompany, enrichPerson } from "./research";
 import { failureFrom } from "./failure";
 
-// Fixture-mode client = real E2B captures from 2026-10-31 (docs/crustdata/fixtures); no network.
-const fixtureClient = () => createCrustdataClient({ forceFixture: true });
+// fixtureClient() = the real client over E2B captures from 2026-10-31 (docs/crustdata/fixtures); no network.
 
 describe("researchCompany (real E2B captures)", () => {
   it("normalizes the live E2B values", async () => {

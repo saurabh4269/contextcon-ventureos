@@ -9,6 +9,6 @@ export const dynamic = "force-dynamic";
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const r = await resolveDealNumbers((await ctx.params).id);
   if (!r.ok) return r.response;
-  const body: ValuationResponse = { id: r.id, source: r.source, dataMode: r.dataMode, explainable: r.explainable };
+  const body: ValuationResponse = { id: r.id, source: r.source, explainable: r.explainable };
   return NextResponse.json(body, { headers: { "cache-control": "no-store" } });
 }

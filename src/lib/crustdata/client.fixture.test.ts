@@ -1,17 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { createCrustdataClient } from "./client";
-import { FIXTURE_LABEL } from "./fixtures";
+import { CrustdataConfigError } from "./mode";
+import { fixtureClient } from "@/test/crustdata";
 import { jobSearchByCompanyId } from "./job-queries";
 import { founderPersonSearchBody } from "./person-queries";
 import { hasCrustdataCompanyMatch, primaryCompanyMatch } from "./match";
 import { CRUSTDATA_DEMO_E2B } from "./demo-targets";
 
-describe("Crustdata fixture client (real E2B captures)", () => {
-  const client = () => createCrustdataClient({ forceFixture: true });
+describe("Crustdata client over the real E2B captures (injected fetch)", () => {
+  const client = () => fixtureClient();
+
+  it("refuses to construct without an API key (no fixture fallback)", () => {
+    expect(() => createCrustdataClient({ apiKey: " " })).toThrow(CrustdataConfigError);
+  });
 
   it("returns an empty job search when the company id has no fixture", async () => {
     const { data, meta } = await client().searchJobs(jobSearchByCompanyId(9999999, 5));
-    expect(meta.fixtureLabel).toBe(FIXTURE_LABEL);
+    expect(meta.cached).toBe(false);
     expect(data.job_listings).toHaveLength(0);
   });
 

@@ -5,7 +5,6 @@
 //   not_configured  required env vars missing
 //   connected       a free health call succeeded (Crustdata: GET /account/credits, 0 credits)
 //   error           configured, but the health call failed or the integration cannot work in this build
-//   demo            explicitly running on fixtures (DEALDESK_FIXTURES=1 / CRUSTDATA_FORCE_FIXTURE=1)
 import type { IntegrationInfo, IntegrationStatus } from "./types";
 
 type Env = Record<string, string | undefined>;
@@ -23,7 +22,6 @@ type Spec = {
   wired: boolean;
   /** free, read-only health call; absent ⇒ "configured but not implemented in this build" */
   check?: (env: Env, f: Fetch) => Promise<Check>;
-  fixtureFlag?: (env: Env) => boolean;
 };
 
 const TIMEOUT_MS = 8000;
@@ -58,7 +56,6 @@ export const INTEGRATION_SPECS: Spec[] = [
     docsUrl: "https://docs.crustdata.com/api-reference/account-apis/get-account-credit-balance",
     env: ["CRUSTDATA_API_KEY"],
     wired: true,
-    fixtureFlag: (env) => env.DEALDESK_FIXTURES === "1" || env.CRUSTDATA_FORCE_FIXTURE === "1" || env.DEALDESK_FORCE_FIXTURE === "1",
     check: async (env, f) => {
       const { status, body } = await getJson(f, "https://api.crustdata.com/account/credits", {
         headers: { authorization: `Bearer ${env.CRUSTDATA_API_KEY!.trim()}`, "x-api-version": "2025-11-01" },
@@ -151,7 +148,6 @@ export async function checkIntegration(spec: Spec, env: Env, f: Fetch, now = () 
     lastCheckedAt: checked ? now().toISOString() : null,
   });
   const missing = missingEnv(env, spec);
-  if (spec.fixtureFlag?.(env) && missing.length) return info("demo", "fixture", "Running on checked-in fixtures (fixture flag set); no live calls.", false);
   if (missing.length) return info("not_configured", "env", `Not connected: set ${missing.join(spec.envMode === "any" ? " or " : ", ")} on the server.`, false);
   if (!spec.check) return info("error", "env", "Credentials are set, but this build has no OAuth flow for it yet, so nothing can use them.", false);
   try {
@@ -170,7 +166,7 @@ export async function listIntegrations(env: Env = process.env, f: Fetch = fetch,
   return Promise.all(
     INTEGRATION_SPECS.map(async (spec) => {
       // cache key: which env vars are set (never their values) — changing config invalidates it
-      const key = `${spec.id}:${spec.env.map((n) => (env[n]?.trim() ? 1 : 0)).join("")}:${spec.fixtureFlag?.(env) ? "f" : ""}`;
+      const key = `${spec.id}:${spec.env.map((n) => (env[n]?.trim() ? 1 : 0)).join("")}`;
       const hit = cache.get(key);
       if (!fresh && hit && Date.now() - hit.at < HEALTH_TTL_MS) return hit.info;
       const info = await checkIntegration(spec, env, f);

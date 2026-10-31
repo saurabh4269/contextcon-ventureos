@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { latestHeadcountFromCompanyData, screenerHintsFromEnrich } from "./enrich-hints";
-import { loadFixture } from "./fixtures";
+import { loadFixture } from "@/test/crustdata";
 
 describe("enrich-hints against the live E2B enrich capture", () => {
   const e2b = loadFixture<unknown>("company-enrich-e2b.json");

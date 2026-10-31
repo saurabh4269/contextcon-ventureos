@@ -42,7 +42,6 @@ describe.skipIf(!liveEnabled)("Crustdata live API (CRUSTDATA_LIVE=1)", () => {
     const { data, meta } = await c.searchJobs(body);
     const { listings } = readJobSearchResults(data as Parameters<typeof readJobSearchResults>[0]);
     expect(listings.length).toBeLessThanOrEqual(1);
-    expect(meta.mode).toBe("live");
   });
 
   it("watch create body validates (optional — skips delete if WATCH disabled)", async () => {
