@@ -81,3 +81,15 @@ describe("GET/PUT /api/settings/mandate", () => {
     delete process.env.MANDATE_FILE;
   });
 });
+
+describe("MANDATE_JSON seed (serverless)", () => {
+  it("uses the seed when no file is present, and a set() still wins", () => {
+    const s = createMandateStore({ file: null, seed: JSON.stringify({ sectors: ["B2B SaaS"], stages: ["Seed"] }) });
+    expect(s.get().sectors).toEqual(["B2B SaaS"]);
+    s.set({ ...s.get(), sectors: ["Fintech"] });
+    expect(s.get().sectors).toEqual(["Fintech"]);
+  });
+  it("ignores an invalid seed", () => {
+    expect(createMandateStore({ file: null, seed: "{nope" }).get().sectors).toEqual([]);
+  });
+});

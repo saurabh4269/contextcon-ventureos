@@ -78,7 +78,7 @@ export interface MandateStore {
   set(m: Mandate): Mandate;
 }
 
-export function createMandateStore(opts: { file: string | null }): MandateStore {
+export function createMandateStore(opts: { file: string | null; seed?: string | null }): MandateStore {
   let mem: Mandate | null = null;
   const read = (): Mandate => {
     if (mem) return mem;
@@ -88,6 +88,15 @@ export function createMandateStore(opts: { file: string | null }): MandateStore 
         if (parsed.ok) mem = { ...parsed.mandate, updatedAt: (JSON.parse(fs.readFileSync(opts.file, "utf8")) as Mandate).updatedAt ?? null };
       } catch {
         /* unreadable file → unset mandate */
+      }
+    }
+    if (!mem && opts.seed) {
+      // Serverless (Vercel): the file lives in per-instance /tmp, so MANDATE_JSON pins the firm mandate across cold starts.
+      try {
+        const parsed = parseMandate(JSON.parse(opts.seed));
+        if (parsed.ok) mem = { ...parsed.mandate, updatedAt: null };
+      } catch {
+        /* invalid MANDATE_JSON → unset mandate */
       }
     }
     return mem ?? EMPTY_MANDATE;
@@ -113,7 +122,7 @@ function defaultFile(): string | null {
 
 const g = globalThis as unknown as { __dealdeskMandate?: MandateStore };
 export function mandateStore(): MandateStore {
-  return (g.__dealdeskMandate ??= createMandateStore({ file: defaultFile() }));
+  return (g.__dealdeskMandate ??= createMandateStore({ file: defaultFile(), seed: process.env.MANDATE_JSON?.trim() || null }));
 }
 
 /** Which mandate fields are unset, in words (shown next to the fit score). */
