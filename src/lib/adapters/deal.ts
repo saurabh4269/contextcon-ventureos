@@ -351,27 +351,64 @@ export function noMatchSignals(domain: string, identify: LiveCall, requestedAt: 
   };
 }
 
-/* ── Valuation (GET /api/deals/:id/valuation → explainable) ── */
-type Explainable = Record<"low" | "high" | "cap" | "ask" | "returnMultipleLow" | "returnMultipleHigh" | "compsMedianMultiple", F>;
+/* ── Decisions + valuation (GET /api/deals/:id/decisions → fields; /valuation → explainable is accepted too) ── */
+type ValuationKey = "low" | "high" | "cap" | "ask" | "returnMultipleLow" | "returnMultipleHigh" | "compsMedianMultiple";
+type Explainable = Partial<Record<ValuationKey | "valuationLow" | "valuationHigh" | "valuationCap" | "founderAsk" | "fitScore" | "screenerVerdict" | "diligenceVerdict", F>>;
 const fmtX = (v: unknown) => `${n(v)}×`;
 const fmtMoneyOrNum = (v: unknown) => (isMoney(v) ? fmtMoney(v) : String(v));
+const fmtScore = (v: unknown) => `${fmtInt(v)} / 100`; // data-literal-ok: score scale of the decision engine's fitScore
+const MISSING: F = { status: "unavailable", reason: "Not provided by the API." };
 
-/** Valuation section: every stat from a ComputedField ("—" + reason on hover when unavailable); no chart without values. */
+/** Decision + valuation section: every stat from a ComputedField ("—" + reason on hover when unavailable); no chart without values. */
 export function toValuationSection(x: Explainable): DealSection {
   const stat = (id: string, label: string, f: F, fmt: (v: unknown) => string) => ({ id, label, value: show(f, fmt), hint: explain(f), why: whyFromField(f) });
-  const lo = x.low, hi = x.high;
+  const lo = x.valuationLow ?? x.low ?? MISSING, hi = x.valuationHigh ?? x.high ?? MISSING;
   const priced = isOk(lo) && isOk(hi);
+  const decision = [
+    ...(x.fitScore ? [stat("fit", "Fit score", x.fitScore, fmtScore)] : []),
+    ...(x.screenerVerdict ? [stat("screener", "Screener verdict", x.screenerVerdict, String)] : []),
+    ...(x.diligenceVerdict ? [stat("diligence", "Diligence verdict", x.diligenceVerdict, String)] : []),
+  ];
   return {
-    kind: "valuation", id: "valuation", eyebrow: "Valuation",
-    headline: isOk(lo) && isOk(hi) ? { pre: `${fmtMoneyOrNum(lo.value)}–${fmtMoneyOrNum(hi.value)}` } : { pre: "No valuation for this deal yet" },
+    kind: "valuation", id: "valuation", eyebrow: decision.length ? "Decision · valuation" : "Valuation",
+    headline: priced ? { pre: `${fmtMoneyOrNum(lo.value)}–${fmtMoneyOrNum(hi.value)}` } : { pre: "No valuation for this deal yet" },
     stats: [
-      stat("low", "Low", x.low, fmtMoneyOrNum),
-      stat("high", "High", x.high, fmtMoneyOrNum),
-      stat("ask", "Founder ask", x.ask, fmtMoneyOrNum),
-      stat("rml", "Return multiple (low)", x.returnMultipleLow, fmtX),
-      stat("rmh", "Return multiple (high)", x.returnMultipleHigh, fmtX),
-      stat("comps", "Comps median multiple", x.compsMedianMultiple, fmtX),
+      ...decision,
+      stat("low", "Low", lo, fmtMoneyOrNum),
+      stat("high", "High", hi, fmtMoneyOrNum),
+      stat("ask", "Founder ask", x.founderAsk ?? x.ask ?? MISSING, fmtMoneyOrNum),
+      stat("rml", "Return multiple (low)", x.returnMultipleLow ?? MISSING, fmtX),
+      stat("rmh", "Return multiple (high)", x.returnMultipleHigh ?? MISSING, fmtX),
+      stat("comps", "Comps median multiple", x.compsMedianMultiple ?? MISSING, fmtX),
     ],
-    unavailable: priced ? undefined : explain(x.low).replace(/^Unavailable: /, ""),
+    unavailable: priced ? undefined : explain(lo).replace(/^Unavailable: /, ""),
   };
+}
+
+/**
+ * Fit tile + header pill from the decision engine's fitScore / screenerVerdict. An ok numeric fitScore becomes the
+ * tile's base score (and the header pill); otherwise the tile stays unscored with the decision's own reason.
+ */
+export function withDecisionFit(d: DealData, decisions: { fitScore?: F; screenerVerdict?: F }): DealData {
+  const fit = decisions.fitScore;
+  if (!d.signals || !fit) return d;
+  const verdict = decisions.screenerVerdict;
+  if (isOk(fit) && Number.isFinite(n(fit.value))) {
+    const score = Math.round(n(fit.value));
+    return {
+      ...d,
+      header: { ...d.header, fit: { score } },
+      signals: {
+        ...d.signals,
+        fit: {
+          ...d.signals.fit,
+          label: "Fit score",
+          unscored: undefined,
+          base: { label: fit.method, value: score },
+          recommendation: { ...d.signals.fit.recommendation, ...(isOk(verdict) ? { label: String(verdict.value), why: verdict.reasoning || fit.reasoning } : { why: fit.reasoning }) },
+        },
+      },
+    };
+  }
+  return { ...d, signals: { ...d.signals, fit: { ...d.signals.fit, unscored: { reason: explain(fit).replace(/^Unavailable: /, "") } } } };
 }

@@ -132,6 +132,23 @@ icMemoValuation, icMemoCompsLine`.
 `{ id, source, explainable: { low, high, cap, ask, returnMultipleLow, returnMultipleHigh, compsMedianMultiple } }`
 (each a `ComputedField`). Live: all unavailable (needs verified revenue + pricing model).
 
+### `GET /api/deals/:id/decisions`
+
+Builder (Origin `main` e28ea49) decision contract, ported: `{ dealId, companyDomain, source: "crustdata" |
+"crustdata+builder", decisions, endpoints, fields, builder? }`. `decisions` has one `ComputedField` per key —
+`fitScore, screenerVerdict, valuationRange, returnMultipleLow, returnMultipleHigh, compsMedianMultiple,
+diligenceVerdict, icMemoArrUsedM, icMemoValuation, icMemoCompsLine`; `endpoints[key]` names the route that computed it;
+`fields` = every `/numbers` key + the decisions + `valuationLow/High/Cap, founderAsk`. Used by the deal page (fit tile,
+Decision · valuation section) and `/memo`.
+
+* id = company domain. This build computes the Crustdata-backed numbers; pipeline decisions are `unavailable` with the
+  reason unless the builder backend is configured.
+* `DEALDESK_BUILDER_URL` (optional): base URL of the builder deployment. Its decisions fill keys that are not already
+  `ok` here, only when `ok` with citations; any field whose citations/inputs/method mention fixture/sample/demo/seed/mock
+  data is dropped. Citations are re-anchored to `GET /api/deals/:id/decisions` + `fields.<key>.citations[i]` + our
+  retrieval time, then `enforceCited` runs. `builder.status`: `used` | `not_configured` | `unavailable` (+ reason).
+  8 s timeout; on any error the local result is returned.
+
 ### `GET /api/integrations/connectors[?fresh=1]`
 
 Real status for the connectors Deal Desk actually integrates; catalogue tiles (Affinity, Attio, Carta, PitchBook, …) are
