@@ -387,3 +387,105 @@ describe("DocStore.update is atomic", () => {
     expect(r!.history).toHaveLength(3);
   });
 });
+
+describe("approve is two-phase and at-most-once (live Gmail and Calendar)", () => {
+  const seed = async (step: "dataroom" | "schedule") => {
+    const docs = createMemoryDocStore();
+    const real = createWorkflowStore(() => docs);
+    const { d } = await atIC();
+    if (step === "dataroom") stepOf(d, "dataroom").draft!.to = [ME];
+    await real.save(d);
+    // fault injection: the Nth update call throws (after the send when N is the phase-3 write)
+    let calls = 0, failAt = 0;
+    const store = { ...real, update: (id: string, fn: Parameters<typeof real.update>[1]) => { calls++; if (calls === failAt) return Promise.reject(new Error("store write failed")); return real.update(id, fn); } };
+    return { real, store, d, failNext: (n = 2) => { calls = 0; failAt = n; }, reset: () => { calls = 0; failAt = 0; } };
+  };
+  const counter = () => { const c = { gmail: 0, cal: 0 }; const senders: Senders = { sendMessage: async () => { c.gmail++; return { id: "g1" }; }, insertEvent: async () => { c.cal++; return { id: "e1" }; } }; return { c, senders }; };
+  const draftOf = async (real: ReturnType<typeof createWorkflowStore>, id: string, step: "dataroom" | "schedule") => stepOf((await real.get(id))!, step).draft!;
+  // the schedule draft's slot is tomorrow (IST); LIVE needs the calendar sender and an allowlist (no recipients on a calendar draft)
+
+  for (const [step, key] of [["dataroom", "gmail"], ["schedule", "cal"]] as const) {
+    it(`${step}: send succeeds, the store write after it fails -> a second approve does not send again`, async () => {
+      const { real, store, d, failNext, reset } = await seed(step);
+      const { c, senders } = counter();
+      failNext(2); // call 1 = phase 1 (mark sending), call 2 = phase 3 (record) fails
+      const first = await dispatchAction(store, d.id, { action: "approve", step }, senders, NOW, LIVE);
+      expect(first).toMatchObject({ ok: false, status: 502, message: expect.stringMatching(/will not be sent again/) });
+      expect(c[key]).toBe(1);
+      expect((await draftOf(real, d.id, step)).sending).toBeDefined(); // persisted before the send
+      expect((await draftOf(real, d.id, step)).approved).toBeUndefined();
+      reset();
+      const second = await dispatchAction(store, d.id, { action: "approve", step }, senders, NOW, LIVE);
+      expect(second).toMatchObject({ ok: false, status: 409, message: expect.stringMatching(/in progress or its outcome is unknown/) });
+      expect(c[key]).toBe(1);
+      // resume never retries it either
+      await dispatchAction(store, d.id, { action: "resume" }, senders, NOW, LIVE);
+      expect((await draftOf(real, d.id, step)).sending).toBeDefined();
+      // a person confirms it was sent: approved, still one send
+      await real.update(d.id, (x) => ({ ...x!, running: false }));
+      expect(await dispatchAction(store, d.id, { action: "resolve_send", step, resolution: "confirm_sent" }, senders, NOW, LIVE)).toMatchObject({ ok: true });
+      const dr = await draftOf(real, d.id, step);
+      expect(dr.sending).toBeUndefined();
+      expect(dr.approved).toMatchObject({ transport: "live" });
+      await real.update(d.id, (x) => ({ ...x!, running: false }));
+      expect(await dispatchAction(store, d.id, { action: "approve", step }, senders, NOW, LIVE)).toMatchObject({ ok: true });
+      expect(c[key]).toBe(1);
+    });
+    it(`${step}: discard_send clears the mark and allows exactly one new send`, async () => {
+      const { real, store, d, failNext, reset } = await seed(step);
+      const { c, senders } = counter();
+      failNext(2);
+      await dispatchAction(store, d.id, { action: "approve", step }, senders, NOW, LIVE);
+      reset();
+      await dispatchAction(store, d.id, { action: "resolve_send", step, resolution: "discard_send" }, senders, NOW, LIVE);
+      await real.update(d.id, (x) => ({ ...x!, running: false }));
+      expect(await dispatchAction(store, d.id, { action: "approve", step }, senders, NOW, LIVE)).toMatchObject({ ok: true });
+      expect(c[key]).toBe(2); // the first (unrecorded) one plus the person-authorised retry
+      expect((await draftOf(real, d.id, step)).approved).toMatchObject({ id: key === "gmail" ? "g1" : "e1" });
+    });
+  }
+  it("a sending mark older than RUN_STALE_MS is reported as outcome unknown and never auto-retried", async () => {
+    const { real, store, d } = await seed("dataroom");
+    const { c, senders } = counter();
+    await real.update(d.id, (x) => { stepOf(x!, "dataroom").draft!.sending = { at: "2026-10-31T00:00:00Z", by: "x" }; return x!; });
+    const r = await dispatchAction(store, d.id, { action: "approve", step: "dataroom" }, senders, new Date("2026-10-31T06:00:00Z"), LIVE);
+    expect(r).toMatchObject({ ok: false, status: 409, message: expect.stringMatching(/outcome unknown.*not be retried automatically/) });
+    expect(c.gmail).toBe(0);
+  });
+  it("a 4xx from Google (rejected, nothing delivered) clears the mark so the person can retry", async () => {
+    const { real, store, d } = await seed("dataroom");
+    let n = 0;
+    const senders: Senders = { sendMessage: async () => { if (++n === 1) throw Object.assign(new Error("gmail 400 invalid"), { httpStatus: 400 }); return { id: "g2" }; } };
+    expect(await dispatchAction(store, d.id, { action: "approve", step: "dataroom" }, senders, NOW, LIVE)).toMatchObject({ ok: false, status: 502, message: "gmail 400 invalid" });
+    expect((await draftOf(real, d.id, "dataroom")).sending).toBeUndefined();
+    expect(await dispatchAction(store, d.id, { action: "approve", step: "dataroom" }, senders, NOW, LIVE)).toMatchObject({ ok: true });
+    expect(n).toBe(2);
+  });
+  for (const [label, err] of [["a timeout (no status)", new Error("request timed out")], ["a 5xx", Object.assign(new Error("gmail 503"), { httpStatus: 503 })], ["a 3xx-less odd status", Object.assign(new Error("weird"), { httpStatus: 302 })]] as const)
+    it(`${label}: the mark stays, the message says the outcome is unknown, and a second approve does not send`, async () => {
+      const { real, store, d } = await seed("dataroom");
+      let n = 0;
+      const senders: Senders = { sendMessage: async () => { n++; throw err; } };
+      expect(await dispatchAction(store, d.id, { action: "approve", step: "dataroom" }, senders, NOW, LIVE)).toMatchObject({ ok: false, status: 502, message: expect.stringMatching(/outcome is unknown.*resolve_send/) });
+      expect((await draftOf(real, d.id, "dataroom")).sending).toBeDefined();
+      expect(await dispatchAction(store, d.id, { action: "approve", step: "dataroom" }, senders, NOW, LIVE)).toMatchObject({ ok: false, status: 409 });
+      expect(n).toBe(1);
+    });
+  it("concurrent live approves send once; the dry run stays single-phase", async () => {
+    const { real, store, d } = await seed("dataroom");
+    const { c, senders } = counter();
+    await Promise.all([1, 2, 3].map(() => dispatchAction(store, d.id, { action: "approve", step: "dataroom" }, senders, NOW, LIVE)));
+    expect(c.gmail).toBe(1);
+    const dry = await seed("dataroom");
+    let calls = 0;
+    const counting = { ...dry.real, update: (id: string, fn: Parameters<typeof dry.real.update>[1]) => { calls++; return dry.real.update(id, fn); } };
+    expect(await dispatchAction(counting, dry.d.id, { action: "approve", step: "dataroom" }, senders, NOW, DRY)).toMatchObject({ ok: true });
+    expect(calls).toBe(1);
+    void real;
+  });
+  it("resolve_send with nothing pending, or a bad resolution, is refused", async () => {
+    const { store, d } = await seed("dataroom");
+    expect(await dispatchAction(store, d.id, { action: "resolve_send", step: "dataroom", resolution: "confirm_sent" }, {}, NOW, LIVE)).toMatchObject({ ok: false, status: 400 });
+    expect(await dispatchAction(store, d.id, { action: "resolve_send", step: "dataroom", resolution: "x" }, {}, NOW, LIVE)).toMatchObject({ ok: false, status: 400 });
+  });
+});

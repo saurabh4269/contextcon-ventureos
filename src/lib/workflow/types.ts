@@ -34,6 +34,8 @@ export type OutboundDraft = {
   end?: string;
   /** set when the approve button was clicked */
   approved?: { at: string; by: string; transport: "live" | "dry_run"; result: string; id?: string };
+  /** live send phase 1: persisted BEFORE the send; cleared when the real id is recorded or a person resolves it */
+  sending?: { at: string; by: string };
   /** recipients a live send would refuse (not on the allowlist) */
   blocked?: string[];
 };

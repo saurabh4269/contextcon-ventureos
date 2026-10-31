@@ -1,8 +1,9 @@
 // GET  /api/workflow/:id → Deal (public view; poll while deal.running)
 // POST /api/workflow/:id {action:"approve", step:"dataroom"|"schedule"} | {action:"transcript", text, source?, name?}
 //      | {action:"skip_transcript"} | {action:"override_screen"} | {action:"decide", verdict:"invest"|"pass", note?}
-//      | {action:"resume"} | {action:"regenerate_memo"} → Deal; every action resumes the run after the response. approve
-//      sends only when OUTBOUND_MODE=live and every recipient is on the allowlist; otherwise it records the dry run.
+//      | {action:"resume"} | {action:"regenerate_memo"} | {action:"resolve_send", step, resolution:"confirm_sent"|"discard_send"} → Deal; every action resumes the run after the response. approve
+//      (approve is two-phase for a live send: marked "sending", sent, then recorded; a mark with no result blocks further
+//      sends with 409 until resolve_send). approve sends only when OUTBOUND_MODE=live and every recipient is on the allowlist; otherwise it records the dry run.
 import { NextResponse } from "next/server";
 import { googleConfig } from "@/lib/google/oauth";
 import { sendMessage } from "@/lib/google/gmail";

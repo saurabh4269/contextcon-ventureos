@@ -2,7 +2,7 @@
 // can happen: live only when outboundMode()==="live" AND no recipient is blocked; otherwise it records the dry run.
 import { blockedRecipients, checkRecipients, dryRun, outboundMode } from "@/lib/outbound";
 import { isClosed, userName } from "@/lib/deals/stage";
-import { isRunningNow, stepOf, type Deal } from "./types";
+import { isRunningNow, RUN_STALE_MS, stepOf, type Deal, type OutboundDraft } from "./types";
 
 export type Senders = {
   sendMessage?: (m: { to: string[]; subject: string; body: string }) => Promise<{ id: string }>;
@@ -10,6 +10,7 @@ export type Senders = {
 };
 export type Action =
   | { action: "approve"; step: "dataroom" | "schedule" }
+  | { action: "resolve_send"; step: "dataroom" | "schedule"; resolution: "confirm_sent" | "discard_send" }
   | { action: "transcript"; text: string; source?: "paste" | "upload"; name?: string }
   | { action: "skip_transcript" }
   | { action: "override_screen" }
@@ -20,53 +21,114 @@ export type Action =
 /** Field-type check before applyAction touches the deal (a wrong type there would surface as a 502). */
 export function invalidAction(a: { action: string } & Record<string, unknown>): string | null {
   if (a.action === "approve" && a.step !== "dataroom" && a.step !== "schedule") return 'step must be "dataroom" or "schedule"';
+  if (a.action === "resolve_send" && a.step !== "dataroom" && a.step !== "schedule") return 'step must be "dataroom" or "schedule"';
+  if (a.action === "resolve_send" && a.resolution !== "confirm_sent" && a.resolution !== "discard_send") return 'resolution must be "confirm_sent" or "discard_send"';
   if (a.action === "transcript" && typeof a.text !== "string") return "text must be a string";
   if (a.action === "transcript" && a.name != null && typeof a.name !== "string") return "name must be a string";
   if (a.action === "decide" && a.note != null && typeof a.note !== "string") return "note must be a string";
   return null;
 }
 
+export type ActionResult = { ok: true } | { ok: false; message: string; /** a send is in progress / its outcome unknown (HTTP 409) */ conflict?: true };
+
+export const SENDING_MESSAGE = "a send is in progress or its outcome is unknown; check the Sent folder / calendar, then resolve it (resolve_send: confirm_sent or discard_send)";
+
+/** Shared checks of an approve: a draft exists, no send is pending, a recipient / a future slot. */
+export function approvePrecheck(deal: Deal, a: { step?: unknown }, now: Date): { ok: false; message: string; conflict?: true } | { ok: true; already: true } | { ok: true; already: false; d: OutboundDraft; stepId: "dataroom" | "schedule" } {
+  if (a.step !== "dataroom" && a.step !== "schedule") return { ok: false, message: 'approve needs step "dataroom" or "schedule"' };
+  const d = stepOf(deal, a.step).draft;
+  if (!d) return { ok: false, message: `No ${a.step} draft yet.` };
+  if (d.approved) return { ok: true, already: true };
+  if (d.sending) {
+    const unknown = now.getTime() - Date.parse(d.sending.at) >= RUN_STALE_MS;
+    return { ok: false, conflict: true, message: `${SENDING_MESSAGE}${unknown ? `. Marked sending at ${d.sending.at} with no result: outcome unknown, it will not be retried automatically` : ""}.` };
+  }
+  if (d.channel === "gmail.send" && !d.to.length) return { ok: false, message: "This draft has no recipient (no founder address and DEMO_RECIPIENT_ALLOWLIST is empty); nothing to approve." };
+  if (d.channel === "calendar.insert" && !(Date.parse(d.start ?? "") > now.getTime())) return { ok: false, message: "The proposed meeting time has passed; use Resume to propose a new slot." };
+  return { ok: true, already: false, d, stepId: a.step };
+}
+
+type Exec = () => Promise<{ id: string; result: string }>;
+/** Live send (exec set) or dry run (why + blocked): live only with OUTBOUND_MODE=live and every recipient allowlisted. */
+export function livePlan(d: OutboundDraft, senders: Senders, env: Record<string, string | undefined>): { ok: false; message: string } | { ok: true; exec: Exec } | { ok: true; exec?: undefined; why: string; blocked: string[] } {
+  const blocked = blockedRecipients(d.to, env);
+  if (outboundMode(env) === "live" && blocked.length === 0) {
+    if (d.channel === "gmail.send") {
+      if (!senders.sendMessage) return { ok: false, message: "Gmail is not connected." };
+      const send = senders as { sendMessage: NonNullable<Senders["sendMessage"]> };
+      const check = checkRecipients(d.to, env);
+      if (!check.ok) return { ok: false, message: check.message };
+      return { ok: true, exec: async () => ({ id: (await send.sendMessage({ to: check.recipients, subject: d.subject, body: d.body })).id, result: "sent" }) };
+    }
+    if (!senders.insertEvent) return { ok: false, message: "Google Calendar is not connected." };
+    const cal = senders as { insertEvent: NonNullable<Senders["insertEvent"]> };
+    return { ok: true, exec: async () => ({ id: (await cal.insertEvent({ summary: d.subject, start: d.start!, end: d.end!, description: d.body })).id, result: "created on primary calendar (no attendees, sendUpdates=none)" }) };
+  }
+  return { ok: true, why: outboundMode(env) !== "live" ? "OUTBOUND_MODE is dry_run" : `recipient(s) not on the allowlist: ${blocked.join(", ")}`, blocked };
+}
+
+/** Phase 1 of a live send: persisted before the send, so a crash or failed write afterwards can never send twice. */
+export function markSending(deal: Deal, stepId: "dataroom" | "schedule", now: Date, by: string) {
+  stepOf(deal, stepId).draft!.sending = { at: now.toISOString(), by };
+}
+/** Phase 3: the send happened; record the real id and result. */
+export function recordSent(deal: Deal, stepId: "dataroom" | "schedule", r: { id: string; result: string }, now: Date, by: string) {
+  const step = stepOf(deal, stepId), d = step.draft!;
+  d.sending = undefined;
+  d.blocked = [];
+  d.approved = { at: now.toISOString(), by, transport: "live", result: r.result, id: r.id };
+  step.status = "done";
+  step.transport = "live";
+  step.summary = `Approved and ${d.channel === "gmail.send" ? "sent" : "created"} (${r.id}).`;
+}
+
 /** Who clicked: DEALDESK_USER_NAME, else "Partner (you)" (no sign-in in this build). */
 export const personName = (env: Record<string, string | undefined> = process.env) => userName(env) ?? "Partner (you)";
 
-export async function applyAction(deal: Deal, a: Action, send: Senders, now: Date, env: Record<string, string | undefined> = process.env): Promise<{ ok: true } | { ok: false; message: string }> {
+export async function applyAction(deal: Deal, a: Action, send: Senders, now: Date, env: Record<string, string | undefined> = process.env): Promise<ActionResult> {
   if (!a || typeof a !== "object") return { ok: false, message: "body must be {action, …}" };
   const at = now.toISOString();
   const BY = personName(env);
   // Passed / Portfolio are terminal: nothing but a resume (to finish a failed memory write) may touch the deal
-  if (isClosed(deal.stage) && a.action !== "resume") return { ok: false, message: `The deal is closed (${deal.stage}); no further actions.` };
+  if (isClosed(deal.stage) && a.action !== "resume" && a.action !== "resolve_send") return { ok: false, message: `The deal is closed (${deal.stage}); no further actions.` };
   switch (a.action) {
     case "approve": {
-      if (a.step !== "dataroom" && a.step !== "schedule") return { ok: false, message: 'approve needs step "dataroom" or "schedule"' };
+      const pre = approvePrecheck(deal, a, now);
+      if (!pre.ok) return pre;
+      if (pre.already) return { ok: true };
+      const { d, stepId } = pre;
+      const plan = livePlan(d, send, env);
+      if (!plan.ok) return plan;
+      if (plan.exec) {
+        // direct path (no persistence in between): dispatch.ts runs these phases separately, around the send
+        const r = await plan.exec();
+        recordSent(deal, stepId, r, now, BY);
+        return { ok: true };
+      }
+      const rec = dryRun(d.channel, { to: d.to, subject: d.subject, start: d.start, end: d.end });
+      d.approved = { at, by: BY, transport: "dry_run", result: `${rec.label} (${plan.why})` };
+      d.blocked = plan.blocked;
+      const step = stepOf(deal, stepId);
+      step.status = "done";
+      step.transport = "dry_run";
+      step.summary = `Approved — ${d.approved.result}.`;
+      return { ok: true };
+    }
+    case "resolve_send": {
+      if (a.step !== "dataroom" && a.step !== "schedule") return { ok: false, message: 'resolve_send needs step "dataroom" or "schedule"' };
       const step = stepOf(deal, a.step);
       const d = step.draft;
-      if (!d) return { ok: false, message: `No ${a.step} draft yet.` };
-      if (d.approved) return { ok: true };
-      if (d.channel === "gmail.send" && !d.to.length) return { ok: false, message: "This draft has no recipient (no founder address and DEMO_RECIPIENT_ALLOWLIST is empty); nothing to approve." };
-      if (d.channel === "calendar.insert" && !(Date.parse(d.start ?? "") > now.getTime())) return { ok: false, message: "The proposed meeting time has passed; use Resume to propose a new slot." };
-      const blocked = blockedRecipients(d.to, env);
-      // the Approve click is the explicit approval; a live send also needs every recipient on DEMO_RECIPIENT_ALLOWLIST
-      if (outboundMode(env) === "live" && blocked.length === 0) {
-        if (d.channel === "gmail.send") {
-          if (!send.sendMessage) return { ok: false, message: "Gmail is not connected." };
-          const check = checkRecipients(d.to, env);
-          if (!check.ok) return { ok: false, message: check.message };
-          const r = await send.sendMessage({ to: check.recipients, subject: d.subject, body: d.body });
-          d.approved = { at, by: BY, transport: "live", result: "sent", id: r.id };
-        } else {
-          if (!send.insertEvent) return { ok: false, message: "Google Calendar is not connected." };
-          const r = await send.insertEvent({ summary: d.subject, start: d.start!, end: d.end!, description: d.body });
-          d.approved = { at, by: BY, transport: "live", result: "created on primary calendar (no attendees, sendUpdates=none)", id: r.id };
-        }
-      } else {
-        const why = outboundMode(env) !== "live" ? "OUTBOUND_MODE is dry_run" : `recipient(s) not on the allowlist: ${blocked.join(", ")}`;
-        const rec = dryRun(d.channel, { to: d.to, subject: d.subject, start: d.start, end: d.end });
-        d.approved = { at, by: BY, transport: "dry_run", result: `${rec.label} (${why})` };
+      if (!d?.sending) return { ok: false, message: "Nothing to resolve: no send is marked in progress for this draft." };
+      if (a.resolution === "discard_send") {
+        d.sending = undefined; // the person checked: it was not sent; Approve may send again
+        return { ok: true };
       }
-      d.blocked = blocked;
+      if (a.resolution !== "confirm_sent") return { ok: false, message: 'resolution must be "confirm_sent" or "discard_send"' };
+      d.sending = undefined;
+      d.approved = { at, by: BY, transport: "live", result: `${d.channel === "gmail.send" ? "sent" : "created"} (confirmed by ${BY}; the message/event id was not recorded)` };
       step.status = "done";
-      step.transport = d.approved.transport;
-      step.summary = d.approved.transport === "live" ? `Approved and ${d.channel === "gmail.send" ? "sent" : "created"} (${d.approved.id}).` : `Approved — ${d.approved.result}.`;
+      step.transport = "live";
+      step.summary = `Approved and ${d.channel === "gmail.send" ? "sent" : "created"} (confirmed by ${BY}; id not recorded).`;
       return { ok: true };
     }
     case "transcript": {
@@ -113,7 +175,7 @@ export async function applyAction(deal: Deal, a: Action, send: Senders, now: Dat
       if (isRunningNow(deal, now.getTime())) return { ok: false, message: "The deal is still running; resume when it stops." };
       // a meeting proposal nobody approved before its time passed is proposed again
       const sch = stepOf(deal, "schedule");
-      if (sch.draft && !sch.draft.approved && !(Date.parse(sch.draft.start ?? "") > now.getTime())) { sch.status = "pending"; sch.draft = undefined; }
+      if (sch.draft && !sch.draft.approved && !sch.draft.sending && !(Date.parse(sch.draft.start ?? "") > now.getTime())) { sch.status = "pending"; sch.draft = undefined; }
       // error / stale running steps retry; an "unavailable" step (a failed Crustdata or Gmail call) retries too, except
       // one a person chose to skip
       for (const s of deal.steps) if (s.status === "error" || s.status === "running" || (s.status === "unavailable" && s.transport !== "person")) s.status = "pending";
