@@ -8,7 +8,7 @@
 /* ───────────── primitives ───────────── */
 export type ID = string;
 export type Mode = "invest" | "bank";
-export type Nav = "today" | "pipeline" | "portfolio" | "mandates" | "brain" | "settings" | "agents" | "runs" | "assistant";
+export type Nav = "today" | "pipeline" | "portfolio" | "mandates" | "brain" | "settings" | "agents" | "runs" | "review" | "assistant";
 /** v3.2 · "warm" = Deal Desk (off-white, serif, sienna alerts). "mono" = near-monochrome comparison variant. */
 export type Tone2 = "warm" | "mono";
 export type Tone = "ok" | "warn" | "rust" | "neutral" | "ink";

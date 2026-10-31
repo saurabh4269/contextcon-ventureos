@@ -9,6 +9,7 @@ export const ROUTES = {
   brain: "/brain",
   agents: "/agents",
   runs: "/agents?tab=runs",
+  review: "/review",
   agent: (id: string, view?: "steps" | "flow") => `/agent?id=${id}${view === "flow" ? "&view=flow" : ""}`,
   /** v4 · "How this agent works" canvas for a flow fixture (agentFlows key). */
   agentFlow: (flow: string) => `/agent?view=flow&agent=${flow}`,
