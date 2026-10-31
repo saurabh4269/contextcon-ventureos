@@ -14,14 +14,14 @@ TypeScript, vitest. Server code lives in route handlers (`runtime = "nodejs"`). 
 | --- | --- |
 | `src/app/**/page.tsx` | Routes. Thin: read search params, pick a `src/live/*` wrapper or `UnavailablePage` |
 | `src/app/api/live/*` | Crustdata-backed JSON routes (`research`, `company`, `people`, `person`, `jobs`, `news`, `comps`) |
-| `src/app/api/agent/run` | Sourcing agent, NDJSON step stream <!-- VERIFY: exists --> |
+| `src/app/api/sourcing/run` | Sourcing agent, NDJSON step stream (`src/lib/agent` + `/api/live/screen` are the separate LLM screener) |
 | `src/app/api/deals/[id]/{numbers,valuation}` | Explainable numbers (`ComputedField`s) |
 | `src/app/api/memory/{events,stream}` | Organizational memory (Postgres) + SSE |
 | `src/app/api/connectors/{gmail,calendar}` | Google read; calendar insert (dry-run) |
 | `src/app/api/voice/{tts,stt,brief}` | ElevenLabs TTS / STT; deterministic spoken briefs |
 | `src/app/api/integrations/connectors` | Real connector health |
 | `src/lib/crustdata/` | The Crustdata client: `client.ts`, `http.ts` (transport, 429), `cache.ts`, `rate-limits.ts`, `credits.ts`, `enrich-fields.ts`, `*-queries.ts` (request bodies), `generated/` (OpenAPI types) |
-| `src/lib/agent/` | Sourcing agent: parser, filter tree, steps, ranking, memo/CSV <!-- VERIFY: actual file names --> |
+| `src/lib/sourcing/` | Sourcing agent: `parse.ts` (request → plan + chips), `run.ts` (steps, relax, verify, founders, rank), `export.ts` (memo/CSV), `examples.ts` |
 | `src/lib/live/` | Orchestration (`research.ts`), normalisation, failure mapping, `liveRoute` wrapper, connector health |
 | `src/lib/numbers/` | Raw response → `ComputedField` (`company-fields.ts`, `deal-numbers.ts`) |
 | `src/lib/fields.ts` | The `ComputedField` type and helpers (`isOk`, `show`, `explain`) |
@@ -31,7 +31,7 @@ TypeScript, vitest. Server code lives in route handlers (`runtime = "nodejs"`). 
 | `src/lib/voice/` | ElevenLabs TTS/STT, greeting and screen briefs |
 | `src/lib/outbound.ts` | `OUTBOUND_MODE` switch and dry-run envelope |
 | `src/live/` | Client wrappers that fetch live data and feed the UI kit (`deal.tsx`, `person.tsx`, `today.tsx`, `memo.tsx`, `settings.tsx`, `memory.tsx`, `unavailable.tsx`, `sources.ts`, `useLiveJson.ts`, `voice/*`) |
-| `src/live/agent/` | Agent screen wrapper <!-- VERIFY --> |
+| `src/live/agent/` | Sourcing agent screen (`AgentScreen`, `Cite`, `useAgentRun` with the screener seam) |
 | `port/src/` (imported as `@port/*`) | The UI kit: `screens/`, `components/` (shell, ui, charts, signal graph), `types.ts`. Presentational; takes data via props |
 | `port/test/fixtures` | **Test-only** sample data. Never import from production code |
 | `docs/` | `API.md`, `crustdata/openapi/*.yaml` (extracted OpenAPI), `crustdata/fixtures/*.json` (captured live responses for tests), `crustdata/AMBIGUITIES.md` |

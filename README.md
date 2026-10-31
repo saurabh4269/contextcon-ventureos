@@ -19,7 +19,7 @@ npm run dev                    # http://localhost:3240
 
 | Try this | What happens |
 | --- | --- |
-| `/agent` → "Find ten Indian B2B software companies founded since 2023 whose team grew by half in the last six months, and tell me who founded each and what they did before" | Sourcing agent: interpretation chips → live step trace → ranked, cited table → memo/CSV export <!-- VERIFY: route and flow once src/lib/agent lands --> |
+| `/agent` → "Find ten Indian B2B software companies founded since 2023 whose team grew by half in the last six months, and tell me who founded each and what they did before" | Sourcing agent: interpretation chips → live step trace → ranked, cited table → memo/CSV export <!-- VERIFY: route and flow once src/lib/sourcing lands --> |
 | `/deal?domain=e2b.dev` | Live research: identify → enrich → founders, open roles, web, comparables. Click any number for its method and citation. |
 | `/deal?domain=zz9-no-such-startup-qx7.com` | Honest "No Crustdata match" (not an error, not a fake company) |
 | `/settings` → Connectors | Real health checks (Crustdata `GET /account/credits`, ElevenLabs, Gmail, Calendar) |
@@ -86,7 +86,7 @@ greeting from the same facts; it is not set in this build.)
 
 | Agent | Does | Code |
 | --- | --- | --- |
-| Sourcing | Request → filters → search → verify → founders → ranked, cited table; streams its trace as NDJSON | `src/lib/agent`, `POST /api/agent/run`, `src/live/agent` <!-- VERIFY --> |
+| Sourcing | Request → filters → search → verify → founders → ranked, cited table; streams its trace as NDJSON | `src/lib/sourcing`, `POST /api/sourcing/run`, `src/live/agent` <!-- VERIFY --> |
 | Research | identify → enrich, then founders, jobs, web, comparables in parallel; one failing call never hides the others | `src/lib/live/research.ts` |
 | People | Founders by company id; full profile by LinkedIn URL | `src/lib/crustdata/person-queries.ts` |
 | Numbers | Turns raw responses into `ComputedField`s (method, inputs, citations) | `src/lib/numbers/*` |
@@ -105,7 +105,7 @@ rate limiter, bounded 429 retry (≤ 15 s total), response cache (no credits on 
 | Endpoint | File | Screen | Credits (live-measured / documented) |
 | --- | --- | --- | --- |
 | `POST /company/identify` | `src/lib/live/research.ts` `lookupCompany` | Deal | 0 |
-| `POST /company/enrich` | `research.ts` `lookupCompany`; agent verify step <!-- VERIFY: src/lib/agent file --> | Deal, Agent | 2 per company |
+| `POST /company/enrich` | `research.ts` `lookupCompany`; agent verify step <!-- VERIFY: src/lib/sourcing file --> | Deal, Agent | 2 per company |
 | `POST /company/search` | `research.ts` `searchComps` + `src/lib/crustdata/company-queries.ts`; agent search step <!-- VERIFY --> | Deal (comparables), Agent | 0.03/row base, ≈0.23/row with funding fields |
 | `POST /person/search` | `research.ts` `searchFounders` + `person-queries.ts`; agent founders step <!-- VERIFY --> | Deal, Agent | ≈0.13/row (experience filter), ≈0.23/row with history |
 | `POST /person/enrich` | `research.ts` `enrichPerson`; agent past-employers step <!-- VERIFY --> | Person, Agent | 1 per profile |

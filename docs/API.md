@@ -191,15 +191,30 @@ Server-side OAuth refresh (`GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN`); access toke
   415 `unsupported_type` · 503 `not_connected` · 402 `quota_exceeded` · 429 `rate_limited` · 422 `bad_audio` ·
   502 `key_invalid` / `permission_denied` / `upstream_error`.
 
-## Sourcing agent <!-- VERIFY: every line of this section against src/app/api/agent/run and src/lib/agent -->
+## Sourcing agent
 
-* `POST /api/agent/run {request: string}` → `application/x-ndjson`, one JSON object per line as each step happens:
-  - `{type:"interpretation", chips:[{key, label, value, source:"parsed"|"default"}], unparsed:[…]}`
-  - `{type:"step", id, label, status:"running"|"ok"|"no_match"|"error"|"skipped", call?: LiveCall, note?}` for
-    `search` (`POST /company/search`), `relax` (which filter was loosened, and why), `verify` (`POST /company/enrich`,
-    growth recomputed from `headcount.timeseries`), `founders` (`POST /person/search`), `history` (`POST /person/enrich`)
-  - `{type:"result", rows:[{company, fields: Record<key, ComputedField>, founders:[…]}], creditsUsed}`
-  - `{type:"error", message}` on a failure that stops the run (no key → `not_connected`).
-* No LLM: parsing is deterministic; the chips are the full statement of what was understood.
-* Exports (memo markdown, CSV) are built from the `result` rows; every row keeps its citations.
-* Each run is appended to organizational memory when `DATABASE_URL` is set.
+Code: `src/app/api/sourcing/run/route.ts`, `src/lib/sourcing/{parse,run,export,examples}.ts`, UI `src/live/agent/*` at `/agent?q=`.
+(`src/lib/agent` and `POST /api/live/screen` belong to the separate LLM screener; `useAgentRun.openRun` is the seam that
+would try it first and fall back here on `model_unavailable`.)
+
+* `POST /api/sourcing/run {q: string}` (also `GET ?q=`) → `application/x-ndjson`, one `AgentEvent` per line
+  (`src/lib/sourcing/run.ts`). 400 when the body is not JSON or `q` is not a string.
+  - `{type:"plan", runId, startedAt, parse}`: `parse.kind` is `search` (plan with `interpretation[]` chips
+    `{key,label,phrase,kind:"filter"|"query"|"output"|"default"|"assumption"|"correction"}` and `ignored[]` phrases),
+    `company` or `refuse`.
+  - `{type:"step", step:{id,label,tool,endpoint,status:"running"|"done"|"failed"|"skipped",startedAt,ms,credits,cachedCalls,calls,count,detail}}`
+    for `parse`, `search`, `relax-<constraint>` (one constraint loosened per search, at most three), `verify`
+    (`POST /company/enrich`), `founders` (`POST /person/search`), `person-enrich` (`POST /person/enrich`), `rank`, `memory`.
+  - `{type:"row", row}` (upserted by `row.id` as founders arrive): `founded`, `hq`, `headcountNow`, `headcountThen`,
+    `growth` (recomputed from `headcount.timeseries`), `funding`, `founders` are `ComputedField`s with citations
+    (`endpoint`, `path`, `record`, `url`, `retrievedAt`, `cached`); plus `series`, `checks`, `relaxed`, `errors`.
+  - `{type:"dropped", item:{id,name,domain,reason}}`: matched the search but failed verification.
+  - Terminal: `{type:"done", summary:{sentence, requested, returned, dropped, relaxed[], rankingReason, credits, liveCalls, cachedCalls, failedCalls, ms, rowOrder}}`
+    | `{type:"refuse", message, ignored}` | `{type:"redirect", href, label, reason}` (a single company → `/deal?domain=`)
+    | `{type:"error", kind:"not_connected"|"upstream"|"bad_request", message}`.
+* No LLM: parsing is deterministic; the chips are the full statement of what was understood. Too few matches → relax
+  (disclosed in the chips' trace, the row and the summary); never padded.
+* 403 field denial: search/enrich retry with the permitted fields and say so in the step detail. 429: `http.ts` backoff.
+  One company's failure stays on its row (`errors[]`).
+* Exports (memo markdown, CSV) are built client-side from the rows (`src/lib/sourcing/export.ts`); every value keeps its citation.
+* Each run is appended to organizational memory (`agent.run`) when `DATABASE_URL` is set; otherwise the `memory` step is `skipped` with the reason.

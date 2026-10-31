@@ -25,12 +25,12 @@ memory), not data.
 ## Capability table
 
 Legend: **Used** = called by a screen or route today · **Client only** = implemented, not called · **No** = not implemented.
-"This session" marks what the sourcing agent added. <!-- VERIFY: confirm each "this session" row against src/lib/agent -->
+"This session" marks what the sourcing agent added. <!-- VERIFY: confirm each "this session" row against src/lib/sourcing -->
 
 | Capability | Status | Where | Value if used more |
 | --- | --- | --- | --- |
 | `POST /company/identify` (domain/name → id) | Used | `src/lib/live/research.ts` `lookupCompany` (deal, memo) | — (0 credits; already the entry point) |
-| `POST /company/enrich` | Used; this session also in agent verification <!-- VERIFY --> | `research.ts`; `src/lib/agent` <!-- VERIFY --> | — |
+| `POST /company/enrich` | Used; this session also in agent verification <!-- VERIFY --> | `research.ts`; `src/lib/sourcing` <!-- VERIFY --> | — |
 | · `basic_info`, `taxonomy`, `locations` | Used | `src/lib/live/normalize.ts` | — |
 | · `headcount.total`, `growth_percent.{mom,qoq,six_months,yoy}` | Used | `normalize.ts`, `src/lib/numbers/company-fields.ts` | — |
 | · `headcount.timeseries` | Used (deal sparkline); this session: growth recomputed from it in the agent <!-- VERIFY --> | `src/lib/adapters/deal.ts` | Verifiable growth claims: cite both endpoints of the window |
@@ -44,7 +44,7 @@ Legend: **Used** = called by a screen or route today · **Client only** = implem
 | · `people` | Requested, not read | — | Leadership list without extra person calls (legacy keys; prefer person APIs) |
 | · `hiring.*` | Not used (null on this plan) | — | — |
 | · `technographics`, `crunchbase`, `maps`, `social_posts` | Not permitted (403s the call) | `enrich-fields.ts` allow-list | — |
-| `POST /company/search` | Used (comparables); this session also sourcing <!-- VERIFY --> | `research.ts` `searchComps`, `company-queries.ts`; `src/lib/agent` <!-- VERIFY --> | Market maps; saved searches as thesis feeds |
+| `POST /company/search` | Used (comparables); this session also sourcing <!-- VERIFY --> | `research.ts` `searchComps`, `company-queries.ts`; `src/lib/sourcing` <!-- VERIFY --> | Market maps; saved searches as thesis feeds |
 | `POST /company/search/autocomplete` | No | — | Type-ahead for company names in the request box |
 | `POST /person/search` | Used (founders); this session also agent founders <!-- VERIFY --> | `research.ts` `searchFounders`, `person-queries.ts` | Founder-first sourcing ("ex-Stripe engineers who founded in 2024") |
 | `POST /person/enrich` | Used (person page); this session also past employers <!-- VERIFY --> | `research.ts` `enrichPerson` | — |
