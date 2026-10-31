@@ -60,3 +60,19 @@ retry on 5xx, timeouts and malformed JSON for reads, a circuit breaker per route
 (fallback model, tool-JSON repair: `resilientModel` in `src/lib/resilience/model.ts`) exists and is tested, but on this
 branch `POST /api/live/screen` still calls `modelFromEnv()` directly. Outage drill: `DEALDESK_SIMULATE_CRUSTDATA_OUTAGE=1`. Details:
 [../ROBUSTNESS.md](../ROBUSTNESS.md).
+
+## Modes of interaction (ContextCon brief)
+
+Deal Desk is architected primarily as a **system of agents**: deterministic and LLM-driven functions over live APIs,
+orchestrated from Next.js route handlers and streamed to the UI. Each agent is code with typed steps, not a single
+monolithic prompt.
+
+| Mode | Status in this repo | Where |
+| --- | --- | --- |
+| **System of agents** (default) | **Shipped.** Research (`/ask`), Sourcing (`/agent`), company research, people, numbers, exceptions, inbox, voice, memory | `src/lib/agent`, `src/lib/sourcing`, `src/lib/live/research.ts`, agents table above |
+| **Single conversational agent** | **Partial.** ElevenLabs conversational session with navigation-only client tools (`run_sourcing`, `open_company`, `open_screen`) | `src/lib/voice/agent.ts`, `GET /api/voice/agent-session` |
+| **MCP server** | **Not on this branch** (in progress elsewhere). Would expose the same Crustdata tool registry as MCP tools | Reserved: [11-evaluation.md § Architecture modes](11-evaluation.md#architecture-modes-contextcon-brief) |
+| **CLI** | **Not on this branch** (in progress elsewhere). Would call the same JSON routes from a terminal | Reserved: [11-evaluation.md § Architecture modes](11-evaluation.md#architecture-modes-contextcon-brief) |
+
+The UI and README describe the agentic OS outcome (shortlist, memo, exceptions). MCP and CLI are alternate front-ends
+to the same trust layer, not separate data paths.

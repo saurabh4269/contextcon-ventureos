@@ -51,6 +51,16 @@ describe("parseRequest", () => {
     expect(r.kind).toBe("refuse");
     if (r.kind === "refuse") expect(r.message).toMatch(/Try/);
   });
+
+  it("reads an unseen messy request: typo country, climate sector, seed stage; surfaces unused role words", () => {
+    const r = parseRequest("seed climate tech in germny who are their CTOs", NOW);
+    if (r.kind !== "search") throw new Error(r.kind);
+    expect(r.plan.countries.map((c) => c.code)).toEqual(["DEU"]);
+    expect(r.plan.stages).toEqual(["seed"]);
+    expect(r.plan.keywords).toContain("climate tech");
+    expect(r.plan.interpretation.some((i) => i.kind === "correction" && i.phrase === "germny")).toBe(true);
+    expect(r.plan.ignored).toContain("ctos");
+  });
 });
 
 describe("growthFromSeries", () => {
