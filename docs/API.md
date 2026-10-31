@@ -8,15 +8,11 @@ Secrets are read from server env only and never appear in responses or logs.
 > branch lands, the builder's doc is authoritative; the routes here are an interim implementation designed to be
 > swapped by replacing `src/lib/numbers/*` with calls to the builder backend. Assumptions we made are listed at the end.
 
-## Data modes
+## Data rules
 
-`DEALDESK_DATA_MODE=demo|live` (unset = `demo`; any other value is a startup error).
-
-| Route family | demo | live |
-| --- | --- | --- |
-| `/api/live/*` | **409** `{status:"disabled"}` — a public demo can never spend credits | calls Crustdata |
-| `/api/deals/:id/*` | id = demo deal (`helio`) from `src/lib/numbers/demo.ts` | id = company **domain** (e.g. `e2b.dev`) |
-| `/api/integrations/connectors` | real status (reports config, serves no data) | same |
+There is no demo mode: every route serves live data or an explicit failure (`not_connected` 503, `unavailable` 503,
+`error` 502, `no_match`). Money values are `{ amount, currency }` (ISO 4217); times are UTC ISO strings (the UI renders
+IST). Outbound actions honour `OUTBOUND_MODE` (default `dry_run`).
 
 ## Shared shapes
 
@@ -39,7 +35,6 @@ when originally fetched). UI helpers: `isOk(f)`, `show(f, fmt)` (→ `"—"` whe
 | HTTP | body | meaning |
 | --- | --- | --- |
 | 400 | `{status:"error", message}` | bad query parameter |
-| 409 | `{status:"disabled", message}` | `DEALDESK_DATA_MODE` is not `live` |
 | 503 | `{status:"not_connected", message}` | `CRUSTDATA_API_KEY` not set |
 | 502 | `{status:"error", message, upstreamStatus?}` | Crustdata/API/transport error (never reported as "no match") |
 
@@ -68,8 +63,8 @@ failing call is reported in its `LiveCall` and does not hide the others; identif
 | --- | --- | --- |
 | `headcountLatest` | as reported | `POST /company/enrich` `…company_data.headcount.total` |
 | `headcountGrowth6m`, `growthYoY`, `headcountGrowthQoQ` | as reported (Crustdata's own growth %), rounded 0.1 | `…headcount.growth_percent.{six_months,yoy,qoq}` |
-| `fundingTotalUsdM` | `total_investment_usd ÷ 1e6` | `…funding.total_investment_usd` |
-| `lastFundingUsdM` | `last_round_amount_usd ÷ 1e6` | `…funding.last_round_amount_usd` |
+| `fundingTotal` | Money `{amount, currency:"USD"}` | `…funding.total_investment_usd` |
+| `lastFunding` | Money `{amount, currency:"USD"}` | `…funding.last_round_amount_usd` |
 | `lastRoundType`, `lastFundingDate` | as reported | `…funding.last_round_type`, `…funding.last_fundraise_date` |
 | `webMonthlyVisitors`, `webTrafficQoQ` | as reported | `…web_traffic.domain_traffic["<domain>"].{monthly_visitors,qoq_pct}` |
 | `followers` | as reported | `…followers.count` |
@@ -93,24 +88,21 @@ with experience) · job search 0.75 (0.03/row, limit 25) · web search 1 · comp
 
 ### `GET /api/deals/:id/numbers`
 
-`{ id, source: "live"|"demo", dataMode, fields }` with one `ComputedField` per key:
+`{ id, source: "crustdata", fields }` with one `ComputedField` per key:
 `fitScore, criterionSector, criterionStage, criterionGeo, criterionCheckSize, criterionMemory, returnMultipleLow,
 returnMultipleHigh, compsMedianMultiple, growthYoY, headcountLatest, lastFundingUsdM, diligenceVerdict, icMemoArrUsedM,
 icMemoValuation, icMemoCompsLine`.
 
-* **live** (id = domain): `headcountLatest`, `growthYoY`, `lastFundingUsdM` are computed from Crustdata as above; every
+* id = company domain: `headcountLatest`, `growthYoY`, `lastFundingUsdM` are computed from Crustdata as above; every
   other key is `unavailable` with the reason (builder pipeline: data-room ingest, firm mandate, pricing/LLM).
   Comparable-company *multiples* are unavailable because Crustdata has no revenue/valuation multiples.
-* **demo** (id = `helio`): values from `src/lib/numbers/demo.ts`, derived from the UI fixtures; every citation's source
-  is "Demo data (invented fixture, not a real company)". Keys the demo data does not cover are `unavailable`.
 * 404 for an id that does not exist in the current mode (`{status:"error"}`) or an unknown domain (`{status:"no_match"}`);
   503/502 as above.
 
 ### `GET /api/deals/:id/valuation`
 
-`{ id, source, dataMode, explainable: { low, high, cap, ask, returnMultipleLow, returnMultipleHigh, compsMedianMultiple } }`
-(each a `ComputedField`). Live: all unavailable (needs verified revenue + pricing model). Demo: low/high/cap/ask from the
-demo valuation, `compsMedianMultiple` = median of the demo comps' multiples.
+`{ id, source, explainable: { low, high, cap, ask, returnMultipleLow, returnMultipleHigh, compsMedianMultiple } }`
+(each a `ComputedField`). Live: all unavailable (needs verified revenue + pricing model).
 
 ### `GET /api/integrations/connectors[?fresh=1]`
 
@@ -118,11 +110,11 @@ Real status for the connectors Deal Desk actually integrates; catalogue tiles (A
 UI-only and not listed. Health results are cached 5 minutes per process (`fresh=1` bypasses).
 
 ```ts
-{ dataMode: "demo"|"live", checkedAt: string, connectors: {
-    id: "crustdata"|"llm"|"agentmail"|"slack"|"fireflies"|"gmail"|"calendar",
+{ checkedAt: string, connectors: {
+    id: "crustdata"|"llm"|"agentmail"|"slack"|"fireflies"|"elevenlabs"|"gmail"|"calendar",
     name: string,
-    status: "connected" | "not_configured" | "error" | "demo",
-    mode: "live_check" | "env" | "fixture",
+    status: "connected" | "not_configured" | "error",
+    mode: "live_check" | "env",
     wired: boolean,          // true only when this build calls it (Crustdata)
     detail: string,          // human-readable reason / health result
     env: string[],           // env var NAMES that configure it (never values)
@@ -135,15 +127,54 @@ UI-only and not listed. Health results are cached 5 minutes per process (`fresh=
 | `not_configured` | required env missing (no network call) |
 | `connected` | a free, read-only health call succeeded: Crustdata `GET /account/credits` (0 credits; detail shows the balance), Anthropic/OpenAI `GET /v1/models`, AgentMail `GET /v0/inboxes`, Slack `auth.test`, Fireflies GraphQL `user`. If `wired` is false the detail says "not used by this build yet". |
 | `error` | health call failed (status + upstream message), or Google credentials are set but this build has no OAuth flow |
-| `demo` | explicitly on fixtures (`DEALDESK_FIXTURES=1` / `CRUSTDATA_FORCE_FIXTURE=1`) with no key |
 
 Status never comes from timers or fixtures.
 
 ## Assumptions vs the builder contract
 
 1. `inputs` is an array of `{ name, value }` (extra keys allowed); `citations` entries allow extra keys.
-2. Numbers are plain JSON numbers in the unit named by the key (`…UsdM` = millions of USD, growth in percent).
-3. Deal ids: the builder uses its DB deal ids; here live ids are domains and demo ids are fixture ids. A swap only
+2. Numbers are plain JSON numbers (growth in percent); **money is `{amount, currency}`** in full units — the builder key
+   names `lastFundingUsdM` / `icMemoArrUsedM` are kept for compatibility, but their values are Money objects (trust rule 4).
+3. Deal ids: the builder uses its DB deal ids; here deal ids are company domains. A swap only
    needs an id→deal mapping on the UI side.
 4. `/valuation` returns only `{ id, source, dataMode, explainable }`; the builder's response also carries its full
    valuation object, which this build does not have.
+
+## Memory (organizational memory)
+
+Postgres table `dealdesk_memory_events` (created on first use) when `DATABASE_URL` is set; otherwise every memory route
+answers **503** `{status:"unavailable", reason:"memory store not configured (DATABASE_URL)"}` — no in-memory fallback.
+
+* `POST /api/memory/events` `{kind, actor:{type:"user"|"agent"|"system", id?, name?}, subject?:{type,id,label?}, summary, data?, source}`
+  → 201 `{status:"ok", event}`; 400 on invalid input (`kind` is a dotted verb, `data` ≤ 8 KB).
+* `GET /api/memory/events?since=<id>&limit=<1..200>` → `{status:"ok", events: MemoryEvent[], cursor}` (oldest first;
+  without `since`, the latest `limit`). `MemoryEvent = input + {id, at (UTC ISO)}`.
+* `GET /api/memory/stream?since=<id>` → SSE, `event: memory` per new event (server polls every 2 s).
+
+Recorded kinds: `research.run`, `person.enriched`, `connector.check` (only checks that ran), `deal.opened`,
+`person.opened`, `signal.action`, `note.added`, `access.requested`, `greeting.generated`, `greeting.played`,
+`assistant.brief`, `assistant.asked`, `meeting.dry_run`, `meeting.booked`, `meeting.deleted`.
+The builder implements the same contract on its main; this repo only stores/lists.
+
+## Google (read-only in the event build)
+
+Server-side OAuth refresh (`GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN`); access tokens cached in memory. Errors:
+503 `not_connected` · 401 `{code:"expired"}` ("Google connection expired — reconnect") · 403 `forbidden` · 502.
+
+* `GET /api/connectors/gmail/threads?since=<ISO>&max=<1..25>` → `{status:"ok", since, threads:[{id, from, fromAddress, subject, lastMessageAt, messages, unread}], estimate}` (INBOX, `format=metadata`).
+* `GET /api/connectors/calendar/events?max=<1..25>` → `{status:"ok", events:[{id, summary, start, end, allDay, attendees, link}]}` (primary, from now).
+* `POST /api/connectors/calendar/events {summary, start, end, description?, attendees?}` → with `OUTBOUND_MODE=dry_run`
+  (default): 200 `{status:"ok", transport:"dry_run", label, wouldSend}`; live: 201 `{transport:"live", event}` (`sendUpdates=none`).
+* `DELETE /api/connectors/calendar/events/:id` → 204, or 410 if already gone.
+
+## Voice
+
+* `POST /api/voice/tts {text ≤ 1200}` → `audio/mpeg` stream (ElevenLabs `/v1/text-to-speech/{voice}/stream`, model
+  `eleven_flash_v2_5`, voice `ELEVENLABS_VOICE_ID` default `nPczCjzI2devNBz1zQrb`). `?timestamps=1` → `application/x-ndjson`
+  chunks `{audio_base64, alignment{characters, character_start_times_seconds, …}}` (cumulative times; used for exact
+  captions). 400 bad input · 503 `not_connected` · 502 `{upstreamStatus, message}`.
+* `GET /api/voice/brief?screen=<id>&subject=<domain|linkedin>` / `POST {screen, subject?, question}` →
+  `{status:"ok", text, composer:"deterministic"|"llm", llmError?, sources:[{label, ref}], facts, generatedAt}`.
+  `screen=today` is the greeting (memory since the last `greeting.played`, Gmail threads since then, next meeting,
+  connector issues, latest deal); other screens get a line about their subject. Without an AI key, the text is composed
+  deterministically from those facts and questions get an honest "no AI model connected" reply.
