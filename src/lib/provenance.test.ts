@@ -115,3 +115,10 @@ describe("guards and decisions", () => {
     expect(corrected.summary).toMatch(/model said 80.*holds 52/);
   });
 });
+
+describe("stale sources", () => {
+  it("a value served from the outage fallback says so on its chip", () => {
+    const why = whyFromField(ok(52, "Read", "52 people", [{ ...cite, cached: true, stale: true, note: "Crustdata unavailable (HTTP 503)" }]));
+    expect(why.sources[0]).toMatchObject({ cached: true, retrieved: "31 Oct 2026, 13:21 IST · stale: Crustdata was unavailable" });
+  });
+});

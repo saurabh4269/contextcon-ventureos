@@ -58,7 +58,8 @@ export function sourceFromCitation(c: Citation, calls: CallMeta[] = []): WhySour
     ...(c.endpoint ? { endpoint: c.endpoint } : {}),
     ...(c.path ? { path: c.path } : {}),
     ...(c.url ? { url: c.url } : {}),
-    ...(at ? { retrievedAt: at, retrieved: fmtDateTime(at) } : {}),
+    // a stale-cache fallback (Crustdata was down) says so next to the time it was fetched
+    ...(at ? { retrievedAt: at, retrieved: `${fmtDateTime(at)}${c.stale ? " · stale: Crustdata was unavailable" : ""}` } : {}),
     ...(cached != null ? { cached } : {}),
     ...(credits ? { credits } : {}),
   };
