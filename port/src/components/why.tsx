@@ -101,7 +101,7 @@ export function WhyChip({ why, label, value, className }: { why?: Why; label: st
       <button type="button" data-testid="why-chip" data-status={why.status} data-sources={n} aria-haspopup="dialog" aria-expanded={open}
         aria-label={`Why: ${label}${why.status === "unavailable" ? " (unavailable)" : `, ${n} source${n === 1 ? "" : "s"}`}`}
         onClick={(e) => { e.stopPropagation(); e.preventDefault(); setOpen(true); }}
-        className={cx("inline-flex h-[18px] shrink-0 items-center rounded-full px-1.5 text-[10.5px] font-medium ring-1 transition-colors", why.status === "unavailable" ? "text-zinc-400 ring-zinc-200 hover:bg-zinc-50" : why.status === "corrected" ? "text-warn ring-warn/30 hover:bg-warn-50" : "text-zinc-500 ring-zinc-200 hover:bg-zinc-50 hover:text-ink", className)}>
+        className={cx("relative inline-flex h-[18px] before:absolute before:-inset-x-2 before:-inset-y-[11px] before:content-[''] shrink-0 items-center rounded-full px-1.5 text-[10.5px] font-medium ring-1 transition-colors", why.status === "unavailable" ? "text-zinc-400 ring-zinc-200 hover:bg-zinc-50" : why.status === "corrected" ? "text-warn ring-warn/30 hover:bg-warn-50" : "text-zinc-500 ring-zinc-200 hover:bg-zinc-50 hover:text-ink", className)}>
         {why.status === "unavailable" ? "why?" : `src${n > 1 ? ` ${n}` : ""}`}
       </button>
       {open && (

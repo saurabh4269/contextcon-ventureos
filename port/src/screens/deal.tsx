@@ -62,7 +62,7 @@ function Evidence({ e, href }: { e: EvidenceItem; href: string }) {
   return (
     <div className={cx(CARD, "mt-3 p-4")}>
       <div className="flex items-center gap-2 text-[12px]"><Src k={e.source.kind}>{e.source.label}</Src><span className="text-zinc-500">{e.where}</span>
-        <Link href={h} aria-label={`Open ${e.source.label} in the data room`} title="Open in the data room" className="ml-auto grid size-7 place-items-center rounded-full text-zinc-400 ring-1 ring-transparent transition-colors hover:bg-zinc-50 hover:text-ink hover:ring-zinc-200"><ExternalLink className="size-3.5" /></Link>
+        <Link href={h} aria-label={e.href ? `Open ${e.source.label} source` : `Open ${e.source.label} in the data room`} title={e.href ? "Open the source" : "Open in the data room"} className="ml-auto grid size-7 place-items-center rounded-full text-zinc-400 ring-1 ring-transparent transition-colors hover:bg-zinc-50 hover:text-ink hover:ring-zinc-200"><ExternalLink className="size-3.5" /></Link>
       </div>
       {e.kind === "doc" && <Link href={h} className={cx(PAPER, "mt-3 block px-4 pt-3.5 pb-4 transition-shadow hover:shadow-[0_0_0_1px_rgba(9,9,11,.08),0_8px_20px_-12px_rgba(9,9,11,.25)]")}>
         {e.page ? <>
