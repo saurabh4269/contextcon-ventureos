@@ -11,6 +11,8 @@ ContextCon @ IIT Bombay (Techfest), 31 Oct 2026 · Theme: **Investing** · Team:
 
 ## Quick start
 
+Full local setup on Windows, Mac or Linux (one command, keys checked before start): [SETUP_LOCAL.md](SETUP_LOCAL.md). Project context for contributors and judges: [docs/context/](docs/context/README.md).
+
 ```bash
 npm ci
 cp .env.example .env.local     # add CRUSTDATA_API_KEY at minimum; anything missing shows "not connected"
@@ -205,7 +207,7 @@ trust guards (`src/test/guards.test.ts`). An opt-in live contract suite: `npm ru
 | No hard-coded amounts, %, dates or counts in screens | `src/test/guards.test.ts` (literal scan) |
 | Money is `{amount, currency}`; never converted without a cited FX rate | `src/lib/format` |
 | Times stored UTC, shown in IST | `src/lib/format` (`fmtDateTime` → "… IST") |
-| Outbound is dry-run unless `OUTBOUND_MODE=live`; no email send code exists | `src/lib/outbound.ts`, guard test |
+| Outbound is dry-run unless `OUTBOUND_MODE=live`; email can be sent only through the gated `/api/outbound/email` (recipient allowlist `DEMO_RECIPIENT_ALLOWLIST` + a person's approval before send) | `src/lib/outbound.ts`, guard test |
 | Secrets are server-side only; status shows env var names, never values | route handlers, `src/lib/live/integrations.ts` |
 | Errors are never shown as "no match", and "no match" is never shown as a company | `src/lib/live/research.ts` |
 
