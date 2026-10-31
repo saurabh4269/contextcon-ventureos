@@ -6,7 +6,11 @@ import { shellInvest, brain, brainEmptyMemories, brainLearnedFrame } from "@port
 import type { BrainData } from "@port/types";
 import { useDataMode, useLiveCoverage } from "@/components/datamode";
 import { liveShellFrom } from "@/live/shell";
-import { useLiveJson } from "@/live/useLiveJson";
+import { failureMessage, useLiveJson } from "@/live/useLiveJson";
+import { toLiveBrain } from "@/lib/adapters/brain";
+import type { MemoryEvent } from "@/lib/memory/types";
+import type { Mandate } from "@/lib/settings/mandate";
+import type { StorageInfo } from "@/lib/store/docs";
 export default function Brain({ searchParams }: { searchParams: Promise<{ empty?: string; learned?: string; state?: string }> }) {
   const q = use(searchParams); useState(0);
   const mode = useDataMode();
@@ -16,18 +20,22 @@ export default function Brain({ searchParams }: { searchParams: Promise<{ empty?
 }
 
 /**
- * Live mode: GET /api/memory/events. Unavailable (no store configured) or no events → the screen's own empty state
- * ("Nothing learned yet"). With events the firm-brain views (outcomes, pass reasons, priors) still have no live source,
- * so the page keeps the fixture brain and the layout's "Demo data" badge.
+ * Live mode: GET /api/memory/events (Postgres, or the durable store's documents) + GET /api/settings/mandate. Events
+ * become memories, outcomes and pass reasons; the mandate gives the thesis lines and priors (src/lib/adapters/brain.ts).
+ * No events → the screen's own empty state ("Nothing learned yet"). Nothing here is a fixture.
  */
 function LiveBrain() {
-  const res = useLiveJson<{ events: unknown[] }>("/api/memory/events?limit=1");
-  const none = res.state === "failed" ? res.status === 503 : res.state === "ok" && res.data.events.length === 0;
-  useLiveCoverage(!none ? null : res.state === "failed" ? "Live · memory store not configured" : "Live · memory store");
-  if (res.state === "loading") return <BrainScreen shell={liveShellFrom(shellInvest)} status="loading" data={EMPTY} />;
-  if (none) return <BrainScreen shell={liveShellFrom(shellInvest)} status="empty" data={EMPTY} />;
-  if (res.state === "failed") return <BrainScreen shell={liveShellFrom(shellInvest)} status="error" error="Couldn’t read the memory store." onRetry={() => void res.reload()} data={EMPTY} />;
-  return <BrainScreen shell={shellInvest} status="ready" data={brain} />;
+  const [now] = useState(() => new Date());
+  const res = useLiveJson<{ events: MemoryEvent[]; storage?: StorageInfo }>("/api/memory/events?limit=500");
+  const mandate = useLiveJson<{ mandate: Mandate; source?: { note: string } }>("/api/settings/mandate");
+  const storage = res.state === "ok" ? res.data.storage ?? null : null;
+  useLiveCoverage(storage && !storage.durable ? "Live · memory store (not durable)" : "Live · memory store");
+  const shell = liveShellFrom(shellInvest);
+  if (res.state === "loading" || mandate.state === "loading") return <BrainScreen shell={shell} status="loading" data={EMPTY} />;
+  if (res.state === "failed") return <BrainScreen shell={shell} status="error" error={failureMessage(res, "Firm memory")} onRetry={() => void res.reload()} data={EMPTY} />;
+  if (!res.data.events.length) return <BrainScreen shell={shell} status="empty" data={EMPTY} />;
+  const m = mandate.state === "ok" ? mandate.data : null;
+  return <BrainScreen shell={shell} status="ready" data={toLiveBrain({ events: res.data.events, storage, mandate: m?.mandate ?? null, mandateNote: m?.source?.note ? "Firm mandate" : undefined, now })} />;
 }
 
 /** Chrome-only data for the loading / empty / error states (the screen renders the state, not these values). */

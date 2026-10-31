@@ -391,7 +391,7 @@ async function memory(c: Ctx): Promise<Outcome> {
     actor: { type: "user", name: deal.decision?.by ?? deps.person ?? "partner" },
     subject: { type: "company", id: deal.company.domain ?? deal.id, label: deal.company.name ?? deal.company.domain },
     summary: `${deal.decision?.verdict === "invest" ? "Invested in" : "Passed on"} ${deal.company.name ?? deal.company.domain}${contradicted.length ? `; ${contradicted.length} contradicted claim(s)` : ""}`,
-    data: { dealId: deal.id, verdict: deal.decision?.verdict, features, contradicted, screenOverridden: !!deal.screenOverride },
+    data: { dealId: deal.id, verdict: deal.decision?.verdict, note: deal.decision?.note ?? null, features, contradicted, screenOverridden: !!deal.screenOverride },
     source: "workflow:/workflow",
   });
   return { status: "done", transport: deps.memory.label.startsWith("Postgres") ? "live" : "local", summary: `Recorded the decision in firm memory (${deps.memory.label}); later screenings show it as a precedent.`, facts: [{ label: "Memory event", value: `${ev.kind} #${ev.id}`, status: "info", citation: { source: `Firm memory (${deps.memory.label})`, path: `events/${ev.id}`, retrievedAt: ev.at } }] };

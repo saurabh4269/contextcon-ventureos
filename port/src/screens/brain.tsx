@@ -121,15 +121,15 @@ function McpSheet({ mcp, onClose }: { mcp: BrainData["mcp"]; onClose: () => void
   return (
     <Sheet title="Use the firm brain in Claude or ChatGPT" sub={mcp.note} onClose={onClose} w={520}
       eyebrow={<span className="inline-flex items-center gap-1.5 text-[12px] font-medium text-rust"><Plug className="size-3.5" />MCP connector</span>}
-      foot={<><span className="text-[12px] text-zinc-500">Nothing leaves Deal Desk until a partner signs in.</span><span className="ml-auto flex gap-2"><PillBtn size="sm" onClick={onClose}>Done</PillBtn><PillBtn size="sm" primary icon={copied ? <Check /> : <Copy />} onClick={copy}>{copied ? "Copied" : "Copy URL"}</PillBtn></span></>}>
+      foot={<><span className="text-[12px] text-zinc-500">Nothing leaves Deal Desk until a partner signs in.</span><span className="ml-auto flex gap-2"><PillBtn size="sm" onClick={onClose}>Done</PillBtn>{mcp.url && <PillBtn size="sm" primary icon={copied ? <Check /> : <Copy />} onClick={copy}>{copied ? "Copied" : "Copy URL"}</PillBtn>}</span></>}>
       <div className="space-y-6">
-        <section>
+        {mcp.url && <section>
           <h3 className="text-[12px] font-medium text-zinc-500">Server URL</h3>
           <div className="mt-2 flex h-11 items-center gap-2 rounded-full bg-[#fafaf9] pr-1.5 pl-4 ring-1 ring-zinc-200/80">
             <span className="min-w-0 flex-1 truncate font-mono text-[12.5px] text-zinc-700 select-all">{url}</span>
             <button type="button" onClick={copy} className={cx("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[12px] font-medium transition-colors", copied ? "bg-ok-50 text-ok" : "bg-white text-zinc-700 ring-1 ring-zinc-200 hover:text-ink")}>{copied ? <><Check className="size-3.5" />Copied</> : <><Copy className="size-3.5" />Copy</>}</button>
           </div>
-        </section>
+        </section>}
         {clients.length > 0 && <section>
           <div role="tablist" aria-label="Client" className="flex gap-1.5">{clients.map((x) => <button key={x.id} type="button" role="tab" aria-selected={tab === x.id} onClick={() => setTab(x.id)} className={cx("inline-flex h-9 items-center rounded-full px-4 text-[13px] transition-colors", tab === x.id ? "bg-ink text-white" : "bg-zinc-50 text-zinc-600 ring-1 ring-zinc-200/70 hover:bg-white hover:text-ink")}>{x.label}</button>)}</div>
           <ol className="mt-3 space-y-2">{c?.steps.map((s, i) => <li key={s} className="flex items-center gap-3 rounded-[14px] px-3.5 py-3 text-[13px] ring-1 ring-zinc-200/70"><span className="tnum grid size-6 shrink-0 place-items-center rounded-full bg-[#fbf6f0] text-[11.5px] font-semibold text-rust ring-1 ring-[#f1e2d2]">{i + 1}</span>{s}</li>)}</ol>
@@ -138,7 +138,7 @@ function McpSheet({ mcp, onClose }: { mcp: BrainData["mcp"]; onClose: () => void
           <h3 className="text-[12px] font-medium text-zinc-500">What it can read</h3>
           <ul className="mt-2 space-y-1.5">{mcp.setup.scopes.map((s) => <li key={s} className="flex items-center gap-2 text-[13px] text-zinc-700"><span className="grid size-[18px] place-items-center rounded-full bg-ink text-white"><Check className="size-2.5" strokeWidth={3} /></span>{s}</li>)}</ul>
         </section>}
-        {mcp.setup && <section>
+        {mcp.setup && mcp.setup.people.length > 0 && <section>
           <h3 className="text-[12px] font-medium text-zinc-500">Connected</h3>
           <ul className="mt-2 divide-y divide-zinc-100 rounded-[14px] ring-1 ring-zinc-200/70">{mcp.setup.people.map((p) => <li key={p.name} className="flex h-12 items-center gap-3 px-3.5 text-[13px]"><Avatar i={p.initials} size={26} tone="sand" /><span className="flex-1">{p.name}</span><StagePill tone="ok">{p.client}</StagePill></li>)}</ul>
         </section>}
@@ -192,6 +192,7 @@ function AccessLog({ rows, onKind }: { rows: BrainData["accessLog"]; onKind: (k:
   return (
     <section className={cx(CARD, "p-5")}>
       <H sub="Who read what · newest first">Access log</H>
+      {rows.length === 0 && <p className="mt-3 text-[12.5px] text-zinc-500">No reads recorded yet.</p>}
       <ul className="mt-2 -mx-2">
         {rows.map((a) => {
           const body = <><span className="min-w-0 flex-1"><span className="block truncate text-[13px] font-medium">{a.who}</span><span className="block truncate text-[12px] text-zinc-500">{a.what}</span></span><span className="tnum shrink-0 text-[11.5px] text-zinc-400">{a.at}</span><ChevronRight className="size-3.5 shrink-0 text-zinc-300 transition-colors group-hover:text-zinc-500" /></>;
@@ -265,7 +266,7 @@ export function BrainScreen(p: BrainScreenProps) {
 
         <div ref={mainRef} className="flex min-w-0 scroll-mt-20 flex-col gap-4">
           <div className="flex items-end justify-between px-1 pt-1 pb-2">
-            <div><h1 className="serif text-[36px] leading-none tracking-[-0.02em]">Firm brain</h1><p className="mt-2.5 text-[14px] text-zinc-500">What Northbeam has learned from every deal, pass and IC since 2019.</p></div>
+            <div><h1 className="serif text-[36px] leading-none tracking-[-0.02em]">Firm brain</h1><p className="mt-2.5 text-[14px] text-zinc-500">{d.intro ?? "What Northbeam has learned from every deal, pass and IC since 2019."}</p></div>
             <div className="text-right"><span className="numeral block text-[52px] leading-[.85]"><Count to={d.total} /></span><span className="mt-1.5 flex items-center justify-end gap-1.5 text-[12px] text-zinc-500"><Sparkles className="size-3.5" />memories</span><span className="tnum mt-1 block text-[11.5px] font-medium text-ok">+{d.weekDelta} this week</span></div>
           </div>
 
@@ -322,11 +323,11 @@ export function BrainScreen(p: BrainScreenProps) {
               </Rise>
               {d.memories.length ? <Rise i={4}><MemoryList items={d.memories.slice(0, 6)} edits={edits} onSave={saveEdit} onEdit={p.onEditMemory} title="Recent memories" sub={`${Math.min(6, d.memories.length)} of ${nf(d.total)} · pick a category to see more`} /></Rise>
                 : <EmptyState title="Nothing learned yet" body="Memories appear after your first passes, memos and IC decisions." />}
-              <div className="flex items-center gap-2 px-1 text-[12.5px] text-zinc-500" role="status">
+              {d.learnedOvernight.text && <div className="flex items-center gap-2 px-1 text-[12.5px] text-zinc-500" role="status">
                 <Sparkles className="size-3.5 text-rust/70" />Learned overnight:
                 <span className={cx("text-ink", forgot && "text-zinc-400 line-through")}>{d.learnedOvernight.text}</span>
                 {forgot ? <><span className="text-zinc-400">· forgotten</span><Undo label="Restore" onClick={() => setForgot(false)} /></> : <Undo onClick={() => { setForgot(true); p.onUndoLearned?.(d.learnedOvernight.id); }} />}
-              </div>
+              </div>}
             </motion.div>
           ) : (
             <motion.div key={kind} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }} className="flex flex-col gap-4">

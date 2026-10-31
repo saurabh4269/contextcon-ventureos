@@ -100,7 +100,9 @@ export function OutcomeScore({ outcomes }: { outcomes: Outcome[] }) {
       <div className="grid grid-cols-[64px_1fr_auto] items-center gap-3 text-[11.5px]">
         <span className="text-zinc-500">{label}</span>
         <span className="flex h-2.5 gap-[2px]">{xs.map((o, i) => <motion.span key={o.id} title={`${o.company} · ${o.result}`} className="h-full flex-1 first:rounded-l-full last:rounded-r-full" style={{ background: tone(o.tone), opacity: o.tone === "rust" && dec === "passed" ? 0.85 : 1 }} initial={red ? false : { scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.15 + i * 0.08, duration: 0.5 }} />)}</span>
-        <span className="tnum font-medium">{good}/{xs.length} <span className="font-normal text-zinc-400">{dec === "invested" ? "on plan" : "right call"}</span></span>
+        {xs.length > 0 && xs.every((o) => o.tone === "neutral")
+          ? <span className="tnum font-medium">{xs.length} <span className="font-normal text-zinc-400">no outcome yet</span></span>
+          : <span className="tnum font-medium">{good}/{xs.length} <span className="font-normal text-zinc-400">{dec === "invested" ? "on plan" : "right call"}</span></span>}
       </div>
     );
   };

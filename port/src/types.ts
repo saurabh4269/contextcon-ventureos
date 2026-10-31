@@ -589,6 +589,8 @@ export interface BrainData {
   scope?: string;
   /** v4 · export file name, without extension. */
   exportName?: string;
+  /** Line under the title (live data: what the memory holds); fixtures keep the firm's line. */
+  intro?: string;
 }
 export interface Outcome { id: ID; date: string; company: string; decision: "invested" | "passed"; result: string; tone: Tone; /** v4 · logo ref */ co?: CompanyRef }
 /** GET /api/firm/thesis-proposals · POST /api/firm/thesis-proposals/[id] {decision} */
