@@ -17,3 +17,6 @@ inspo/
 a16z/
 *.zip
 *dribbble*
+
+# Local Claude Code settings
+.claude/
