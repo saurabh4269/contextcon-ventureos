@@ -36,6 +36,8 @@ export interface ConnectorsPageProps {
   onSync?: (connectorId: string) => void | Promise<void>;
   onScope?: (connectorId: string, scopeId: string, on: boolean) => void;
   onDisconnect?: (connectorId: string) => void | Promise<void>;
+  /** Connections in this view are simulated (demo data); the success modal says so. */
+  demo?: boolean;
 }
 
 const TABS: { id: ConnectorTab; label: string }[] = [
@@ -59,7 +61,7 @@ const AGENT_ICON: Record<FlowIcon, typeof Mail> = {
 const nameOf = (c: Connector) => c.title ?? TOOL_NAME[c.tool];
 const scopesOf = (c: Connector): ConnectorScope[] => c.scopes ?? [{ id: "default", label: c.scope, detail: "Everything this connector was granted", access: "read", on: true }];
 
-export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onScope, onDisconnect }: ConnectorsPageProps) {
+export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onScope, onDisconnect, demo }: ConnectorsPageProps) {
   const r = useReducedMotion();
   const [tab, setTab] = useState<ConnectorTab>(initial?.tab ?? "all");
   const [q, setQ] = useState(initial?.q ?? "");
@@ -85,17 +87,19 @@ export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onS
   const grid = shown.filter((c) => c !== featured).sort((a, b) => ORDER[a.status] - ORDER[b.status]);
   const connected = items.filter((c) => c.status === "connected").length, attention = items.filter((c) => c.status === "attention").length;
 
-  const open = (id: string) => setModal({ id, state: "ask" });
+  const [connectError, setConnectError] = useState<string>();
+  const open = (id: string) => { setConnectError(undefined); setModal({ id, state: "ask" }); };
   const manage = (id: string) => { setManaging(id); onManage?.(id); };
   const allow = async () => {
     if (!modal) return;
     const id = modal.id;
     setModal({ id, state: "connecting" });
     try {
-      await (onConnect ? onConnect(id) : new Promise((res) => setTimeout(res, 1100)));
+      if (!onConnect) throw new Error("Connecting isn’t available here.");
+      await onConnect(id);
       setModal({ id, state: "connected" });
       timer.current = setTimeout(() => { patch(id, { status: "connected", lastSynced: "just now", issue: undefined, syncing: true }); setModal(null); }, 1100);
-    } catch { setModal({ id, state: "ask" }); }
+    } catch (e) { setConnectError(e instanceof Error ? e.message : String(e)); setModal({ id, state: "ask" }); }
   };
   const target = modal ? items.find((c) => c.id === modal.id) : undefined;
   const ask: ConnectAsk | undefined = target && {
@@ -190,7 +194,7 @@ export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onS
       <AnimatePresence>
         {sheet && <ManageSheet key={sheet.id} c={sheet} cat={catLabel[sheet.category]} agents={agents} onClose={() => setManaging(null)} patch={patch} onSync={onSync} onScope={onScope} onDisconnect={onDisconnect} />}
       </AnimatePresence>
-      {ask && modal && <ConnectModal ask={ask} state={modal.state} onAllow={allow} onLater={() => setModal(null)} onClose={() => setModal(null)} />}
+      {ask && modal && <ConnectModal ask={ask} state={modal.state} error={connectError} demo={demo} onAllow={allow} onLater={() => setModal(null)} onClose={() => setModal(null)} />}
     </>
   );
 }
@@ -401,7 +405,7 @@ function ManageSheet({ c, cat, agents, onClose, patch, onSync, onScope, onDiscon
 
   const sync = async () => {
     setSyncing(true); patch(c.id, { syncing: true });
-    try { await (onSync ? onSync(c.id) : new Promise((res) => setTimeout(res, 1200))); patch(c.id, { syncing: false, lastSynced: "just now", lastLabel: c.lastLabel }); }
+    try { if (!onSync) throw new Error("no sync handler"); await onSync(c.id); patch(c.id, { syncing: false, lastSynced: "just now", lastLabel: c.lastLabel }); }
     catch { patch(c.id, { syncing: false }); }
     setSyncing(false);
   };

@@ -81,7 +81,8 @@ export interface DealHeader {
   files: { reviewed: number; total: number };
   icLabel: string;
   flags: FlagLevel[];
-  valuation: Valuation;
+  /** Absent when no valuation exists yet (live research before a data room): the Range row is omitted, never invented. */
+  valuation?: Valuation;
 }
 
 /* ───────────── bridge / waterfall ───────────── */
