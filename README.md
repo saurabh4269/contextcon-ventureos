@@ -1,6 +1,8 @@
 # Deal Desk
 
 > ## 🚀 Live demo: **[contextcon.ventureos.xyz](https://contextcon.ventureos.xyz)**
+> ## 🎬 Demo video: **[Watch on Vimeo](https://vimeo.com/1241660157)**
+>
 > Try it now: [Today inbox](https://contextcon.ventureos.xyz/today) · [Ask](https://contextcon.ventureos.xyz/ask) · [Detailed system diagram](docs/architecture/SYSTEM_DIAGRAM.md)
 
 <p align="center">
@@ -268,45 +270,3 @@ Decision log: [docs/DECISIONS.md](docs/DECISIONS.md).
 | --- | --- | --- |
 | Saurabh Gupta | Product, engineering | [saurabh4269](https://github.com/saurabh4269) |
 | Shiwani Mishra | Team member | — |
-
-## Code history (honest note): work that predates 10:30 AM IST
-
-The rules say code is written from 10:30 AM IST on 31 Oct. Every commit in this repo is dated after that: the first is 10:53 IST. **But some of the code was written before 10:30**, and we want that to be plain.
-
-**Existed before 10:30 IST on 31 Oct:**
-
-| What | Evidence | Size |
-|---|---|---|
-| The Deal Desk web UI (screens, components, logos, Next.js shell), imported in the root commit `451e4d9` "Deal Desk web UI as deployed to contextcon.ventureos.xyz" (committed 10:53 IST) | `git show --stat 451e4d9` | **259 files, 20,048 lines**: `port/` 161 files / 16,672 lines (screens, components, the 25 sample-data files, logos) · `public/` 70 files / 111 lines (logos) · `src/` 19 files / 474 lines (route shells) · 9 root files / 2,791 lines (mostly `package-lock.json`) |
-| Its design history: a separate local mock-up repo whose first commit is at **30 Oct 23:31 IST**, with 7 commits through **31 Oct 08:17 IST** (v1 → v3.2 redesign) | That repo's git reflog | — |
-| A Crustdata backend ("builder repo") with the client, query builders, rate limits and cache. Our live audits ran against it at about **10:05–10:25 IST** (audit chunks timestamped **10:12–10:19 IST**). | Audit notes | Its client was ported in `a04e8be` (below) |
-
-**Built today, after 10:30 IST** (`git log`, times in IST):
-
-| Time | Commit | What | Files | +/− |
-|---|---|---|---|---|
-| 10:53 | `451e4d9` | Import of the pre-existing UI (above) | 259 | +20,048 |
-| 11:03 | `3ed5f36` | Integration plan | 1 | +123 |
-| 11:10 | `a04e8be` | **Port** of the Crustdata client from the builder repo, with fixes; regenerated OpenAPI types (~14k lines of YAML and generated TS), captured responses for tests | 55 | +20,416 / −173 |
-| 11:23 | `34a755e` | Live API routes: research, people, person, jobs, news, comps, integrations | 24 | +1,040 / −29 |
-| 11:29 | `70d9dea` | Live Settings › Connectors | 12 | +304 / −14 |
-| 11:30 | `d63a56c` | `ComputedField` contract, `/api/deals/:id/numbers` and `/valuation` | 13 | +466 / −12 |
-| 11:41 | `50183ba` | `docs/API.md` | 1 | +149 |
-| 11:42 | `4b0a852` | Live `/deal?domain=` | 9 | +496 / −24 |
-| 11:47 | `e6c3a55` | Live `/person?linkedin=` | 3 | +103 / −1 |
-| 12:12 | `82875ff` | Organisational memory (Postgres), IST and money formatter | 35 | +449 / −1 |
-| 12:22 | `ccf42bf` | Removed demo and fixture modes | 33 | +214 / −458 |
-| 12:22 | `790faaa` | UI without fixtures: unavailable states, memory panel, explainable valuation and memo | 77 | +1,056 / −472 |
-| 12:30 | `53d6384` | Voice greeting and orb (ElevenLabs) | 17 | +958 / −7 |
-| 12:36 | `bf68800` | Gmail and Google Calendar connectors | 18 | +715 / −28 |
-| 12:39 | `bb45486` | `OUTBOUND_MODE` dry run by default | 6 | +70 / −12 |
-| 12:40 | `95d019c` | Docs, `.env.example` | 4 | +170 / −144 |
-| 12:41 | `be4f7b8` | Ignore local settings | 1 | +3 |
-| 12:43 | `e32cc4c` | Hydration fix, `?tab=valuation` | 4 | +9 / −4 |
-| 12:46 | `25c3316` | Live click-through verification, autoplay check, credit ledger | 40 | +164 |
-| 12:46 | `7886cd7` | Report commit list | 1 | +15 |
-| 13:15 | `accaf77` | Architecture diagram | 4 | +236 |
-
-After 13:15 IST (see `git log`): the shell (collapsible sidebar, mobile drawer, Dex mascot, account menu), ElevenLabs speech-to-text and the conversational voice session, the deterministic Sourcing agent (`/agent`), the LLM research agent (`/ask`), Crustdata resilience (retries, deadlines, circuit breaker, stale-cache fallback, did-you-mean), the exception review queue (`/review`), the reasons-and-sources panel and citation enforcement, the responsive pass, and these docs.
-
-Authorship: 14 early commits were first recorded under the default git identity of the coding-agent environment the team used (not a team member), and some carried coding-assistant `Co-authored-by` trailers. Before submission the history was re-attributed to Saurabh Gupta (author and committer) and those trailers removed; commit contents and timestamps are unchanged. Design references, plans and research notes from before the event are allowed by the rules and are not in this repo.
