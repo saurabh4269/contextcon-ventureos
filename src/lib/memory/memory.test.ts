@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import { afterAll, describe, expect, it, vi } from "vitest";
 import { parseMemoryEventInput } from "./types";
 import { createPostgresMemoryStore, MEMORY_TABLE } from "./postgres";
@@ -28,9 +31,24 @@ describe("memory event validation", () => {
 });
 
 describe("memory store selection", () => {
-  it("is explicitly unavailable without DATABASE_URL (no in-memory fallback)", async () => {
-    const { memoryStore, MEMORY_NOT_CONFIGURED } = await import("./store");
-    expect(memoryStore({})).toEqual({ status: "unavailable", reason: MEMORY_NOT_CONFIGURED });
+  it("without a database: the durable store's documents, labelled (not durable on Vercel)", async () => {
+    const { memoryStore } = await import("./store");
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), "dd-mem-"));
+    const local = memoryStore({ DEALDESK_DATA_DIR: dir });
+    expect(local).toMatchObject({ status: "ok", storage: { kind: "file", durable: true } });
+    const vercel = memoryStore({ DEALDESK_DATA_DIR: dir, VERCEL: "1" });
+    expect(vercel).toMatchObject({ status: "ok", storage: { kind: "file", durable: false, note: expect.stringMatching(/Not durable on this deploy/) } });
+  });
+  it("document memory: ids increase, since cursor, latest-N, concurrent appends get distinct ids", async () => {
+    const { createDocMemoryStore } = await import("./store");
+    const { createMemoryDocStore } = await import("@/lib/store/docs");
+    const m = createDocMemoryStore(createMemoryDocStore());
+    const ev = { kind: "workflow.decision", actor: { type: "user" as const }, summary: "Invested", source: "test" };
+    const [a, b, c] = await Promise.all([m.append(ev), m.append({ ...ev, summary: "two" }), m.append({ ...ev, summary: "three" })]);
+    expect([a.id, b.id, c.id]).toEqual(["1", "2", "3"]);
+    expect((await m.list({ sinceId: "1", limit: 10 })).map((e) => e.id)).toEqual(["2", "3"]);
+    expect((await m.list({ limit: 2 })).map((e) => e.summary)).toEqual(["two", "three"]);
+    expect(a).toMatchObject({ subject: null, data: null, at: expect.stringMatching(/Z$/) });
   });
 });
 
