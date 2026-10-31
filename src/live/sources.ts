@@ -12,9 +12,9 @@ export const SOURCES: Record<ScreenId, { label: string; title: string; reason: s
   },
   pipeline: {
     label: "Pipeline",
-    title: "No deal store connected",
-    reason: "Deals, stages and owners are stored by the Deal Desk backend, which this build does not include. You can still research any company live on Crustdata.",
-    needs: ["backend"],
+    title: "Inbound and researched companies",
+    reason: "This build lists companies from Gmail inbound (when the thread names a website) and from companies you have already researched. Stages, owners and a kanban board live in the Deal Desk backend, which this build does not include.",
+    needs: ["gmail"],
   },
   portfolio: {
     label: "Portfolio",

@@ -11,13 +11,27 @@ import { AssistantHost } from "@port/components/askctx";
 import { AssistantDock } from "@port/components/assistant";
 import { RunPanel, CommandPalette, AskPanel } from "@port/components/overlays";
 import { askByPage, shellInvest, shellBank, shellFirstRun, todayInvest, todayBank, todayInvestHolding, todayWithInbound, agentRun, palette, paletteDenied, askAnswer, askDenied, onboarding, slackHoldApproval, todayCalm, todayAssistant, assistantAt, todaySummary, keelCall, calendarAsk, connectAsks, nextMeetings } from "@port/fixtures";
-import type { OnboardingData } from "@port/types";
+import type { OnboardingData, WorkRow } from "@port/types";
+import { usePipelineDeals } from "@/live/usePipelineDeals";
 
 type Q = { first?: string; step?: string; run?: string; k?: string; denied?: string; ask?: string; hold?: string; mode?: string; tick?: string; inbound?: string; layout?: string; tone?: string; assist?: string; book?: string; meet?: string; f?: string; wait?: string; cal?: string; state?: string; conflict?: string; connect?: string };
 // Modals: ?meet=1 → book-call invite (prefilled) · ?conflict=1 → with "Agent found better slots" · ?connect=calendar|gmail|slack|crustdata → JIT connect
 // (calendar continues into the invite; Not now leaves Keel's row waiting with a Connect chip) · ?book=1..7 pins a stage for review shots.
+function liveWorkRows(deals: { domain: string; name: string }[]): WorkRow[] {
+  return deals.map((d) => ({
+    id: `live-${d.domain}`,
+    company: { id: d.domain, name: d.name, initial: d.name[0] ?? d.domain[0]!, line: d.domain, sector: "Inbound", domain: d.domain },
+    stage: "new",
+    fit: { score: 0, why: "Named in your inbox or a research run" },
+    action: { kind: "review", label: "Open deal", recommended: true },
+    href: `/deal?domain=${encodeURIComponent(d.domain)}`,
+    when: "Inbox",
+  }));
+}
+
 export default function Today({ searchParams }: { searchParams: Promise<Q> }) {
   const q = use(searchParams);
+  const live = usePipelineDeals();
   const [step, setStep] = useState<OnboardingData["step"]>((Math.min(5, Math.max(1, Number(q.step) || 1)) as OnboardingData["step"]));
   const tick = q.tick !== "0";
   const jitTool = q.connect && q.connect in connectAsks ? q.connect : undefined;
@@ -36,7 +50,9 @@ export default function Today({ searchParams }: { searchParams: Promise<Q> }) {
     const ov = jit.state !== "closed" && jitTool ? <ConnectFlow flow={jit} ask={connectAsks[jitTool]} /> : flow.stage !== "closed" ? <BookFlow flow={flow} data={keelCall} ask={calendarAsk} /> : m ? <MeetingPanel m={m} onClose={() => setMeet(undefined)} /> : undefined;
     const status = q.state === "loading" || q.state === "error" || q.state === "empty" ? q.state : "ready";
     // ?assist=1..6 opens the docked assistant at that frame (page-aware Today suggestions); ⌘K opens it empty.
-    const screen = <TodaySummaryScreen shell={shellInvest} data={q.state === "empty" ? { ...todaySummary, rows: [] } : todaySummary} status={status} error={status === "error" ? "Couldn’t load today’s inbound." : undefined} overlay={ov} filter={(q.f as "all") || "all"} waiting={waiting} activeMeeting={meet}
+    const inbound = liveWorkRows(live);
+    const rows = q.state === "empty" ? inbound : [...inbound, ...todaySummary.rows];
+    const screen = <TodaySummaryScreen shell={shellInvest} data={{ ...todaySummary, rows }} status={status} error={status === "error" ? "Couldn’t load today’s inbound." : undefined} overlay={ov} filter={(q.f as "all") || "all"} waiting={waiting} activeMeeting={meet}
       onMeeting={setMeet} onAction={(id, k) => { if (jit.waiting && id === row) { jit.open(); return; } if (k === "book") { setRow(id); flow.start(); } }} />;
     return q.assist ? <AssistantHost dock={<AssistantDock data={assistantAt(Number(q.assist), askByPage.today)} />}>{screen}</AssistantHost> : screen;
   }

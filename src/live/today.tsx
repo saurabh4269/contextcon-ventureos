@@ -4,6 +4,7 @@
 // (not connected / expired / error) from the API. Book a call creates a real event (POST /api/connectors/calendar/events,
 // sendUpdates=none). Personal content is marked data-private (masked in verification screenshots).
 import { useState, type FormEvent } from "react";
+import Link from "next/link";
 import { Page, TopBar } from "@port/components/shell";
 import { cx } from "@port/components/ui";
 import { fmtDate, fmtDateTime, fmtTime } from "@/lib/format";
@@ -49,12 +50,23 @@ export function LiveToday() {
           {inbox.state === "loading" ? <p className="text-[12.5px] text-zinc-400">Loading inbox…</p>
             : inbox.state === "failed" ? <Failed res={inbox} what="Inbox" need="gmail" />
             : inbox.data.threads.length === 0 ? <p className="text-[12.5px] text-zinc-500">No threads in your inbox.</p>
-            : <ol data-private className="divide-y divide-zinc-100">{inbox.data.threads.map((t) => (
-                <li key={t.id} className="flex gap-3 py-2">
-                  <span className={cx("mt-1.5 size-1.5 shrink-0 rounded-full", t.unread ? "bg-rust" : "bg-transparent")} aria-label={t.unread ? "unread" : undefined} />
-                  <span className="min-w-0 flex-1"><span className={cx("block truncate text-[12.5px]", t.unread ? "font-medium text-ink" : "text-zinc-700")}>{t.from}</span><span className="block truncate text-[12px] text-zinc-500">{t.subject}</span></span>
-                  <time dateTime={t.lastMessageAt} title={fmtDateTime(t.lastMessageAt)} className="shrink-0 text-[11.5px] text-zinc-400 tnum">{when(t.lastMessageAt, today)}</time>
-                </li>))}</ol>}
+            : <ol data-private className="divide-y divide-zinc-100">{inbox.data.threads.map((t) => {
+                const inner = (
+                  <>
+                    <span className={cx("mt-1.5 size-1.5 shrink-0 rounded-full", t.unread ? "bg-rust" : "bg-transparent")} aria-label={t.unread ? "unread" : undefined} />
+                    <span className="min-w-0 flex-1"><span className={cx("block truncate text-[12.5px]", t.unread ? "font-medium text-ink" : "text-zinc-700")}>{t.from}</span><span className="block truncate text-[12px] text-zinc-500">{t.subject}</span></span>
+                    {t.companyDomain && <span className="hidden shrink-0 text-[11.5px] text-zinc-400 sm:block">Open deal</span>}
+                    <time dateTime={t.lastMessageAt} title={fmtDateTime(t.lastMessageAt)} className="shrink-0 text-[11.5px] text-zinc-400 tnum">{when(t.lastMessageAt, today)}</time>
+                  </>
+                );
+                return (
+                  <li key={t.id}>
+                    {t.companyDomain
+                      ? <Link href={`/deal?domain=${encodeURIComponent(t.companyDomain)}`} className="flex gap-3 py-2 hover:bg-zinc-50" aria-label={`Open deal for ${t.companyDomain}`}>{inner}</Link>
+                      : <div className="flex gap-3 py-2">{inner}</div>}
+                  </li>
+                );
+              })}</ol>}
         </Card>
         <Card testId="today-meetings" title="Upcoming meetings" sub="Google Calendar · primary">
           {cal.state === "loading" ? <p className="text-[12.5px] text-zinc-400">Loading calendar…</p>
