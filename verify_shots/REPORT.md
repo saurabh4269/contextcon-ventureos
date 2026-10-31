@@ -108,3 +108,18 @@ suites that need opt-in env; the Postgres memory suite was also run against a re
   was exercised instead.
 * Slack, Fireflies, AgentMail: status only. All outbound is dry-run (`OUTBOUND_MODE`).
 * Memory feed is noisy (every page view of a deal records a research run, honestly marked as cached).
+
+## Commits (this session)
+
+- `25c3316` Verification: live click-through screenshots (personal data masked), autoplay-blocked check, REPORT and credit ledger
+- `e32cc4c` Fix hydration mismatch (speech support decided after mount), honour ?tab=valuation, cap Today activity list
+- `be4f7b8` Ignore local Claude settings (.claude/)
+- `95d019c` Docs for the live-only product: README, .env.example, INTEGRATION_PLAN, API (memory, Google, voice, outbound)
+- `bb45486` Outbound dry-run by default (OUTBOUND_MODE): book-call builds the Calendar insert but sends nothing
+- `bf68800` Gmail + Google Calendar connectors (OAuth refresh token, server-side) feeding a live Today and the greeting
+- `53d6384` Voice assistant: spoken Today greeting and a floating context-aware orb (ElevenLabs via server route)
+- `790faaa` UI without fixtures: honest unavailable states, live memory panel, explainable valuation/memo
+- `ccf42bf` Remove demo data mode and fixture mode from production paths
+- `82875ff` Organizational memory store (Postgres via DATABASE_URL, explicit unavailable otherwise) and central IST/money formatter
+
+Voice feature: `53d6384` (greeting + orb), Google read connectors: `bf68800`, outbound dry-run: `bb45486`, hydration/tab fixes: `e32cc4c`. The final commit is the one that adds this list (see `git log -1` on `integrate`).
