@@ -202,7 +202,7 @@ async function research(c: Ctx): Promise<Outcome> {
   const checks = checkClaims(claims, co);
   const facts: Fact[] = checks.map((k) => ({ label: `Claim "${k.claim.text}"`, value: k.shown, status: k.status, citation: crustCite(r, k.path) }));
   if (!claims.length) facts.push({ label: "Founder claims", value: deal.email ? "no checkable numbers in the email" : "no founder email (started from /ask)", status: "unverifiable" });
-  facts.push({ label: "Headcount", value: co.headcount.total !== undefined ? String(co.headcount.total) : "unknown", status: co.headcount.total !== undefined ? "verified" : "unknown", citation: crustCite(r, "headcount.total") });
+  facts.push({ label: "Headcount", value: co.headcount.total !== undefined ? String(co.headcount.total) : "unknown", status: co.headcount.total !== undefined ? "info" : "unknown", citation: crustCite(r, "headcount.total"), note: "Crustdata index; \"verified\" is used only for a founder claim checked against it" });
   facts.push({ label: "Headcount growth", value: `MoM ${pct(co.headcount.growth.mom)} · 6m ${pct(co.headcount.growth.six_months)} · YoY ${pct(co.headcount.growth.yoy)}`, status: "info", citation: crustCite(r, "headcount.growth_percent") });
   if (co.headcount.monthly.length) facts.push({ label: "Headcount by month", value: co.headcount.monthly.map((p) => `${p.date.slice(0, 7)}: ${p.v}`).join(" · "), status: "info", citation: crustCite(r, "headcount.timeseries") });
   facts.push({ label: "Total funding", value: usd(co.funding.totalUsd), status: co.funding.totalUsd !== undefined ? "info" : "unknown", citation: crustCite(r, "funding.total_investment_usd") });
