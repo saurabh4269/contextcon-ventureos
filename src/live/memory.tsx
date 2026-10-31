@@ -134,14 +134,20 @@ export function MemoryPanel({ title = "Memory", sub, match, subject, note = true
 /** Global launcher (mounted in the root layout): opens the live memory feed from any page. */
 export function MemoryDock() {
   const [open, setOpen] = useState(false);
+  // The app shell's sidebar "Memory" row (and anything else) toggles the panel with this event.
+  useEffect(() => {
+    const on = () => setOpen((o) => !o);
+    window.addEventListener("dealdesk:memory-toggle", on);
+    return () => window.removeEventListener("dealdesk:memory-toggle", on);
+  }, []);
   return (
     <>
       <button type="button" data-testid="memory-dock" onClick={() => setOpen((o) => !o)} aria-expanded={open}
-        className="fixed bottom-[64px] left-3 z-[60] flex items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11.5px] font-medium text-zinc-600 shadow-[0_1px_2px_rgba(9,9,11,.08)] ring-1 ring-zinc-200 backdrop-blur hover:text-ink">
-        <Brain className="size-3.5" strokeWidth={1.75} />Memory
+        className="fixed bottom-[64px] left-3 z-[60] flex items-center gap-1.5 rounded-full max-lg:bottom-5 max-lg:size-12 max-lg:justify-center max-lg:px-0 max-lg:shadow-[0_6px_18px_-6px_rgba(9,9,11,.25)] bg-white/95 px-2.5 py-1 text-[11.5px] font-medium text-zinc-600 shadow-[0_1px_2px_rgba(9,9,11,.08)] ring-1 ring-zinc-200 backdrop-blur hover:text-ink">
+        <Brain className="size-3.5 max-lg:size-[18px]" strokeWidth={1.75} /><span className="max-lg:sr-only">Memory</span>
       </button>
       {open && (
-        <aside role="dialog" aria-label="Organizational memory" className="fixed bottom-3 left-3 z-[61] flex max-h-[70vh] w-[380px] flex-col overflow-hidden rounded-2xl bg-white shadow-[0_24px_60px_-20px_rgba(9,9,11,.35)] ring-1 ring-zinc-200">
+        <aside role="dialog" aria-label="Organizational memory" className="fixed bottom-3 left-3 z-[76] flex max-h-[70vh] w-[380px] max-w-[calc(100vw-24px)] flex-col max-lg:max-h-[80dvh] overflow-hidden rounded-2xl bg-white shadow-[0_24px_60px_-20px_rgba(9,9,11,.35)] ring-1 ring-zinc-200">
           <div className="flex items-center gap-2 border-b border-zinc-100 px-4 py-3">
             <span className="text-[13.5px] font-semibold">Organizational memory</span>
             <button type="button" onClick={() => setOpen(false)} aria-label="Close memory" className="ml-auto text-zinc-400 hover:text-ink"><X className="size-4" /></button>
