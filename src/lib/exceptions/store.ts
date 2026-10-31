@@ -115,8 +115,16 @@ export function createExceptionStore(opts: StoreOptions = {}) {
     return run;
   }
 
+  function semanticKey(x: { kind: string; key: string; subject?: { name: string; domain?: string } }): string {
+    const rest = x.key.split(":").slice(1).join(":").replace(/^r\d+:/, "");
+    return `${x.kind}|${(x.subject?.domain ?? x.subject?.name ?? "").toLowerCase()}|${rest}`;
+  }
+
   function insert(s: State, input: RaiseInput): ExceptionItem {
-    const existing = s.items.find((x) => x.key === input.key && x.status === "open");
+    // Idempotent per open `key`, and across runs: re-running the same request must not raise the same issue again
+    // (run ids and row order differ between runs, so compare kind + company + the key without run id / row index).
+    const sem = semanticKey(input);
+    const existing = s.items.find((x) => x.status === "open" && (x.key === input.key || semanticKey(x) === sem));
     if (existing) return existing;
     const item: ExceptionItem = {
       ...input,

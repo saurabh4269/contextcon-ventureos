@@ -21,7 +21,7 @@ export const workRows: WorkRow[] = [
 
 export const todaySummary: TodaySummaryData = {
   date: "Thursday, 29 October",
-  greeting: "Good morning, Saurabh", sub: "Three decisions need you before the 3pm IC.",
+  greeting: "Welcome back, Saurabh", sub: "Three decisions need you before the 3pm IC.",
   hero: { value: 12, label: "new inbound", delta: "+4 since yesterday" },
   ask: {
     prompt: "Ready to review today’s inbound or revisit your pipeline?",

@@ -93,7 +93,7 @@ export function AgentScreen() {
               : <button type="submit" disabled={!q.trim()} data-testid="agent-run" className="inline-flex h-9 items-center gap-1.5 rounded-full bg-rust px-4 text-[13px] font-medium text-white shadow-[0_1px_2px_rgba(9,9,11,.2)] transition-colors hover:bg-[#87390b] disabled:opacity-40">Run<ArrowUp className="size-3.5" /></button>}
           </div>
         </form>
-        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
+        <div className="mt-3 flex flex-wrap gap-2">
           {AGENT_EXAMPLES.map((ex, i) => (
             <button key={ex.q} type="button" disabled={running} onClick={() => go(ex.q)} title={ex.q}
               className={cx("inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] whitespace-nowrap ring-1 transition-all hover:-translate-y-px disabled:opacity-50", i === 0 ? "bg-[#faf3ec] text-[#7a3a10] ring-[#ecd9c6]" : "bg-white text-zinc-600 ring-zinc-200 hover:text-ink")}>

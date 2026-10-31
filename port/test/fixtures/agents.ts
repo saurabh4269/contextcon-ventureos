@@ -88,7 +88,7 @@ export const todayAssistant: AssistantData = {
 };
 
 export const todayCalm: TodayCalmData = {
-  greeting: "Morning, Saurabh.",
+  greeting: "Welcome back, Saurabh.",
   dateLabel: "Fri 30 Oct",
   stats: [
     { id: "pipe", label: "Active pipeline", value: "25", unit: "deals", delta: { label: "+4 this week", tone: "ok" }, foot: { label: "View pipeline", href: ROUTES.pipeline } },

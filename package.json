@@ -9,12 +9,12 @@
     "start:demo": "next start -p 3000",
     "build": "next build",
     "start": "next start -p 3240",
-    "shots": "node scripts/shots.mjs",
+    "shots": "node scripts/resp-shots.mjs",
     "typecheck": "tsc --noEmit -p .",
     "test": "vitest run",
     "crustdata:extract-openapi": "node scripts/crustdata-extract-openapi.mjs",
     "crustdata:codegen": "node scripts/crustdata-codegen.mjs",
-    "crustdata:smoke": "tsx scripts/crustdata-smoke.ts",
+    "crustdata:smoke": "tsx scripts/crustdata-probe.ts credits",
     "crustdata:test:live": "CRUSTDATA_LIVE=1 vitest run src/lib/crustdata/live.contract.test.ts"
   },
   "dependencies": {

@@ -6,7 +6,7 @@ const nexa = { id: "nexaflow", name: "NexaFlow", initial: "N", dark: true };
 export const todayInvest: TodayData = {
   mode: "invest",
   dateLabel: "Friday 30 October",
-  greeting: "Good morning, Saurabh.",
+  greeting: "Welcome back, Saurabh.",
   needYou: 2,
   doneWithoutYou: { count: 37, breakdown: "48 inbound read · 12 screened · 31 files checked · 4 replies drafted", batchId: "batch_2026-10-30" },
   eveningBrief: "18:30",
@@ -79,7 +79,7 @@ export const todayInvest: TodayData = {
 export const todayBank: TodayData = {
   mode: "bank",
   dateLabel: "Friday 30 October",
-  greeting: "Good morning, Saurabh.",
+  greeting: "Welcome back, Saurabh.",
   needYou: 2,
   doneWithoutYou: { count: 22, breakdown: "31 Q&A items triaged · 9 buyer logins checked · 4 replies drafted in Outlook", batchId: "batch_bank_2026-10-30" },
   eveningBrief: "18:30",
