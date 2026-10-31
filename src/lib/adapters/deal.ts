@@ -8,7 +8,7 @@ import type { LiveCall, LivePerson, Point, ResearchResult } from "@/lib/live/typ
 import { CRUSTDATA_API_VERSION } from "@/lib/crustdata/http";
 import { fmtAgo, fmtCompact, fmtDate, fmtDateTime, fmtInt, fmtLabel, fmtMoney, fmtMonth, fmtMonthYear, fmtPct, isMoney, money } from "@/lib/format";
 import { ENRICH_ROOT } from "@/lib/numbers/company-fields";
-import { whyFromCall, whyFromField, type CallMeta, type Why } from "@/lib/provenance";
+import { uncitedOk, whyFromCall, whyFromField, type CallMeta, type Why } from "@/lib/provenance";
 
 type Ok = Extract<ResearchResult, { status: "ok" }>;
 type F = ComputedField<unknown>;
@@ -183,7 +183,7 @@ function lastRoundWhy(f: Record<string, F>, calls: CallMeta[]): Why {
 }
 /** A comparable's raised amount, read from its row in the comps search. 0 is how Crustdata reports "not known". */
 function compWhy(x: { id: number; name: string; totalUsd?: number }, i: number, call: LiveCall): Why {
-  if (!x.totalUsd) return { status: "unavailable", summary: `Crustdata reports ${x.totalUsd === 0 ? "0" : "no"} funding.total_investment_usd for ${x.name}; shown as unknown rather than $0.`, evidence: [], sources: [] };
+  if (!x.totalUsd) return { status: "unavailable", summary: `Crustdata reports ${x.totalUsd === 0 ? "0" : "no"} funding.total_investment_usd for ${x.name}; shown as unknown rather than as zero.`, evidence: [], sources: [] };
   return whyFromCall(call, `companies[] (crustdata_company_id ${x.id}).funding.total_investment_usd`, `${x.name}: ${fmtMoney(money(x.totalUsd, "USD"))} raised in total, as indexed (USD per the field name; not converted).`);
 }
 
@@ -227,7 +227,7 @@ export function toLiveDeal(r: Ok, now: Date = new Date()): DealData {
   ];
 
   const kpi = (id: string, label: string, fl: F | undefined, fmt: (v: unknown) => string, subText: string, trend?: Point[]): DealKpi => ({
-    id, label, value: show(fl, fmt), sub: isOk(fl) ? subText : explain(fl).replace(/^Unavailable: /, ""), verified: isOk(fl), hint: explain(fl), why: whyFromField(fl, calls), ...(trend && trend.length >= 2 ? { trend: trend.map((p) => p.v) } : {}),
+    id, label, value: show(fl, fmt), sub: isOk(fl) ? subText : explain(fl).replace(/^Unavailable: /, ""), verified: isOk(fl) && uncitedOk(fl).length === 0, hint: explain(fl), why: whyFromField(fl, calls), ...(trend && trend.length >= 2 ? { trend: trend.map((p) => p.v) } : {}),
   });
 
   const sections: Record<string, DealSection> = {

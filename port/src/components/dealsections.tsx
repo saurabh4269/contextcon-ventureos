@@ -133,7 +133,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
         <>
           {head}
           <StatRow stats={s.stats} />
-          <Card title="Key people" right={<span className="text-[12px] text-zinc-500">{s.people.filter((p) => p.check.ok).length} of {s.people.length} verified</span>} i={2} className="p-0 pt-5">
+          <Card title="Key people" right={<span className="text-[12px] text-zinc-500">{s.people.filter((p) => p.check.ok).length} of {s.people.length} with a cited profile</span>} i={2} className="p-0 pt-5">
             <div className="px-5"><div className={cx("grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_164px] items-center gap-x-4", TH)}><span>Name</span><span>Before</span><span>Check</span></div></div>
             {s.people.map((p) => {
               const name = <><Avatar i={p.initials} size={32} tone={p.founder ? "ink" : "sand"} /><span className="min-w-0"><span className="flex items-center gap-1 truncate font-medium">{p.name}{p.href && <ArrowUpRight className="size-3.5 shrink-0 text-zinc-300 transition-colors group-hover/p:text-ink" />}</span><span className="block truncate text-[12px] text-zinc-500">{p.role}</span></span></>;
