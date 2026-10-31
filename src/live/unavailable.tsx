@@ -58,10 +58,10 @@ export function UnavailableBlock({ screen, action }: { screen: ScreenId; action?
 }
 
 /** Full page: app chrome + the unavailable block + optional live content below. */
-export function UnavailablePage({ screen, active, crumbs, mode, action, children }: { screen: ScreenId; active: Nav; crumbs?: Crumb[]; mode?: Mode; action?: ReactNode; children?: ReactNode }) {
+export function UnavailablePage({ screen, active, crumbs, mode, action, dock, children }: { screen: ScreenId; active: Nav; crumbs?: Crumb[]; mode?: Mode; action?: ReactNode; /** right-hand panel (the /today voice assistant) */ dock?: ReactNode; children?: ReactNode }) {
   const s = SOURCES[screen];
   return (
-    <Page active={active} mode={mode} shell={liveShell} top={<TopBar crumbs={crumbs ?? [{ label: s.label }]} ctx={s.label} />}>
+    <Page active={active} mode={mode} shell={liveShell} dock={dock} top={<TopBar crumbs={crumbs ?? [{ label: s.label }]} ctx={s.label} />}>
       <UnavailableBlock screen={screen} action={action} />
       {children && <div className="mx-auto mt-6 mb-16 w-full max-w-[560px]">{children}</div>}
     </Page>

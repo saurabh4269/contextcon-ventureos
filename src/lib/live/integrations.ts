@@ -72,7 +72,7 @@ export const INTEGRATION_SPECS: Spec[] = [
     docsUrl: "https://docs.anthropic.com/en/api/models-list",
     env: ["ANTHROPIC_API_KEY", "OPENAI_API_KEY"],
     envMode: "any",
-    wired: false,
+    wired: true, // used by the voice greeting (src/lib/voice/greeting.ts) when a key is set
     check: async (env, f) => {
       if (env.ANTHROPIC_API_KEY?.trim()) {
         const { status, body } = await getJson(f, "https://api.anthropic.com/v1/models?limit=1", {
@@ -121,6 +121,21 @@ export const INTEGRATION_SPECS: Spec[] = [
       });
       const b = body as { data?: { user?: unknown }; errors?: { message?: string }[] } | null;
       return status === 200 && b?.data?.user ? { ok: true, detail: "API key valid (GraphQL user query)" } : { ok: false, detail: `GraphQL user → ${b?.errors?.[0]?.message ?? status}` };
+    },
+  },
+  {
+    id: "elevenlabs",
+    name: "ElevenLabs (voice)",
+    docsUrl: "https://elevenlabs.io/docs/api-reference/voices/search",
+    env: ["ELEVENLABS_API_KEY"],
+    wired: true,
+    // GET /v1/voices works with a TTS-scoped key (GET /v1/user does not), and costs nothing.
+    check: async (env, f) => {
+      const { status, body } = await getJson(f, "https://api.elevenlabs.io/v1/voices", { headers: { "xi-api-key": env.ELEVENLABS_API_KEY!.trim() } });
+      const detail = (body as { detail?: { message?: string } | string } | null)?.detail;
+      return status === 200
+        ? { ok: true, detail: "API key valid (GET /v1/voices) · used by the voice greeting on Today" }
+        : { ok: false, detail: `GET /v1/voices → ${status}${detail ? `: ${typeof detail === "string" ? detail : detail.message}` : ""}` };
     },
   },
   // Google needs an OAuth consent flow per user; this build has none, so credentials alone cannot make it work.

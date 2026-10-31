@@ -3,6 +3,8 @@ import "server-only";
 // the store (or its explicit unavailability) is decided in ./store.
 import type { IntegrationInfo, LiveCall, PersonLookup, ResearchResult } from "@/lib/live/types";
 import { recordMemory } from "./store";
+import { companyFields } from "@/lib/numbers/company-fields";
+import { isOk } from "@/lib/fields";
 
 const sumCredits = (calls: LiveCall[]) => calls.filter((c) => !c.cached).reduce((a, c) => a + (Number(c.creditsUsed) || 0), 0);
 
@@ -20,7 +22,8 @@ export function recordResearchRun(r: ResearchResult, route: string) {
       r.status === "ok"
         ? `Researched ${name} (${r.domain}) on Crustdata: ${calls.filter((c) => c.status === "ok").length}/${calls.length} calls returned data, ${fresh.length ? `${fresh.length} fetched live (${credits} credits)` : "all served from cache"}`
         : `Researched ${r.domain} on Crustdata: no company matched`,
-    data: { status: r.status, requestedAt: r.requestedAt, calls: calls.map((c) => ({ id: c.id, status: c.status, cached: c.cached, creditsUsed: c.creditsUsed })) },
+    // headline numbers as computed (value + where from), so later summaries (e.g. the voice greeting) cite them
+    data: { status: r.status, requestedAt: r.requestedAt, ...(r.status === "ok" ? { fields: headline(r) } : {}), calls: calls.map((c) => ({ id: c.id, status: c.status, cached: c.cached, creditsUsed: c.creditsUsed })) },
     source: `api:${route}`,
   });
 }
@@ -50,4 +53,13 @@ export function recordConnectorChecks(infos: IntegrationInfo[], since: Date, rou
     data: { results: ran.map((i) => ({ id: i.id, status: i.status, detail: i.detail })) },
     source: `api:${route}`,
   });
+}
+
+function headline(r: Extract<ResearchResult, { status: "ok" }>) {
+  const f = companyFields(r);
+  const pick = (k: "headcountLatest" | "growthYoY" | "lastFunding" | "lastRoundType") => {
+    const v = f[k];
+    return isOk(v) ? { value: v.value, endpoint: v.citations[0]?.endpoint ?? null, path: v.citations[0]?.path ?? null, retrievedAt: v.citations[0]?.retrievedAt ?? null } : null;
+  };
+  return { headcountLatest: pick("headcountLatest"), growthYoY: pick("growthYoY"), lastFunding: pick("lastFunding"), lastRoundType: pick("lastRoundType") };
 }

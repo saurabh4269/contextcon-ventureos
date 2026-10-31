@@ -158,3 +158,7 @@ body { background-color: #f8f8f7; background-image: url("data:image/svg+xml;utf8
   body:has([data-memo-paper]) aside, body:has([data-memo-paper]) header, body:has([data-memo-paper]) [data-print-hide] { display: none !important; }
   body:has([data-memo-paper]) main { min-width: 0 !important; }
 }
+
+/* Floating voice orb: stay clear of the docked assistant panel (360px) when it is open. */
+body:has([data-dock="open"]) .voice-orb { right: calc(360px + 20px); }
+body:has([data-dock="open"]) .voice-pop { right: calc(360px + 20px); }

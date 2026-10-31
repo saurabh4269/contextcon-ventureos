@@ -6,6 +6,7 @@ import "@fontsource-variable/newsreader/opsz-italic.css";
 import "./globals.css";
 import { Providers } from "@port/components/providers";
 import { MemoryDock } from "@/live/memory";
+import { FloatingVoice } from "@/live/voice/FloatingVoice";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export const metadata: Metadata = { title: "Deal Desk" };
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
-      <body><Providers>{children}</Providers><MemoryDock /></body>
+      <body><Providers>{children}</Providers><MemoryDock /><FloatingVoice /></body>
     </html>
   );
 }
