@@ -1,3 +1,7 @@
+> **Historical (written 31 Oct 2026, 11:03 IST, updated 12:40).** Kept for the record of how the build was planned.
+> Current state: [docs/HANDOFF.md](docs/HANDOFF.md) · architecture: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) ·
+> decisions: [docs/DECISIONS.md](docs/DECISIONS.md). Since then `/agent` and `/agents` became live (sourcing agent) <!-- VERIFY -->.
+
 # Deal Desk — integration plan (live-only)
 
 Branch `integrate` · 2026-10-31 · Crustdata API `2025-11-01`

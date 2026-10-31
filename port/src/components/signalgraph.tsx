@@ -404,7 +404,7 @@ export function SignalGraph(p: SignalGraphProps) {
   const seen = p.autoplayKey && p.freezeAt == null && status === "ready" ? seenKey(p.autoplayKey) : null;
 
   return (
-    <div ref={root} className="sg-root relative grid grid-cols-1 items-stretch gap-4 @[880px]/sg:grid-cols-[minmax(0,1fr)_276px]">
+    <div ref={root} className="sg-root relative grid grid-cols-1 items-stretch gap-4 @max-[679px]/sg:w-[680px] @[880px]/sg:grid-cols-[minmax(0,1fr)_276px]">
       {/* First visit: hide the server-rendered settled graph until the replay starts (no flash of the ending). */}
       {seen && <script dangerouslySetInnerHTML={{ __html: `try{if(!sessionStorage.getItem(${JSON.stringify(seen)})&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!document.getElementById("sg-first")){var s=document.createElement("style");s.id="sg-first";s.textContent=".sg-root{visibility:hidden}";document.head.appendChild(s)}}catch(e){}` }} />}
       {/* ── Crustdata panel ── */}
@@ -413,8 +413,8 @@ export function SignalGraph(p: SignalGraphProps) {
         <svg className="pointer-events-none absolute inset-0 size-full" aria-hidden>{DUST.map((q, i) => <circle key={i} cx={`${q.x}%`} cy={`${q.y}%`} r={q.r} fill="#fff" opacity={q.o * (q.r > 1.3 ? 0.35 : 1)} />)}</svg>
 
         <div className="relative flex items-center gap-3 px-1">
-          <span className="flex items-center gap-1.5 text-[11.5px]" style={{ color: K.t3 }}>Powered by<Mark url={d.provider.markUrl} size={15} /><b className="font-semibold text-white">{d.provider.name}</b></span>
-          <span className="font-mono text-[10px]" style={{ color: K.t4 }}>x-api-version: {d.provider.apiVersion}</span>
+          <span className="flex shrink-0 items-center gap-1.5 text-[11.5px] whitespace-nowrap" style={{ color: K.t3 }}>Powered by<Mark url={d.provider.markUrl} size={15} /><b className="font-semibold text-white">{d.provider.name}</b></span>
+          <span className="font-mono text-[10px] @max-[560px]/sg:hidden" style={{ color: K.t4 }}>x-api-version: {d.provider.apiVersion}</span>
           <span className="ml-auto"><Freshness mode={fresh} ago={d.requestedAgo} /></span>
         </div>
 
@@ -502,7 +502,7 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
   const [done, setDone] = useState<string[]>([]);
   const heat = failed || loading ? 0 : f.contributions.reduce((a, k) => a + landed(k.id), 0) / Math.max(1, f.contributions.length);
   return (
-    <div data-sg="fit" className="relative flex flex-col rounded-[20px] bg-white px-4 pt-3.5 pb-4" style={{ boxShadow: "var(--dd-e2)" }}>
+    <div data-sg="fit" className="relative flex flex-col rounded-[20px] bg-white px-4 pt-3.5 pb-4 @max-[679px]/sg:sticky @max-[679px]/sg:left-0 @max-[679px]/sg:w-[100cqw]" style={{ boxShadow: "var(--dd-e2)" }}>
       <div data-sg="fit-list">
         <div className="flex items-baseline justify-between"><span className="text-[14px] font-medium text-ink">Signals into fit</span><span className="tnum text-[12px] text-zinc-500">{f.contributions.filter((k) => landed(k.id) > 0).length}/{f.contributions.length}</span></div>
         <div className="mt-1.5 flex items-center justify-between border-b border-zinc-100 pb-1 text-[11.5px] text-zinc-500"><span className="truncate">{f.base.label}</span><span className="tnum ml-3 w-9 shrink-0 text-center font-medium text-zinc-700">{un || f.base.value == null ? "—" : f.base.value}</span></div>
@@ -568,18 +568,19 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
 export function SignalSection({ aside, ...p }: SignalGraphProps & { aside?: ReactNode }) {
   const [tok, setTok] = useState(0);
   return (
-    <section className="min-w-0 px-8 pt-4 pb-6">
-      <div className="flex items-end gap-4">
+    <section className="min-w-0 px-8 pt-4 pb-6 @max-[720px]/main:px-4">
+      <div className="flex flex-wrap items-end gap-x-4 gap-y-2">
         <div className="min-w-0">
-          <h2 className="serif text-[26px] leading-tight">{!p.status || p.status === "ready" ? <HL h={p.data.headline} /> : p.status === "loading" ? `Researching ${p.data.company.name}…` : `No signals for ${p.data.company.name} yet`}</h2>
+          <h2 className="serif text-[26px] leading-tight @max-[720px]/main:text-[22px]">{!p.status || p.status === "ready" ? <HL h={p.data.headline} /> : p.status === "loading" ? `Researching ${p.data.company.name}…` : `No signals for ${p.data.company.name} yet`}</h2>
         </div>
         <div className="ml-auto flex items-center gap-3 pb-1">
           <span className="eyebrow">{p.data.eyebrow}</span>
           {aside}
-          <Btn icon={<RotateCcw className="size-3.5" />} onClick={() => setTok((n) => n + 1)} disabled={p.status === "loading"}>Replay research</Btn>
+          <Btn className="max-sm:h-10" icon={<RotateCcw className="size-3.5" />} onClick={() => setTok((n) => n + 1)} disabled={p.status === "loading"}>Replay research</Btn>
         </div>
       </div>
-      <div className="@container/sg mt-3"><SignalGraph {...p} replayToken={tok} /></div>
+      {/* Narrow screens: the graph keeps a readable width and scrolls sideways; the fit card stays pinned to the visible width. */}
+      <div className="@container/sg mt-3 overflow-x-auto overscroll-x-contain pb-1"><SignalGraph {...p} replayToken={tok} /></div>
     </section>
   );
 }

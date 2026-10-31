@@ -115,7 +115,10 @@ export class CrustdataClient {
 
   async enrichCompanies(body: Omit<CompanyEnrichRequest, "fields"> & { fields?: string[] }): Promise<Result<CompanyEnrichResponse>> {
     const path = "/company/enrich";
-    return this.live<CompanyEnrichResponse>("POST", path, withCompanyEnrichFields(body as Record<string, unknown>));
+    // An explicit `fields` list is respected (the sourcing agent retries without a denied group after a 403); without one,
+    // every permitted group is requested (no `fields` would return basic_info only).
+    const b = body as Record<string, unknown> & { fields?: string[] };
+    return this.live<CompanyEnrichResponse>("POST", path, b.fields?.length ? b : withCompanyEnrichFields(b));
   }
 
   async searchCompanies(body: CompanySearchRequest): Promise<Result<CompanySearchResponse>> {

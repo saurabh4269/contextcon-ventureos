@@ -7,6 +7,7 @@
  */
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowUp, Square, Plus, Sparkles, X, SquarePen, Check, ChevronRight, ChevronDown, CornerDownRight, Maximize2, Mic, TrendingUp, Inbox, Mail, Hourglass, FileText, Users, Scale, Search, Workflow, History, CircleSlash, CalendarClock, MessageSquare } from "lucide-react";
 import { AnimatePresence, motion, type Transition } from "framer-motion";
 import { ROUTES } from "../routes";
@@ -336,6 +337,7 @@ function Composer({ data, onSend, onStop, variant, running }: { data: AssistantD
           : dock ? "rounded-[18px] p-2.5 shadow-[0_1px_2px_rgba(9,9,11,.04),0_10px_28px_-18px_rgba(9,9,11,.25)]"
           : "rounded-[20px] p-3 shadow-[0_1px_2px_rgba(9,9,11,.04),0_18px_40px_-26px_rgba(9,9,11,.3)]")}>
       <textarea name="q" rows={hero ? 3 : 1} aria-label={data.placeholder} placeholder={data.placeholder}
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }}
         className={cx("block w-full resize-none bg-transparent px-1.5 leading-relaxed outline-none placeholder:text-zinc-400", hero ? "pt-0.5 text-[15px]" : "pt-1 text-[13.5px]")} />
       <div className={cx("flex items-center gap-1.5", hero ? "mt-2" : "mt-1.5")}>
         <button type="button" aria-label="Attach a file or deal" title="Attach a file or deal" className={cx("grid size-8 shrink-0 place-items-center rounded-full text-zinc-500 ring-1 ring-zinc-200/90 transition-colors hover:bg-zinc-50 hover:text-ink", FOCUS)}><Plus className="size-4" /></button>
@@ -376,8 +378,13 @@ function anchorLastQuestion(root: HTMLElement | null, scroller?: HTMLElement | n
   if (scroller) scroller.scrollTop = Math.max(0, q.offsetTop - 16);
   else q.scrollIntoView({ block: "start" });
 }
-export function AssistantDock({ data, onSuggestion, onSend, onClose, top, expandHref }: { data: AssistantData; expandHref?: string; onSuggestion?: (action: string) => void; onSend?: (text: string) => void; onClose?: () => void; /** v3.2 · optional block under the header, e.g. LiveRail */ top?: ReactNode }) {
+export function AssistantDock({ data, onSuggestion: onSuggestionProp, onSend: onSendProp, onClose, top, expandHref }: { data: AssistantData; expandHref?: string; onSuggestion?: (action: string) => void; onSend?: (text: string) => void; onClose?: () => void; /** v3.2 · optional block under the header, e.g. LiveRail */ top?: ReactNode }) {
   const ask = useAsk();
+  // No assistant model wired by the host: a question (or suggestion) runs the deterministic Sourcing agent at /agent.
+  const router = useRouter();
+  const toAgent = (t: string) => { ask?.setOpen(false); router.push(`/agent?q=${encodeURIComponent(t)}`); };
+  const onSend = onSendProp ?? toAgent;
+  const onSuggestion = onSuggestionProp ?? toAgent;
   const empty = data.messages.length === 0;
   const thinking = data.messages[data.messages.length - 1]?.thinking;
   const { liveId, followDelay } = useStream(data);

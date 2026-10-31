@@ -45,13 +45,13 @@ export function Requirements({ needs }: { needs: string[] }) {
 export function UnavailableBlock({ screen, action }: { screen: ScreenId; action?: ReactNode }) {
   const s = SOURCES[screen];
   return (
-    <div data-testid="unavailable" data-screen={screen} className="mx-auto mt-14 max-w-[560px] rounded-xl border border-dashed border-zinc-300 bg-zinc-50/60 p-7 text-center">
+    <div data-testid="unavailable" data-screen={screen} className="mx-auto mt-14 max-w-[560px] rounded-xl border border-dashed border-zinc-300 bg-zinc-50/60 p-7 text-center @max-[720px]/main:mt-6 @max-[720px]/main:px-4 @max-[720px]/main:py-6">
       <div className="serif text-[22px]">{s.title}</div>
       <p className="mt-1 text-[13px] text-zinc-500">{s.reason}</p>
       <Requirements needs={s.needs} />
       <div className="mt-4 flex justify-center gap-2 text-[12.5px]">
         {action}
-        {s.needs.some((n) => n !== "backend") && <Link href="/settings?section=connectors" className="inline-flex h-8 items-center rounded-full bg-white px-3.5 font-medium text-zinc-700 ring-1 ring-zinc-200 hover:text-ink">Connectors</Link>}
+        {s.needs.some((n) => n !== "backend") && <Link href="/settings?section=connectors" className="inline-flex h-8 items-center rounded-full bg-white px-3.5 font-medium text-zinc-700 ring-1 ring-zinc-200 hover:text-ink @max-[720px]/main:h-10 @max-[720px]/main:px-4">Connectors</Link>}
       </div>
     </div>
   );
@@ -62,8 +62,10 @@ export function UnavailablePage({ screen, active, crumbs, mode, action, dock, ch
   const s = SOURCES[screen];
   return (
     <Page active={active} mode={mode} shell={liveShell} dock={dock} top={<TopBar crumbs={crumbs ?? [{ label: s.label }]} ctx={s.label} />}>
-      <UnavailableBlock screen={screen} action={action} />
-      {children && <div className="mx-auto mt-6 mb-16 w-full max-w-[560px]">{children}</div>}
+      <div className="px-4 pb-6 max-lg:pb-24">
+        <UnavailableBlock screen={screen} action={action} />
+        {children && <div className="mx-auto mt-6 mb-16 w-full max-w-[560px]">{children}</div>}
+      </div>
     </Page>
   );
 }

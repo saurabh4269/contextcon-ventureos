@@ -83,12 +83,13 @@ describe("Calendar", () => {
     expect(ev[1]).toMatchObject({ summary: "(no title)", allDay: true, start: "2026-11-02" });
   });
   it("inserts with sendUpdates=none and deletes (204, or 410 when already gone)", async () => {
-    const { f, calls } = mock((u, init) => tokenOk(u) ?? (init?.method === "POST" ? json(200, { id: "new1", summary: "x", start: { dateTime: "2026-11-01T10:00:00Z" }, end: { dateTime: "2026-11-01T10:15:00Z" } }) : u.includes("gone") ? json(410, { error: { message: "Resource has been deleted" } }) : json(204, null)));
+    const { f, calls } = mock((u, init) => tokenOk(u) ?? (init?.method === "POST" ? json(200, { id: "new1", summary: "x", start: { dateTime: "2026-11-01T10:00:00Z" }, end: { dateTime: "2026-11-01T10:15:00Z" } }) : u.includes("never") ? json(404, { error: { message: "Not Found" } }) : u.includes("gone") ? json(410, { error: { message: "Resource has been deleted" } }) : json(204, null)));
     const m = await insertEvent(cfg, { summary: "x", start: "2026-11-01T10:00:00Z", end: "2026-11-01T10:15:00Z" }, f);
     expect(m.id).toBe("new1");
     expect(calls[1]!.url).toContain("sendUpdates=none");
     expect(JSON.parse(String(calls[1]!.init!.body))).not.toHaveProperty("attendees");
     expect(await deleteEvent(cfg, "new1", f)).toBe(204);
     expect(await deleteEvent(cfg, "gone", f)).toBe(410);
+    expect(await deleteEvent(cfg, "never", f)).toBe(404); // unknown id is not a 502
   });
 });
