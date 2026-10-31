@@ -3,7 +3,7 @@
  * (Today's work rows, the Pipeline table, Helio's valuation, Next meetings), so a deal reads the same everywhere.
  * The queue ("1 of 4 · Waiting on you") is built from the people listed here, so prev/next always resolve.
  */
-import type { BookCallData, MeetingItem, PersonChip, PersonData, PersonRef, PipelineDeal } from "../types";
+import type { BookCallData, MeetingItem, PersonChip, PersonData, PersonRef, PipelineDeal } from "../../src/types";
 import { keelCall, nextMeetings } from "./meetings";
 import { workRows } from "./todaysummary";
 import { pipelineDeals, stages } from "./pipeline";

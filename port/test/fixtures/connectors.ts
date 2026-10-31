@@ -1,5 +1,5 @@
-import type { ConnectorsData } from "../types";
-import { ROUTES } from "../routes";
+import type { ConnectorsData } from "../../src/types";
+import { ROUTES } from "../../src/routes";
 
 /** GET /api/firm/connectors (@assumed). Tier "core" is what Deal Desk runs on today; tier "available" is offered with Connect. */
 export const connectors: ConnectorsData = {

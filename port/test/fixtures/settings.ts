@@ -1,4 +1,4 @@
-import type { SettingsData } from "../types";
+import type { SettingsData } from "../../src/types";
 import { connectors } from "./connectors";
 
 /** GET /api/firm/config + /api/firm/members + /api/firm/walls + /api/firm/access-log (@assumed paths for the last three) */

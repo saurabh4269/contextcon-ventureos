@@ -179,7 +179,7 @@ function McpCard({ mcp, onOpen }: { mcp: BrainData["mcp"]; onOpen: () => void })
 function UsageCard({ u }: { u: NonNullable<BrainData["usage"]> }) {
   return (
     <section className={cx(CARD, "p-5")}>
-      <H sub="Memories read by agents · 7 days" right={<span className="tnum inline-flex h-6 items-center rounded-full bg-ok-50 px-2 text-[11.5px] font-medium text-ok">{u.delta}</span>}>Read by agents</H>
+      <H sub="Memories read by agents, recent period" right={<span className="tnum inline-flex h-6 items-center rounded-full bg-ok-50 px-2 text-[11.5px] font-medium text-ok">{u.delta}</span>}>Read by agents</H>
       <div className="mt-3 flex items-end justify-between gap-3"><div><div className="numeral text-[36px] leading-[.9]"><Count to={u.reads.reduce((a, b) => a + b, 0)} /></div><div className="tnum mt-1.5 text-[12px] text-zinc-500">{u.reads[u.reads.length - 1]} today</div></div><MiniBars d={u.reads} w={112} h={40} hl={u.reads.length - 1} /></div>
       <div className="mt-4 grid grid-cols-2 divide-x divide-zinc-100 border-t border-zinc-100 pt-3 text-[12px]">
         <div><div className="text-zinc-500">Cited in memos</div><div className="tnum mt-0.5 text-[15px] font-medium">{u.cited}<span className="ml-1 text-[11.5px] font-normal text-zinc-400">this month</span></div></div>

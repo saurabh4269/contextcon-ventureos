@@ -2,13 +2,13 @@
  * v3 · Helio Sensors (seed) — the film's Act 2–4 company, now first-class in the port bundle.
  * Every animated moment is a pure function of a frame number so Remotion/Playwright can screenshot it (?frame=1..n).
  */
-import type { BrainData, DealData, DataRoomData, DealSection, DiligenceAlert, FitSignal, PersonRef, GrowthComparison, MemoData, PipelineBoardData, PortfolioData, PortfolioHandoff, SlackMessage, SourceRef, ThesisLine, Valuation, DealHeader, Claim, TodayData, DecisionCard, LiveRun } from "../types";
+import type { BrainData, DealData, DataRoomData, DealSection, DiligenceAlert, FitSignal, PersonRef, GrowthComparison, MemoData, PipelineBoardData, PortfolioData, PortfolioHandoff, SlackMessage, SourceRef, ThesisLine, Valuation, DealHeader, Claim, TodayData, DecisionCard, LiveRun } from "../../src/types";
 import { deal, dealTeamOpen, memo } from "./deal";
 import { portfolio } from "./portfolio";
 import { brain, firmThesis as thesisBase } from "./brain";
 import { pipelineBoard, stages } from "./pipeline";
 import { todayInvest } from "./today";
-import { ROUTES } from "../routes";
+import { ROUTES } from "../../src/routes";
 
 export const helioCo = { id: "helio", name: "Helio Sensors", initial: "H", line: "Industrial IoT sensors", dark: true };
 

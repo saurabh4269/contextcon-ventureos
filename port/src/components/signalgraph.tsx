@@ -331,7 +331,7 @@ export function SignalGraph(p: SignalGraphProps) {
 
   const contribs = d.fit.contributions;
   const landed = (id: string) => (failed || loading ? 0 : prog(T, S.scoreAt[id] + SCORE_TRAVEL - 200, 400));
-  const score = Math.round(d.fit.base.value + contribs.reduce((a, k) => a + k.weight * ease(landed(k.id)), 0));
+  const score = Math.round((d.fit.base.value ?? 0) + contribs.reduce((a, k) => a + k.weight * ease(landed(k.id)), 0));
   const decided = failed || loading ? 0 : prog(T, S.decide, 450);
   const fed = new Set(contribs.filter((k) => !failed && !loading && prog(T, S.scoreAt[k.id], 1) >= 1).map((k) => `${k.call}/${k.chip}`));
   if (hover) { const k = contribs.find((c) => c.id === hover); if (k) fed.add(`${k.call}/${k.chip}`); }
@@ -491,7 +491,7 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
   /** Distance from the bottom of the signals list to the hub's centre line: the tile centres on it so the bundle runs level. */
   align?: number;
 }) {
-  const f = d.fit, un = f.unscored, delta = un ? 0 : score - f.base.value, pct = (v: number) => `${Math.max(0, Math.min(100, v))}%`;
+  const f = d.fit, un = f.unscored, delta = un ? 0 : score - (f.base.value ?? 0), pct = (v: number) => `${Math.max(0, Math.min(100, v))}%`;
   const rec = f.recommendation;
   const pending = !failed && !loading && T !== Infinity && T < S.decide;
   const tileRef = useRef<HTMLDivElement>(null);
@@ -505,7 +505,7 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
     <div data-sg="fit" className="relative flex flex-col rounded-[20px] bg-white px-4 pt-3.5 pb-4" style={{ boxShadow: "var(--dd-e2)" }}>
       <div data-sg="fit-list">
         <div className="flex items-baseline justify-between"><span className="text-[14px] font-medium text-ink">Signals into fit</span><span className="tnum text-[12px] text-zinc-500">{f.contributions.filter((k) => landed(k.id) > 0).length}/{f.contributions.length}</span></div>
-        <div className="mt-1.5 flex items-center justify-between border-b border-zinc-100 pb-1 text-[11.5px] text-zinc-500"><span className="truncate">{f.base.label}</span><span className="tnum ml-3 w-9 shrink-0 text-center font-medium text-zinc-700">{un ? "—" : f.base.value}</span></div>
+        <div className="mt-1.5 flex items-center justify-between border-b border-zinc-100 pb-1 text-[11.5px] text-zinc-500"><span className="truncate">{f.base.label}</span><span className="tnum ml-3 w-9 shrink-0 text-center font-medium text-zinc-700">{un || f.base.value == null ? "—" : f.base.value}</span></div>
         {f.contributions.map((k) => {
           const u = landed(k.id), up = k.weight > 0, ev = k.source ?? pathOf(d, k.call, k.chip);
           return (
@@ -533,9 +533,9 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
         {un ? <p className="relative mt-2 line-clamp-3 text-[11px] leading-[15px] text-white/80">{un.reason}</p> : <div className="relative mt-2 flex items-center gap-2.5">
           <div className="relative h-1 flex-1 rounded-full bg-white/20">
             <div className="absolute inset-y-0 left-0 rounded-full bg-white" style={{ width: pct(score) }} />
-            <span className="absolute -top-1 h-3 w-px bg-white/80" style={{ left: pct(f.threshold.value) }} />
+            {f.threshold && <span className="absolute -top-1 h-3 w-px bg-white/80" style={{ left: pct(f.threshold.value) }} />}
           </div>
-          <span className="tnum shrink-0 text-[10.5px] whitespace-nowrap text-white/70">{f.threshold.label} {f.threshold.value}</span>
+          {f.threshold && <span className="tnum shrink-0 text-[10.5px] whitespace-nowrap text-white/70">{f.threshold.label} {f.threshold.value}</span>}
         </div>}
       </div>
 

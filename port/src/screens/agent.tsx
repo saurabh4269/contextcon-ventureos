@@ -12,7 +12,6 @@ import { Page, TopBar } from "../components/shell";
 import { AssistantDock } from "../components/assistant";
 import { Btn, IconBtn, IconMenu, Logo, Toggle, cx, CompanyLogo } from "../components/ui";
 import { Pulse, useReducedMotion } from "../components/motion";
-import { AGENT_FRAMES, agentRunAt } from "../fixtures/agents";
 import type { AgentData, AgentRunState, AgentStep, AgentStepIcon, AgentStepState, AssistantData, ShellData, Tone2 } from "../types";
 
 const ICON: Record<AgentStepIcon, typeof FolderOpen> = { files: FolderOpen, claims: Scale, bank: Landmark, team: Users, value: ChartNoAxesColumn, memo: FileText, brief: MessageSquareText, trigger: FolderInput };
@@ -26,7 +25,14 @@ function stateOf(i: number, step: AgentStep, run: AgentRunState): AgentStepState
 }
 
 /** Autoplay: odd frames = a step running (1.5s), even = the dot travelling into the next step (0.75s). */
-function useRun(run: AgentRunState | undefined, autoplay: boolean): { run: AgentRunState; frame: number | null } {
+/** Frame n of a run over `steps` steps (odd = step running, even = moving to the next one). */
+export function agentRunAt(frame: number, steps: number): AgentRunState {
+  const f = Math.max(1, Math.min(steps * 2 - 1, Math.round(frame)));
+  return f % 2 === 1 ? { active: (f - 1) / 2, t: 1 } : { active: f / 2, t: 0.5 };
+}
+
+function useRun(run: AgentRunState | undefined, autoplay: boolean, steps: number): { run: AgentRunState; frame: number | null } {
+  const AGENT_FRAMES = steps * 2 - 1;
   const [f, setF] = useState(1);
   const red = useReducedMotion();
   useEffect(() => {
@@ -36,7 +42,7 @@ function useRun(run: AgentRunState | undefined, autoplay: boolean): { run: Agent
     return () => clearTimeout(id);
   }, [f, run, autoplay, red]);
   if (run) return { run, frame: null };
-  return { run: agentRunAt(f), frame: f };
+  return { run: agentRunAt(f, steps), frame: f };
 }
 
 function Circle({ n, s, frozen }: { n: number; s: AgentStepState; frozen: boolean }) {
@@ -187,7 +193,7 @@ export function AgentScreen({ shell, data, assistant, view = "steps", run, autop
   onView?: (v: "steps" | "flow") => void; onRun?: () => void;
 }) {
   const frozen = !!run;
-  const { run: r, frame } = useRun(run, autoplay);
+  const { run: r, frame } = useRun(run, autoplay, data.steps.length);
   const [on, setOnMap] = useState<Record<string, boolean>>({});
   const [v, setV] = useState(view);
   const setView = (x: "steps" | "flow") => { setV(x); onView?.(x); };

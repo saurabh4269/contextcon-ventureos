@@ -2,9 +2,9 @@
  * v4 · Helio Sensors IC memo, document-first (S3_B). Lives apart from helio.ts so the deal page fixtures stay untouched;
  * every number ties to the deal page (Growth view: MRR $65K verified vs $113K deck-implied, −$48K) and to Today (IC 3:00 pm, fit 72).
  */
-import type { MemoData, MemoDoc, MemoSection, MemoSourceDoc, SlackMessage } from "../types";
+import type { MemoData, MemoDoc, MemoSection, MemoSourceDoc, SlackMessage } from "../../src/types";
 import { helioMemo, helioFit, helioOwner, helioFounder, helioGrowth, helioValuation, helioCo } from "./helio";
-import { ROUTES } from "../routes";
+import { ROUTES } from "../../src/routes";
 
 const room = (file: string) => `${ROUTES.dataRoom(helioCo.id)}&file=${file}`;
 const dealTab = (tab: string) => `${ROUTES.deal(helioCo.id)}&tab=${tab}`;

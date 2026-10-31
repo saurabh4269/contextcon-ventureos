@@ -584,7 +584,7 @@ export function LandingScreen(p: LandingScreenProps) {
         </div>
       </header>
       {ready && (status === "empty" || !d.features.items.length
-        ? <div className="mx-auto mt-16 max-w-[560px]"><EmptyState title="Nothing to show yet" body="The product tour loads here once the demo workspace is seeded." action={<button type="button" onClick={() => setDemo(true)} className="inline-flex h-9 items-center gap-2 rounded-full bg-ink px-4 text-[13px] font-medium text-white"><Video className="size-4" />{d.hero.demo}</button>} /></div>
+        ? <div className="mx-auto mt-16 max-w-[560px]"><EmptyState title="See it on real data" body="There is no recorded product tour. Open the app and research any company live on Crustdata." action={<button type="button" onClick={() => setDemo(true)} className="inline-flex h-9 items-center gap-2 rounded-full bg-ink px-4 text-[13px] font-medium text-white"><Video className="size-4" />{d.hero.demo}</button>} /></div>
         : <Features d={d.features} moving={moving} show={show} />)}
       {ready && <Closing d={d.closing} demo={d.hero.demo} moving={moving} requested={requested} onDemo={() => setDemo(true)} onRequest={request} inputRef={inputRef} />}
       <footer className="mx-auto mt-10 flex max-w-[1240px] items-center gap-3 px-8 text-[12.5px] text-zinc-500">

@@ -1,10 +1,12 @@
 "use client";
-// Thin wrapper: the screen lives in port/src (source of truth). Query params pick fixture variants.
-import { use, useState } from "react";
-import { BrainScreen } from "@port/screens/brain";
-import { shellInvest, brain, brainEmptyMemories, brainLearnedFrame } from "@port/fixtures";
-export default function Brain({ searchParams }: { searchParams: Promise<{ empty?: string; learned?: string; state?: string }> }) {
-  const q = use(searchParams); useState(0);
-  const status = q.state === "loading" || q.state === "empty" || q.state === "error" ? q.state : "ready";
-  return <BrainScreen shell={shellInvest} key={q.learned} status={status} data={q.learned ? brainLearnedFrame(Number(q.learned)) : q.empty ? brainEmptyMemories : brain} />;
+// Firm brain: derived memories/thesis need the backend; the raw organizational memory is live here (with notes).
+import { UnavailablePage } from "@/live/unavailable";
+import { MemoryPanel } from "@/live/memory";
+
+export default function Brain() {
+  return (
+    <UnavailablePage screen="brain" active="brain">
+      <MemoryPanel title="Organizational memory" sub="Every research run, connector check, deal opened and note — appended as it happens, newest first." />
+    </UnavailablePage>
+  );
 }

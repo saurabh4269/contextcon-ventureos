@@ -1,5 +1,5 @@
-import type { BrainData, ThesisLine } from "../types";
-import { ROUTES } from "../routes";
+import type { BrainData, ThesisLine } from "../../src/types";
+import { ROUTES } from "../../src/routes";
 
 /**
  * v4 · The Fund III thesis as lines. One story everywhere: the sidebar ("Fund III · Seed to Series A"), Today's fit

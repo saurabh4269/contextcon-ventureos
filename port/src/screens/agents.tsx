@@ -392,7 +392,7 @@ export function AgentsScreen(p: AgentsScreenProps) {
                       <div className="ml-auto flex shrink-0 items-center gap-2 @max-[1000px]/at:ml-0 @max-[1000px]/at:w-full"><SearchBox value={q} onChange={setQ} placeholder={d.search.agents} label="Search agents" /></div>
                     </div>
                     <div className={cx("grid h-10 items-center gap-x-3 border-y border-zinc-100 bg-zinc-50/50 px-4 text-[11.5px] text-zinc-500", AGENT_COLS)}>
-                      <span>Agent</span><span>Trigger</span><span>Uses</span><span>Status</span><span className={WIDE}>Last 14 days</span><span className={WIDE}>Last run</span><span className={WIDE}>Owner</span><span />
+                      <span>Agent</span><span>Trigger</span><span>Uses</span><span>Status</span><span className={WIDE}>Recent activity</span><span className={WIDE}>Last run</span><span className={WIDE}>Owner</span><span />
                     </div>
                     <ul className="relative">
                       <AnimatePresence mode="popLayout" initial={!rm}>

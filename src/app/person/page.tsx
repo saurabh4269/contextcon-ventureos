@@ -1,22 +1,11 @@
 "use client";
-// Thin wrapper: the screen lives in port/src (source of truth). Query params pick fixture variants.
-// /person?id=ananya-rao|mo-haddad|ana-ruiz|ravi-menon (alex-rao → ananya-rao alias) · &tab=activity|emails|meetings|notes|files · &status=loading|empty|error · &book=1..7 pins a book-call frame
+// Person page: /person?linkedin=<profile URL>[&domain=<company>] enriches the person live on Crustdata. ?tab= picks the tab.
 import { use } from "react";
-import { PersonScreen } from "@port/screens/person";
-import { BookFlow, useBookFlow, bookFrame } from "@port/components/bookflow";
-import { shellInvest, personById, calendarAsk } from "@port/fixtures";
-import type { LoadStatus, PersonTab } from "@port/types";
-import { useDataMode } from "@/components/datamode";
+import type { PersonTab } from "@port/types";
 import { LivePerson } from "@/live/person";
+import { liveShell } from "@/live/shell";
 
-export default function Person({ searchParams }: { searchParams: Promise<{ id?: string; tab?: string; status?: string; book?: string; linkedin?: string; domain?: string }> }) {
+export default function Person({ searchParams }: { searchParams: Promise<{ linkedin?: string; domain?: string; tab?: string }> }) {
   const q = use(searchParams);
-  const mode = useDataMode();
-  const data = personById(q.id);
-  const flow = useBookFlow({ frame: bookFrame(q.book), connected: true });
-  // Live mode: ?linkedin=<profile URL> enriches the person on Crustdata; fixture people (?id=) stay demo data (badged).
-  if (mode === "live" && !q.id) return <LivePerson shell={shellInvest} linkedin={q.linkedin} domain={q.domain} tab={q.tab as PersonTab} />;
-  const status: LoadStatus = q.status === "loading" || q.status === "empty" || q.status === "error" ? q.status : "ready";
-  const overlay = data.book && flow.stage !== "closed" ? <BookFlow flow={flow} data={data.book} ask={calendarAsk} /> : undefined;
-  return <PersonScreen key={data.id} shell={shellInvest} data={data} tab={(q.tab as PersonTab) || "activity"} status={status} overlay={overlay} onBook={data.book ? flow.start : undefined} onAlertAction={() => {}} onRetry={() => {}} />;
+  return <LivePerson shell={liveShell} linkedin={q.linkedin} domain={q.domain} tab={q.tab as PersonTab} />;
 }

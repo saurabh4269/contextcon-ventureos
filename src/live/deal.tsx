@@ -1,18 +1,19 @@
 "use client";
-// Deal page in live mode: /deal?domain=e2b.dev (or ?company=) → GET /api/live/research. States:
-//   loading → skeleton · not connected / upstream error → error state with the server's message · unknown domain →
-//   the Signals section's "No Crustdata match for <domain>" · ok → header, Signals, Overview, Team, Market.
-// No domain → a prompt for one. Nothing falls back to fixtures.
-import { useEffect, useState, type FormEvent } from "react";
+// Deal page: /deal?domain=e2b.dev (or ?company=) → GET /api/live/research, then GET /api/deals/:domain/valuation.
+// States: loading → skeleton · not connected / upstream error → error state with the server's message · unknown domain →
+// the Signals section's "No Crustdata match for <domain>" · ok → header, Signals, Overview, Team, Market, Valuation.
+// No domain → a prompt for one. Opening a researched deal and acting on a signal are appended to organizational memory.
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { DealScreen } from "@port/screens/deal";
 import { Page, TopBar } from "@port/components/shell";
 import { Btn } from "@port/components/ui";
 import type { LoadStatus, ShellData } from "@port/types";
-import { noMatchSignals, placeholderDeal, toLiveDeal } from "@/lib/adapters/deal";
+import { noMatchSignals, placeholderDeal, toLiveDeal, toValuationSection } from "@/lib/adapters/deal";
 import type { ResearchResult } from "@/lib/live/types";
-import { useLiveCoverage } from "@/components/datamode";
+import type { ValuationResponse } from "@/lib/numbers/deal-numbers";
 import { failureMessage, useLiveJson } from "./useLiveJson";
+import { recordEvent } from "./memory";
 
 type Ok = Extract<ResearchResult, { status: "ok" }>;
 type NoMatch = Extract<ResearchResult, { status: "no_match" }>;
@@ -27,11 +28,21 @@ function LiveDealFor({ shell, domain, tab }: { shell: ShellData; domain: string;
   const res = useLiveJson<Ok | NoMatch>(`/api/live/research?domain=${encodeURIComponent(domain)}`);
   const ok = res.state === "ok" && res.data.status === "ok" ? res.data : null;
   const noMatch = res.state === "ok" && res.data.status === "no_match" ? res.data : null;
-  useLiveCoverage(ok ? "Live · Crustdata" : noMatch ? "Live · Crustdata (no match)" : res.state === "failed" ? "Live · request failed" : "Live · loading");
-  const data = ok ? toLiveDeal(ok) : noMatch ? { ...placeholderDeal(domain), signals: noMatchSignals(domain, noMatch.calls.identify) } : placeholderDeal(domain);
+  const val = useLiveJson<ValuationResponse>(ok ? `/api/deals/${encodeURIComponent(ok.domain)}/valuation` : null);
+  const opened = useRef(false);
+  useEffect(() => {
+    if (!ok || opened.current) return;
+    opened.current = true;
+    void recordEvent({ kind: "deal.opened", subject: { type: "company", id: ok.domain, label: ok.company.name }, summary: `Opened ${ok.company.name} (${ok.domain})` });
+  }, [ok]);
+
+  const base = ok ? toLiveDeal(ok) : noMatch ? { ...placeholderDeal(domain), signals: noMatchSignals(domain, noMatch.calls.identify, noMatch.requestedAt) } : placeholderDeal(domain);
+  const data = ok && val.state === "ok"
+    ? { ...base, sections: { ...base.sections, valuation: toValuationSection(val.data.explainable) }, outline: [...base.outline, { id: "valuation", label: "Valuation", state: "warn" as const }] }
+    : base;
   const valid = (v?: string) => (v && (v === "signals" || data.sections?.[v]) ? v : "signals");
   const [view, setView] = useState(valid(tab));
-  useEffect(() => { if (ok) setView((v) => valid(v)); }, [ok]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => { if (ok) setView((v) => valid(v ?? tab)); }, [ok, val.state]); // eslint-disable-line react-hooks/exhaustive-deps
   const onOutline = (id: string) => {
     setView(valid(id));
     const u = new URL(window.location.href); u.searchParams.set("tab", id); window.history.replaceState(null, "", u);
@@ -42,26 +53,35 @@ function LiveDealFor({ shell, domain, tab }: { shell: ShellData; domain: string;
       error={res.state === "failed" ? failureMessage(res, `Couldn’t research ${domain}`) : undefined}
       onRetry={() => void res.reload()} view={noMatch ? "signals" : view} onOutline={onOutline}
       signalsStatus={noMatch ? "empty" : undefined}
-      onSignalAction={(id) => onOutline(id === "team" ? "team" : "overview")}
+      onSignalAction={(id) => {
+        if (ok) void recordEvent({ kind: "signal.action", subject: { type: "company", id: ok.domain, label: ok.company.name }, summary: `Chose “${id === "team" ? "Review team" : "Open overview"}” on ${ok.company.name}'s signals`, data: { action: id } });
+        onOutline(id === "team" ? "team" : "overview");
+      }}
       onOpenRoom={() => router.push(`/deal/room?id=${encodeURIComponent(domain)}`)} onOpenMemo={() => router.push(`/memo?id=${encodeURIComponent(domain)}`)} />
   );
 }
 
 function DomainPrompt({ shell }: { shell: ShellData }) {
-  const router = useRouter();
-  const [v, setV] = useState("");
-  useLiveCoverage("Live · Crustdata");
-  const go = (e: FormEvent) => { e.preventDefault(); const d = v.trim(); if (d) router.push(`/deal?domain=${encodeURIComponent(d)}`); };
   return (
     <Page active="pipeline" shell={shell} top={<TopBar crumbs={[{ label: "Pipeline", href: "/pipeline" }, { label: "Research a company" }]} ctx="All deals" />}>
-      <form onSubmit={go} className="mx-auto my-16 max-w-[460px] rounded-xl border border-dashed border-zinc-300 bg-zinc-50/60 p-8 text-center">
-        <div className="serif text-[22px]">Research a company</div>
-        <p className="mt-1 text-[13px] text-zinc-500">Enter a company domain. Deal Desk resolves it on Crustdata and pulls headcount, funding, founders, hiring and news.</p>
-        <div className="mt-4 flex gap-2">
-          <input aria-label="Company domain" value={v} onChange={(e) => setV(e.target.value)} placeholder="e2b.dev" className="h-9 min-w-0 flex-1 rounded-full bg-white px-4 text-[13px] ring-1 ring-zinc-200 outline-none focus:ring-zinc-400" />
-          <Btn variant="primary" type="submit">Research</Btn>
-        </div>
-      </form>
+      <ResearchForm className="mx-auto my-16 max-w-[460px]" />
     </Page>
+  );
+}
+
+/** Enter a domain → the live deal page for it. */
+export function ResearchForm({ className }: { className?: string }) {
+  const router = useRouter();
+  const [v, setV] = useState("");
+  const go = (e: FormEvent) => { e.preventDefault(); const d = v.trim(); if (d) router.push(`/deal?domain=${encodeURIComponent(d)}`); };
+  return (
+    <form onSubmit={go} data-testid="research-form" className={`rounded-xl border border-dashed border-zinc-300 bg-zinc-50/60 p-8 text-center ${className ?? ""}`}>
+      <div className="serif text-[22px]">Research a company</div>
+      <p className="mt-1 text-[13px] text-zinc-500">Enter a company domain. Deal Desk resolves it on Crustdata and pulls headcount, funding, founders, hiring and news.</p>
+      <div className="mt-4 flex gap-2">
+        <input aria-label="Company domain" value={v} onChange={(e) => setV(e.target.value)} placeholder="company.com" className="h-9 min-w-0 flex-1 rounded-full bg-white px-4 text-[13px] ring-1 ring-zinc-200 outline-none focus:ring-zinc-400" />
+        <Btn variant="primary" type="submit">Research</Btn>
+      </div>
+    </form>
   );
 }

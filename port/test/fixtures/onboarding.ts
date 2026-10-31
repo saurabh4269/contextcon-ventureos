@@ -1,4 +1,4 @@
-import type { OnboardingData } from "../types";
+import type { OnboardingData } from "../../src/types";
 
 /** POST /api/firm/onboarding — body is the final OnboardingData (minus `working`). */
 export function onboarding(step: 1 | 2 | 3 | 4 | 5 = 1): OnboardingData {

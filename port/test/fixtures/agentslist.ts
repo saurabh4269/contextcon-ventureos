@@ -1,5 +1,5 @@
-import type { AgentListRow, AgentRunRow, AgentsListData, CompanyRef } from "../types";
-import { ROUTES } from "../routes";
+import type { AgentListRow, AgentRunRow, AgentsListData, CompanyRef } from "../../src/types";
+import { ROUTES } from "../../src/routes";
 import { helioLive } from "./helio";
 
 const co = (id: string, name: string, line: string, dark?: boolean): CompanyRef => ({ id, name, initial: name[0], line, ...(dark ? { dark } : {}) });

@@ -304,6 +304,7 @@ function StatusLine({ c }: { c: Connector }) {
 const BTN = "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[12.5px] font-medium motion-safe:transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
 const BTN_GHOST = "border border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_1px_rgba(9,9,11,.04)] hover:border-zinc-300 hover:text-ink";
 function Action({ c, onConnect, onManage }: { c: Connector; onConnect: (id: string) => void; onManage: (id: string) => void }) {
+  if (c.catalogueOnly) return <span className="inline-flex h-8 items-center text-[12px] text-zinc-400" title="Not integrated in this build — shown so you can see what it would do.">Not built yet</span>;
   if (c.status === "connected") return <button type="button" onClick={() => onManage(c.id)} aria-label={`Manage ${nameOf(c)}`} className={cx(BTN, BTN_GHOST)}><Settings2 className="size-3.5 text-zinc-400" />Manage</button>;
   if (c.status === "attention") return <button type="button" onClick={() => onConnect(c.id)} aria-label={`Reconnect ${nameOf(c)}`} className={cx(BTN, "border border-warn-100 bg-warn-50 text-warn hover:bg-[#f7ecd5]")}><RotateCw className="size-3.5" />Reconnect</button>;
   return <button type="button" onClick={() => onConnect(c.id)} aria-label={`Connect ${nameOf(c)}`} className={cx(BTN, "border border-zinc-200 bg-white text-ink shadow-[0_1px_1px_rgba(9,9,11,.04)] hover:border-ink hover:bg-ink hover:text-white")}><Plus className="size-3.5" />Connect</button>;

@@ -1,4 +1,4 @@
-import type { DataRoomData, DealData, DealTeam, MemoData, RestrictedDeal, SourceRef } from "../types";
+import type { DataRoomData, DealData, DealTeam, MemoData, RestrictedDeal, SourceRef } from "../../src/types";
 import { nexaHeader, nexaValuation } from "./valuation";
 
 export const arrExcerptSource: SourceRef = {

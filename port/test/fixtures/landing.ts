@@ -1,5 +1,5 @@
-import { fitBand, type CompanyRef, type LandingData } from "../types";
-import { ROUTES } from "../routes";
+import { fitBand, type CompanyRef, type LandingData } from "../../src/types";
+import { ROUTES } from "../../src/routes";
 import { attachLogos } from "./logos";
 import { workRows } from "./todaysummary";
 import { helioSignals } from "./signals";
@@ -28,7 +28,7 @@ const GRAPH: { chip: string; label: string; pick: "first" | "last" | "all" }[] =
 const graph = GRAPH.flatMap((g) => { const c = chipById(g.chip); return c ? [{ id: g.chip, label: g.label, value: seg(c.value, g.pick), field: c.path ?? c.field, effect: c.tone ?? "flat" as const }] : []; });
 const byWeight = [...sg.fit.contributions].sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight));
 const weights = [...byWeight.filter((k) => k.weight > 0).slice(0, 3), ...byWeight.filter((k) => k.weight < 0)].map((k) => ({ id: k.id, label: k.label, weight: k.weight }));
-const helioFit = sg.fit.base.value + sg.fit.contributions.reduce((a, k) => a + k.weight, 0);
+const helioFit = (sg.fit.base.value ?? 0) + sg.fit.contributions.reduce((a, k) => a + k.weight, 0);
 
 export const landing: LandingData = {
   brand: "Deal Desk",

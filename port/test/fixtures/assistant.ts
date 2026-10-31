@@ -2,8 +2,8 @@
  * v3.2 · Docked assistant conversation, as a pure function of a frame (?frame=1..6) so the film can shoot any moment.
  * 1 empty · 2 thinking (Helio) · 3 answer with mini chart + follow-ups · 4 second question thinking · 5 answer with company rows · 6 deal card answer
  */
-import type { AssistantData, AssistantIcon, AssistantMsg, AssistantThread, Nav } from "../types";
-import { ROUTES } from "../routes";
+import type { AssistantData, AssistantIcon, AssistantMsg, AssistantThread, Nav } from "../../src/types";
+import { ROUTES } from "../../src/routes";
 import { helioGrowth } from "./helio";
 
 /** Scopes offered by the composer's context chip. */

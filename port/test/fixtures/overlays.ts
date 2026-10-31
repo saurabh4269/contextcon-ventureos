@@ -1,4 +1,4 @@
-import type { AgentRun, AskData, PaletteData } from "../types";
+import type { AgentRun, AskData, PaletteData } from "../../src/types";
 
 /** GET /api/runs/[id] (@assumed) — never exposes raw reasoning, only plan + evidence. */
 export const agentRun: AgentRun = {

@@ -1,6 +1,6 @@
 /** v3.2 · Meetings, founder calls and the just-in-time connect, all pre-filled by agents. */
-import type { BookCallData, ConnectAsk, MeetingItem, MeetPerson } from "../types";
-import { ROUTES } from "../routes";
+import type { BookCallData, ConnectAsk, MeetingItem, MeetPerson } from "../../src/types";
+import { ROUTES } from "../../src/routes";
 
 const saurabh: MeetPerson = { name: "Saurabh Gupta", email: "saurabh@northbeam.vc", role: "Partner", initials: "SG" };
 const maya: MeetPerson = { name: "Maya Kapoor", email: "maya@northbeam.vc", role: "Associate", initials: "MK" };

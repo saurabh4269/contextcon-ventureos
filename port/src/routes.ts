@@ -1,6 +1,6 @@
 /** Every href the UI emits. Edit this one file to match the real app's routes. */
 export const ROUTES = {
-  today: (mode: "invest" | "bank" = "invest") => (mode === "bank" ? "/today?mode=bank" : "/today"),
+  today: (_mode: "invest" | "bank" = "invest") => "/today",
   pipeline: "/pipeline",
   pipelineBoard: "/pipeline?board=1",
   watchlist: "/pipeline?view=watchlist",
@@ -15,9 +15,10 @@ export const ROUTES = {
   /** v4 · the agents list with one agent opened (Connectors "Used by" chips). */
   agentInList: (id: string) => `/agents?agent=${id}`,
   settings: (section?: string) => (section ? `/settings?section=${section}` : "/settings"),
-  deal: (id: string) => `/deal?id=${id}`,
-  dataRoom: (id: string) => `/deal/room?id=${id}`,
-  memo: (id: string) => `/memo?id=${id}`,
+  /** A deal id is the company domain (e.g. e2b.dev). */
+  deal: (id: string) => `/deal?domain=${encodeURIComponent(id)}`,
+  dataRoom: (id: string) => `/deal/room?id=${encodeURIComponent(id)}`,
+  memo: (id: string) => `/memo?id=${encodeURIComponent(id)}`,
   /** v3.2 · the assistant as a full page (dock → expand). */
   ask: (from?: string) => (from ? `/ask?from=${from}` : "/ask"),
   person: (id: string) => `/person?id=${id}`,

@@ -1,12 +1,12 @@
+import { fixtureClient } from "@/test/crustdata";
 import { describe, expect, it } from "vitest";
-import { createCrustdataClient } from "@/lib/crustdata";
 import { researchCompany } from "@/lib/live/research";
 import type { ResearchResult } from "@/lib/live/types";
 import { toLiveDeal, toSignalGraph } from "./deal";
 
 const now = new Date("2026-10-31T06:00:00Z");
 async function e2b() {
-  const r = await researchCompany(createCrustdataClient({ forceFixture: true }), "e2b.dev");
+  const r = await researchCompany(fixtureClient(), "e2b.dev");
   if (r.status !== "ok") throw new Error(`expected ok, got ${r.status}`);
   return r as Extract<ResearchResult, { status: "ok" }>;
 }
