@@ -37,7 +37,8 @@ const chips = (xs: (SignalChip | null)[]) => xs.filter((x): x is SignalChip => !
 const spark = (id: string, field: string, label: string, pts: Point[], fmt: (v: number) => string): SignalSpark | null =>
   pts.length >= 2 ? { id, field, label, points: pts.map((p) => ({ date: p.date, v: p.v })), value: fmt(pts[pts.length - 1]!.v) } : null;
 /** Crustdata was down and this call was answered from the last good cached response: say so, with when (IST). */
-const staleChip = (c: LiveCall): SignalChip[] => (c.stale ? [{ id: "stale", field: "cached", value: "stale", path: c.note ?? `cached at ${fmtDateTime(c.retrievedAt)}`, short: "cached" }] : []);
+const staleChip = (c: LiveCall): SignalChip[] =>
+  c.stale ? [{ id: "stale", field: "cached", value: "stale", path: c.note?.split(" · ")[0] ?? `cached at ${fmtDateTime(c.retrievedAt)}`, short: "cached" }] : [];
 const errChip = (c: LiveCall): SignalChip[] => (c.status === "error" ? [{ id: "err", field: "error", value: "failed", path: c.error ?? "request failed" }] : c.status === "skipped" ? [{ id: "skip", field: "skipped", value: "—", path: c.note ?? "skipped" }] : []);
 
 export function toSignalGraph(r: Ok, now: Date = new Date()): SignalGraphData {
@@ -323,7 +324,7 @@ export function noMatchSignals(domain: string, identify: LiveCall, requestedAt: 
       {
         id: "identify", method: identify.method, path: identify.path, body: JSON.stringify(identify.body), ms: identify.ms, icon: "identify",
         // identify.note carries the route's "did you mean" suggestions for a typo'd domain (never auto-picked)
-        chips: [{ id: "m", field: "matches", value: "[]", path: "[0].matches" }, ...(identify.note && /Did you mean /.test(identify.note) ? [{ id: "dym", field: "did you mean", value: identify.note.replace(/^.*Did you mean /, "").replace(/\?$/, ""), path: identify.note, short: "did you mean" }] : [])],
+        chips: [{ id: "m", field: "matches", value: "[]", path: "[0].matches" }, ...staleChip(identify), ...(identify.note && /Did you mean /.test(identify.note) ? [{ id: "dym", field: "did you mean", value: identify.note.replace(/^.*Did you mean /, "").replace(/\?$/, ""), path: identify.note, short: "did you mean" }] : [])],
       },
     ],
     fit: { label: "Signal score", unscored: { reason: "No company matched, so there is nothing to score." }, base: { label: "—", value: null }, bands: { strong: "Strong", maybe: "Possible", weak: "Weak" }, contributions: [], recommendation: { label: "", why: "", actions: [] } },

@@ -18,12 +18,12 @@ export class CrustdataApiError extends Error {
     retryAfterSeconds: number | null = null,
   ) {
     const detail =
-      typeof body.error === "object"
-        ? body.error.message
-        : body.description ?? body.reason ?? String(body.error ?? status);
+      body?.error && typeof body.error === "object"
+        ? body.error.message ?? body.error.type ?? String(status)
+        : body?.description ?? body?.reason ?? String(body?.error ?? status);
     super(`Crustdata ${status}: ${detail}`);
     this.status = status;
-    this.body = body;
+    this.body = body ?? {};
     this.retryAfterSeconds = retryAfterSeconds;
   }
 }
@@ -35,7 +35,8 @@ export class CrustdataApiError extends Error {
 export class RateLimiter {
   private calls = new Map<string, number[]>();
 
-  async acquire(path: string): Promise<void> {
+  /** Waits for a slot; with `deadline` (epoch ms), throws a timeout instead of waiting past it. */
+  async acquire(path: string, deadline = Infinity): Promise<void> {
     const key = rateLimitKeyForPath(path);
     const rpm = rpmForPath(path);
     for (;;) {
@@ -47,10 +48,22 @@ export class RateLimiter {
         return;
       }
       this.calls.set(key, recent);
-      await sleep(Math.max(50, 60_000 - (now - recent[0]!)));
+      const wait = Math.max(50, 60_000 - (now - recent[0]!));
+      if (now + wait >= deadline) {
+        throw new CrustdataTransportError("timeout", `Crustdata ${key}: the rate limit (${rpm}/min) needs a ${Math.ceil(wait / 1000)} s wait, past this request's deadline`);
+      }
+      await sleep(wait);
     }
   }
 }
+
+/** Connection errors that prove the request never reached the server (safe to resend even a write). */
+const NEVER_CONNECTED = new Set(["ECONNREFUSED", "ENOTFOUND", "EAI_AGAIN", "ENETUNREACH", "EHOSTUNREACH"]);
+const errorCode = (e: unknown): string | undefined => {
+  const x = e as { code?: unknown; cause?: { code?: unknown } } | null;
+  const code = x?.cause?.code ?? x?.code;
+  return typeof code === "string" ? code : undefined;
+};
 
 /** Thrown when no HTTP response arrived: the attempt timed out or the connection failed. */
 export class CrustdataTransportError extends Error {
@@ -65,9 +78,9 @@ export class CrustdataTransportError extends Error {
 /** A 2xx whose body is not the JSON the endpoint documents (truncated proxy page, HTML error page, empty body). */
 export class CrustdataMalformedResponseError extends Error {
   readonly status: number;
-  constructor(status: number, method: string, path: string, text: string) {
+  constructor(status: number, method: string, path: string, text: string, problem = "not valid JSON") {
     const head = text.replace(/[\u0000-\u001f\u007f]+/g, " ").trim().slice(0, 120);
-    super(`Crustdata ${method} ${path} returned a response that is not valid JSON (HTTP ${status}${head ? `, starts "${head}"` : ", empty body"})`);
+    super(`Crustdata ${method} ${path} returned a response that is ${problem} (HTTP ${status}${head ? `, starts "${head}"` : ", empty body"})`);
     this.name = "CrustdataMalformedResponseError";
     this.status = status;
   }
@@ -167,82 +180,112 @@ export async function crustdataFetch<T>(
 
   while (true) {
     attempt += 1;
-    opts.breaker?.check(breakerKey);
-    await limiter.acquire(path);
-    const remaining = deadline - Date.now();
-    if (remaining <= 0) {
-      opts.breaker?.release(breakerKey);
+    if (Date.now() >= deadline) {
       throw new CrustdataTransportError("timeout", `Crustdata ${method} ${path} ran out of time (deadline reached after ${attempt - 1} attempt(s))`);
     }
-    const attemptTimeout = Math.min(timeoutMs, remaining);
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), attemptTimeout);
-    let res: Response;
-    let text: string;
+    opts.breaker?.check(breakerKey);
+    // every attempt records success/failure on the breaker; if it ends any other way (deadline, a thrown bug), the
+    // half-open trial slot is released in `finally` so the circuit can never get stuck
+    let recorded = false;
+    const failed = (message: string) => {
+      recorded = true;
+      opts.breaker?.failure(breakerKey, message);
+    };
+    const succeeded = () => {
+      recorded = true;
+      opts.breaker?.success(breakerKey);
+    };
     try {
-      res = await (opts.fetchImpl ?? fetch)(`${CRUSTDATA_BASE_URL}${path}`, {
-        ...init,
-        signal: controller.signal,
-        headers: {
-          authorization: `Bearer ${apiKey}`,
-          "content-type": "application/json",
-          "x-api-version": CRUSTDATA_API_VERSION,
-          ...(init.headers ?? {}),
-        },
-      });
-      text = await res.text();
-    } catch (e) {
-      clearTimeout(timer);
-      const timedOut = controller.signal.aborted;
-      const err = new CrustdataTransportError(
-        timedOut ? "timeout" : "network",
-        `Crustdata ${method} ${path} ${timedOut ? `timed out after ${attemptTimeout} ms` : `transport error: ${e instanceof Error ? e.message : String(e)}`}`,
-      );
-      opts.breaker?.failure(breakerKey, err.message);
-      // a write that never connected cannot have reached Crustdata; one reconnect is safe
-      const canReplay = replayable || (!timedOut && !writeReconnected);
-      if (await retryTransient(canReplay)) {
-        if (!replayable) writeReconnected = true;
-        continue;
+      await limiter.acquire(path, deadline);
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) throw new CrustdataTransportError("timeout", `Crustdata ${method} ${path} ran out of time (deadline reached after ${attempt - 1} attempt(s))`);
+      const attemptTimeout = Math.min(timeoutMs, remaining);
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), attemptTimeout);
+      let res: Response | undefined;
+      let text: string;
+      try {
+        res = await (opts.fetchImpl ?? fetch)(`${CRUSTDATA_BASE_URL}${path}`, {
+          ...init,
+          signal: controller.signal,
+          headers: {
+            authorization: `Bearer ${apiKey}`,
+            "content-type": "application/json",
+            "x-api-version": CRUSTDATA_API_VERSION,
+            ...(init.headers ?? {}),
+          },
+        });
+        text = await res.text();
+      } catch (e) {
+        const timedOut = controller.signal.aborted;
+        const err = new CrustdataTransportError(
+          timedOut ? "timeout" : "network",
+          `Crustdata ${method} ${path} ${timedOut ? `timed out after ${attemptTimeout} ms` : `transport error: ${e instanceof Error ? e.message : String(e)}`}`,
+        );
+        failed(err.message);
+        // a write is resent only when the connection provably never opened (no response, DNS/refused); a reset or a
+        // failed body read may come after Crustdata acted on it
+        const neverConnected = !res && !timedOut && NEVER_CONNECTED.has(errorCode(e) ?? "");
+        if (await retryTransient(replayable || (neverConnected && !writeReconnected))) {
+          if (!replayable) writeReconnected = true;
+          continue;
+        }
+        throw err;
+      } finally {
+        clearTimeout(timer);
       }
-      throw err;
-    }
-    clearTimeout(timer);
-    const creditsUsed = res.headers.get("X-Credits-Used");
-    const requestId = res.headers.get("X-Request-Id");
+      const creditsUsed = res.headers.get("X-Credits-Used");
+      const requestId = res.headers.get("X-Request-Id");
 
-    if (RETRYABLE_STATUS.has(res.status)) {
-      const err = new CrustdataApiError(res.status, (safeJson(text) as CrustdataErrorBody) ?? { error: text || res.statusText }, null);
-      opts.breaker?.failure(breakerKey, err.message);
-      if (await retryTransient(replayable)) continue;
-      throw err;
-    }
-    opts.breaker?.success(breakerKey); // any other answer means Crustdata is up
-
-    if (res.status === 429) {
-      const waitSec = parseRateLimitWaitSeconds(res.headers, attempt);
-      const waitMs = waitSec * 1000 + jitter();
-      if (attempt <= max429Retries && waited429 + waitMs <= max429WaitMs && Date.now() + waitMs < deadline) {
-        waited429 += waitMs;
-        await pause(waitMs);
-        continue;
+      if (RETRYABLE_STATUS.has(res.status)) {
+        const err = new CrustdataApiError(res.status, (safeJson(text) as CrustdataErrorBody) ?? { error: text || res.statusText }, null);
+        failed(err.message);
+        if (await retryTransient(replayable)) continue;
+        throw err;
       }
-      throw new CrustdataApiError(429, (safeJson(text) as CrustdataErrorBody) ?? { error: "rate limited" }, waitSec);
+      if (res.status === 429) {
+        succeeded(); // rate limited is an answer, not an outage
+        const waitSec = parseRateLimitWaitSeconds(res.headers, attempt);
+        const waitMs = waitSec * 1000 + jitter();
+        if (attempt <= max429Retries && waited429 + waitMs <= max429WaitMs && Date.now() + waitMs < deadline) {
+          waited429 += waitMs;
+          await pause(waitMs);
+          continue;
+        }
+        throw new CrustdataApiError(429, (safeJson(text) as CrustdataErrorBody) ?? { error: "rate limited" }, waitSec);
+      }
+      if (!res.ok) {
+        succeeded();
+        throw new CrustdataApiError(res.status, (safeJson(text) as CrustdataErrorBody) ?? { error: text || res.statusText }, null);
+      }
+      // 204 / DELETE may legitimately have no (or a non-JSON) body; every read endpoint returns JSON
+      if (res.status === 204 || method === "DELETE") {
+        succeeded();
+        return { data: (safeJsonOrNull(text) ?? null) as T, creditsUsed, requestId };
+      }
+      let data: T;
+      try {
+        data = JSON.parse(text) as T;
+      } catch {
+        const err = new CrustdataMalformedResponseError(res.status, method, path, text);
+        failed(err.message); // an HTML page behind a 200 is an outage (proxy/gateway), not an answer
+        if (await retryTransient(replayable)) continue;
+        throw err;
+      }
+      succeeded();
+      return { data, creditsUsed, requestId };
+    } finally {
+      if (!recorded) opts.breaker?.release(breakerKey);
     }
-    if (!res.ok) {
-      throw new CrustdataApiError(res.status, (safeJson(text) as CrustdataErrorBody) ?? { error: text || res.statusText }, null);
-    }
-    // 204 / DELETE may legitimately have no body; every read endpoint returns JSON
-    if (!text && (res.status === 204 || method === "DELETE")) return { data: null as T, creditsUsed, requestId };
-    let data: T;
-    try {
-      data = JSON.parse(text) as T;
-    } catch {
-      const err = new CrustdataMalformedResponseError(res.status, method, path, text);
-      if (await retryTransient(replayable)) continue;
-      throw err;
-    }
-    return { data, creditsUsed, requestId };
+  }
+}
+
+function safeJsonOrNull(text: string): unknown {
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
   }
 }
 

@@ -11,7 +11,7 @@ import { failureFrom } from "./failure";
 import { clean, normalizeCompany, normalizeDomainInput, normalizeLinkedInUrl } from "./normalize";
 import { researchCompany } from "./research";
 
-type Fault = number | "network" | "malformed" | "empty-200";
+type Fault = number | "network" | "malformed" | "empty-200" | "object-200";
 const noSleep = async () => {};
 
 /** Fixture fetch with faults injected for chosen endpoints ("POST /person/search" → 503, …). */
@@ -24,6 +24,7 @@ function faultyFetch(faults: () => Record<string, Fault>): typeof fetch {
     if (fault === "network") throw new TypeError("fetch failed");
     if (fault === "malformed") return new Response("<html>502 Bad Gateway</html>", { status: 200 });
     if (fault === "empty-200") return new Response(null, { status: 200 });
+    if (fault === "object-200") return new Response(JSON.stringify({ error: "unexpected" }), { status: 200 });
     return new Response(JSON.stringify({ error: { type: "internal_error", message: `injected ${fault}` } }), { status: fault });
   }) as typeof fetch;
 }
@@ -52,7 +53,7 @@ describe("research run with injected faults", () => {
     if (funding.status === "ok") expect(funding.citations[0]).toMatchObject({ endpoint: "POST /company/enrich", path: expect.stringContaining("total_investment_usd") });
   });
 
-  it.each([500, 503, "network", "malformed", "empty-200"] as const)("identify %s → a thrown, retryable failure — never no_match", async (fault) => {
+  it.each([500, 503, "network", "malformed", "empty-200", "object-200"] as const)("identify %s → a thrown, retryable failure — never no_match", async (fault) => {
     const err = await researchCompany(client({ "POST /company/identify": fault }), "e2b.dev").catch((e: unknown) => e);
     expect(err).toBeInstanceOf(Error);
     const f = failureFrom(err);

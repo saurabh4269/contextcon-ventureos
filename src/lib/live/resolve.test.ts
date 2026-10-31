@@ -241,3 +241,11 @@ describe("/api/live routes accept a domain or name", () => {
     expect((await get(news, "")).status).toBe(400);
   });
 });
+
+describe("resolveCompany on a broken identify body", () => {
+  it("a 200 that is not the documented array is an error, never no_match", async () => {
+    const fetchImpl = (async () => new Response(JSON.stringify({ error: "unexpected" }), { status: 200 })) as unknown as typeof fetch;
+    const client = createCrustdataClient({ apiKey: "test-key", fetchImpl });
+    await expect(resolveCompany(client, { kind: "domain", domain: "razorpay.com", raw: "razorpay.com" })).rejects.toThrow(/not the documented top-level array/);
+  });
+});
