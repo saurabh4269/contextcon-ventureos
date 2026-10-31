@@ -10,3 +10,10 @@ out/
 .DS_Store
 # Crustdata response cache (dev only; see README)
 .cache/
+# Verification media that may contain personal data (Gmail/Calendar captions) or large video
+verify_shots/voice/
+# reference material that must never be committed
+inspo/
+a16z/
+*.zip
+*dribbble*

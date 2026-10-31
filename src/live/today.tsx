@@ -91,8 +91,9 @@ function BookCall({ onBooked }: { onBooked: () => void }) {
     // <input type="datetime-local"> is the browser's local wall time; convert to an absolute UTC instant
     const s = new Date(start), end = new Date(s.getTime() + mins * 60_000);
     const r = await fetch("/api/connectors/calendar/events", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ summary: title.trim(), start: s.toISOString(), end: end.toISOString() }) });
-    const j = (await r.json().catch(() => null)) as { message?: string } | null;
+    const j = (await r.json().catch(() => null)) as { message?: string; transport?: string; label?: string } | null;
     if (!r.ok) return setMsg(`Not booked (HTTP ${r.status}): ${j?.message ?? r.statusText}`);
+    if (j?.transport === "dry_run") return setMsg(`${j.label}: would book “${title.trim()}” for ${fmtDateTime(s.toISOString())}.`);
     setMsg(`Booked for ${fmtDateTime(s.toISOString())}.`); setTitle(""); setStart(""); onBooked();
   };
   if (!open) return <button type="button" onClick={() => setOpen(true)} className="mt-3 h-8 rounded-full bg-white px-3.5 text-[12.5px] font-medium ring-1 ring-zinc-200 hover:text-ink">Book a call</button>;
@@ -103,7 +104,7 @@ function BookCall({ onBooked }: { onBooked: () => void }) {
         <input aria-label="Start time" type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} className="h-8 min-w-0 flex-1 rounded-lg bg-white px-2 text-[12.5px] ring-1 ring-zinc-200" />
         <select aria-label="Duration" value={mins} onChange={(e) => setMins(Number(e.target.value))} className="h-8 rounded-lg bg-white px-2 text-[12.5px] ring-1 ring-zinc-200">{DURATIONS.map((d) => <option key={d} value={d}>{d} min</option>)}</select>
       </div>
-      <div className="flex items-center gap-2"><button type="submit" className="h-8 rounded-full bg-ink px-3.5 text-[12.5px] font-medium text-white hover:bg-zinc-800">Book</button><button type="button" onClick={() => setOpen(false)} className="h-8 px-2 text-[12.5px] text-zinc-500">Cancel</button><span className="text-[11.5px] text-zinc-500">No invitations are sent.</span></div>
+      <div className="flex items-center gap-2"><button type="submit" className="h-8 rounded-full bg-ink px-3.5 text-[12.5px] font-medium text-white hover:bg-zinc-800">Book</button><button type="button" onClick={() => setOpen(false)} className="h-8 px-2 text-[12.5px] text-zinc-500">Cancel</button><span className="text-[11.5px] text-zinc-500">Dry run unless the server allows outbound; no invitations either way.</span></div>
       {msg && <p role="status" className="text-[12px] text-zinc-600">{msg}</p>}
     </form>
   );

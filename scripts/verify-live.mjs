@@ -24,7 +24,7 @@ const numbers = await api("/api/deals/e2b.dev/numbers");
 const founder = research.calls?.founders?.data?.people?.find((p) => p.linkedinUrl);
 
 const ROUTES = [
-  ["home", "/"], ["landing", "/landing"], ["pipeline", "/pipeline"], ["deal-prompt", "/deal"],
+  ["home", "/"], ["landing", "/landing"], ["today-sections", "/today"], ["pipeline", "/pipeline"], ["deal-prompt", "/deal"],
   ["deal-e2b", "/deal?domain=e2b.dev"], ["deal-e2b-overview", "/deal?domain=e2b.dev&tab=overview"], ["deal-e2b-team", "/deal?domain=e2b.dev&tab=team"],
   ["deal-e2b-market", "/deal?domain=e2b.dev&tab=market"], ["deal-e2b-valuation", "/deal?domain=e2b.dev&tab=valuation"],
   ["deal-nomatch", "/deal?domain=zz9-no-such-startup-qx7.com"], ["deal-room", "/deal/room?id=e2b.dev"],
@@ -40,6 +40,10 @@ const watch = (page, name) => {
   page.on("console", (m) => { if (m.type() === "error") consoleLog[name].push(m.text()); });
   page.on("pageerror", (e) => consoleLog[name].push(`pageerror: ${e.message}`));
 };
+// Personal content (Gmail senders/subjects, calendar titles, and the Today greeting captions that speak them) is
+// masked in every screenshot; the /today video is kept out of git (verify_shots/voice/ is gitignored).
+const shot = (page, file, opts = {}, privateCaptions = false) =>
+  page.screenshot({ path: file, ...opts, mask: [page.locator(privateCaptions ? '[data-private], [data-testid="voice-caption"], [data-testid="voice-dock"] details' : "[data-private]")], maskColor: "#d4d4d8" });
 const settle = async (page) => {
   await page.waitForLoadState("domcontentloaded");
   await page.waitForFunction(() => !document.querySelector('[aria-busy="true"]'), null, { timeout: 60000 }).catch(() => {});
@@ -53,7 +57,7 @@ for (const [name, url] of ROUTES) {
   watch(page, name);
   await page.goto(BASE + url, { waitUntil: "domcontentloaded" });
   await settle(page);
-  await page.screenshot({ path: `${OUT}/${name}.png`, fullPage: true });
+  await shot(page, `${OUT}/${name}.png`, { fullPage: true }, name.startsWith("today"));
 
   if (name === "deal-e2b") {
     const f = research.fields;
@@ -88,7 +92,7 @@ for (const [name, url] of ROUTES) {
     await page.getByTestId("voice-orb").click();
     await page.waitForSelector('[data-testid="voice-popover"][data-phase="speaking"], [data-testid="voice-popover"][data-phase="error"]', { timeout: 60000 }).catch(() => failures.push(`${name}: orb popover never spoke`));
     await page.waitForTimeout(1200);
-    await page.screenshot({ path: `${OUT}/${name}-orb-open.png` });
+    await shot(page, `${OUT}/${name}-orb-open.png`, {}, false);
     const phase = await page.getByTestId("voice-popover").getAttribute("data-phase");
     if (phase === "error") failures.push(`${name}: orb error: ${await page.getByTestId("voice-error").textContent()}`);
     await page.keyboard.press("Escape");
@@ -108,11 +112,11 @@ await ctx.close();
   await page.goto(BASE + "/today", { waitUntil: "domcontentloaded" });
   await page.waitForSelector('[data-testid="voice-dock"][data-phase="speaking"]', { timeout: 60000 }).catch(() => failures.push("today: greeting never reached speaking"));
   await page.waitForTimeout(2500);
-  await page.screenshot({ path: `${OUT}/today-voice-speaking.png` });
+  await shot(page, `${OUT}/today-voice-speaking.png`, {}, true);
   await page.waitForSelector('[data-testid="voice-dock"][data-phase="idle"]', { timeout: 90000 }).catch(() => failures.push("today: greeting never finished"));
   await page.waitForTimeout(3500); // memory panel polls; let greeting.played appear
-  await page.screenshot({ path: `${OUT}/today-voice-idle.png` });
-  await page.screenshot({ path: `${OUT}/today.png`, fullPage: true });
+  await shot(page, `${OUT}/today-voice-idle.png`, {}, true);
+  await shot(page, `${OUT}/today.png`, {fullPage: true}, true);
   const video = page.video();
   await vctx.close();
   if (video) fs.renameSync(await video.path(), `${VOICE}/today-greeting.webm`);
@@ -128,14 +132,14 @@ await browser.close();
   await page.goto(BASE + "/today", { waitUntil: "domcontentloaded" });
   await page.waitForSelector('[data-testid="voice-dock"]:is([data-phase="blocked"],[data-phase="speaking"])', { timeout: 60000 }).catch(() => {});
   const ph = await page.getByTestId("voice-dock").getAttribute("data-phase");
-  await page.screenshot({ path: `${OUT}/today-voice-blocked.png` });
+  await shot(page, `${OUT}/today-voice-blocked.png`, {}, true);
   if (ph !== "blocked") failures.push(`today without autoplay: expected "blocked" (Tap to hear), got ${ph}`);
   const e = await c2.newPage();
   watch(e, "today-voice-error");
   await e.route("**/api/voice/tts**", (r) => r.fulfill({ status: 502, contentType: "application/json", body: JSON.stringify({ status: "error", upstreamStatus: 401, message: "ElevenLabs TTS failed (401): simulated in the verification script" }) }));
   await e.goto(BASE + "/today", { waitUntil: "domcontentloaded" });
   await e.waitForSelector('[data-testid="voice-dock"][data-phase="error"]', { timeout: 60000 }).catch(() => failures.push("today: error state not shown"));
-  await e.screenshot({ path: `${OUT}/today-voice-error.png` });
+  await shot(e, `${OUT}/today-voice-error.png`, {}, true);
   consoleLog["today-voice-error"] = consoleLog["today-voice-error"].filter((m) => !/502/.test(m)); // the simulated 502 itself
   await b2.close();
 }
