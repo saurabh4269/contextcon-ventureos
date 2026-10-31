@@ -15,6 +15,7 @@ import { toCsv, toMarkdown, fmtFunding } from "@/lib/sourcing/export";
 import { WINDOW_MONTHS, type Interpretation } from "@/lib/sourcing/parse";
 import type { AgentRow, AgentStep, Founder } from "@/lib/sourcing/run";
 import { fmtMoney } from "@/lib/format";
+import { useLiveCoverage } from "@/components/datamode";
 import { liveShell } from "../shell";
 import { MicButton } from "../voice/MicButton";
 import { speak } from "../voice/speak";
@@ -32,6 +33,7 @@ const KIND_STYLE: Record<Interpretation["kind"], string> = {
 const KIND_LABEL: Record<Interpretation["kind"], string> = { filter: "filter", query: "ranked on", output: "return", default: "default", assumption: "assumed", correction: "typo" };
 
 export function AgentScreen() {
+  useLiveCoverage("Live · Crustdata");
   const params = useSearchParams();
   const router = useRouter();
   const initialQ = params.get("q") ?? "";

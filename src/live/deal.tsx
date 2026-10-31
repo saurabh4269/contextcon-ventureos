@@ -14,6 +14,7 @@ import { noMatchSignals, placeholderDeal, toLiveDeal, toValuationSection, withDe
 import type { ResearchResult } from "@/lib/live/types";
 import type { DecisionsResponse } from "@/lib/numbers/decisions";
 import type { DealSection } from "@port/types";
+import { useLiveCoverage } from "@/components/datamode";
 import { failureMessage, useLiveJson } from "./useLiveJson";
 import { recordEvent } from "./memory";
 
@@ -30,6 +31,7 @@ export function LiveDeal({ shell, domain, tab }: { shell: ShellData; domain: str
 }
 
 function LiveDealFor({ shell, domain, tab }: { shell: ShellData; domain: string; tab?: string }) {
+  useLiveCoverage("Live · Crustdata");
   const router = useRouter();
   const res = useLiveJson<Ok | NoMatch>(`/api/live/research?domain=${encodeURIComponent(domain)}`);
   const ok = res.state === "ok" && res.data.status === "ok" ? res.data : null;
