@@ -1,5 +1,8 @@
 # Deal Desk
 
+> ## 🚀 Live demo: **[contextcon.ventureos.xyz](https://contextcon.ventureos.xyz)**
+> Try it now: [Today inbox](https://contextcon.ventureos.xyz/today) · [Ask](https://contextcon.ventureos.xyz/ask) · [Detailed system diagram](docs/architecture/SYSTEM_DIAGRAM.md)
+
 **An agentic OS for venture investors, built on Crustdata: type or say a sourcing request, get a ranked, cited shortlist and a memo.**
 
 > **The trust rule:** every number on screen is live, computed and cited (value, method, inputs, source), or it says
