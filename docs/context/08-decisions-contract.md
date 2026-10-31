@@ -23,10 +23,10 @@ The decision keys (`DECISION_KEYS`) are `fitScore`, `screenerVerdict`, `valuatio
 ## How a response is built
 
 1. `resolveDealNumbers(id)` (`src/lib/numbers/resolve.ts`) runs the same cached Crustdata research as the deal page.
-2. `localDecisions()` builds this build's own values:
+2. `localDecisions()` builds this build's own values via `resolveDealNumbers()` → `computeLocalDeal()`:
+   - `fitScore`, `screenerVerdict`, diligence and IC memo fields come from the firm mandate × live research × peer search × review-queue memory when the inputs exist; otherwise **unavailable** with the exact reason (often pointing at `/settings/mandate`).
    - `valuationRange` exists only when both the low and high valuation are ok, and it carries their citations.
    - The return multiples and the comps median come from the valuation route when ok, otherwise from the numbers route.
-   - `screenerVerdict` is always unavailable here, with the reason "needs the firm thesis gates and an inbound pitch".
    - Everything passes through `enforceCited`, so an ok value with no source is withheld.
 3. `withBuilder()` brings in the optional decision-engine backend (next section).
 4. `withReview()` connects the response to the review queue. Pass `?review=0` to read without raising items.

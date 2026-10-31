@@ -51,6 +51,18 @@ describe("parseRequest", () => {
     expect(r.kind).toBe("refuse");
     if (r.kind === "refuse") expect(r.message).toMatch(/Try/);
   });
+
+  it("reads an unseen messy request (typo country, climate, seed) and marks unsupported role asks as ignored", () => {
+    const q = "seed climate tech startups in germny founded after 2022 who are their CTOs";
+    const r = parseRequest(q, NOW);
+    expect(r.kind).toBe("search");
+    if (r.kind !== "search") return;
+    expect(r.plan.countries.map((c) => c.code)).toEqual(["DEU"]);
+    expect(r.plan.keywords).toContain("climate tech");
+    expect(r.plan.stages).toEqual(["seed"]);
+    expect(r.plan.interpretation.some((i) => i.kind === "correction" && i.phrase === "germny")).toBe(true);
+    expect(r.plan.ignored).toContain("ctos");
+  });
 });
 
 describe("growthFromSeries", () => {
@@ -171,5 +183,18 @@ describe("runAgent", () => {
     expect(a.events.at(-1)).toMatchObject({ type: "error", kind: "not_connected" });
     const b = await run("asdf", null);
     expect(b.events.at(-1)).toMatchObject({ type: "refuse" });
+  });
+
+  it("finishes cited shortlist work for a request it has never seen (not the deck phrasing)", async () => {
+    const q = "four Indian B2B SaaS companies founded since 2024 whose team doubled, with founders and prior jobs";
+    const { f } = fakeFetch();
+    const { events, summary } = await run(q, f);
+    expect(summary).not.toBeNull();
+    expect(summary!.returned).toBeGreaterThan(0);
+    expect(summary!.sentence).toMatch(/nothing padded/);
+    const rows = events.filter((e): e is Extract<AgentEvent, { type: "row" }> => e.type === "row");
+    expect(rows.some((e) => e.row.growth.status === "ok" && e.row.growth.citations[0]!.endpoint)).toBe(true);
+    const md = toMarkdown(rows.map((e) => e.row), summary, q);
+    expect(md).toMatch(/\[\^1\]: Crustdata · POST \/company\/enrich/);
   });
 });
