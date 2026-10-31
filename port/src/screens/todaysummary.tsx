@@ -181,7 +181,7 @@ export function TodaySummaryScreen({ shell, data, overlay, filter: f0 = "all", o
             : <WorkList me={shell.user} rows={data.rows} filter={filter} onFilter={setFilter} onAction={onAction} waiting={waiting} />}
           <div className="grid flex-1 grid-cols-2 items-stretch gap-4">
             {data.live && <LiveRail run={data.live} boxed tone="sienna" className={cx(CARD, "h-full")} />}
-            <NextMeetings items={data.meetings} onOpen={onMeeting} active={activeMeeting} prepFooter className={cx(CARD, "h-full overflow-hidden")} />
+            <NextMeetings items={data.meetings} empty={data.meetingsEmpty} onOpen={onMeeting} active={activeMeeting} prepFooter className={cx(CARD, "h-full overflow-hidden")} />
           </div>
         </div>
       </div>)}

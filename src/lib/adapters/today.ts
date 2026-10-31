@@ -223,8 +223,13 @@ export type TodayInputs = {
   inbound: InboundWindow | { unavailable: string };
   inboundSpan: number;
   meetings: Meeting[];
+  /** why the calendar gave nothing (not connected, failed); omitted when it answered */
+  meetingsUnavailable?: string;
   ask: TodaySummaryData["ask"];
 };
+
+/** The Next meetings card's empty text: the calendar's failure, or that no upcoming event names a meeting kind. */
+export const meetingsEmptyText = (unavailable?: string) => unavailable ?? "No upcoming IC, board, LP or founder meetings on your calendar.";
 
 const WAITING: WaitingItem[] = [
   { id: "wt_review", label: "Decisions to review", kind: "review", href: "/review" },
@@ -250,6 +255,7 @@ export function toTodaySummary(x: TodayInputs): TodaySummaryData {
     waiting: { label: "Waiting on you", items: WAITING.filter((w) => rows.some((r) => r.action.kind === w.kind)) },
     rows,
     meetings: x.meetings.map((m) => toMeetingItem(m, x.now)).filter((m): m is MeetingItem => !!m),
+    meetingsEmpty: meetingsEmptyText(x.meetingsUnavailable),
   };
 }
 

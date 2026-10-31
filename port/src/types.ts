@@ -811,6 +811,8 @@ export interface TodaySummaryData {
   rows: WorkRow[];
   live?: LiveRun;
   meetings: MeetingItem[];
+  /** Next meetings card text when `meetings` is empty (live data: why there is nothing to show). */
+  meetingsEmpty?: string;
 }
 
 /* ───────────── v4 · Signal graph: how Crustdata data drives the fit score (deal page › Signals) ─────────────

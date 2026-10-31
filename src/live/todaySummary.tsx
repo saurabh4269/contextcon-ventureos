@@ -43,6 +43,7 @@ export function LiveTodaySummary({ shell, ask, pipeline }: { shell: ShellData; a
       : { unavailable: failureMessage(gmail, "Gmail") },
     inboundSpan: SPAN,
     meetings: cal.state === "ok" ? cal.data.events : [],
+    ...(cal.state === "failed" ? { meetingsUnavailable: failureMessage(cal, "Google Calendar") } : {}),
     ask,
   });
   return <TodaySummaryScreen shell={shell} data={data} />;

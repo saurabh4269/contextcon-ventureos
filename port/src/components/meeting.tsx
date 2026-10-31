@@ -208,7 +208,7 @@ export function BookCall({ d, state = "edit", slot, duration, onSlot, onDuration
 
 const KIND: Record<MeetingKind, { icon: typeof Video; label: string }> = { founder: { icon: Video, label: "Founder call" }, ic: { icon: Gavel, label: "Investment committee" }, board: { icon: Presentation, label: "Board" }, lp: { icon: Users, label: "LP" } };
 
-export function NextMeetings({ items, onOpen, active, className, prepFooter }: { items: MeetingItem[]; onOpen?: (id: string) => void; active?: string; className?: string; /** footer: how many prep briefs are ready (derived from items) */ prepFooter?: boolean }) {
+export function NextMeetings({ items, onOpen, active, className, prepFooter, empty }: { items: MeetingItem[]; onOpen?: (id: string) => void; active?: string; className?: string; /** footer: how many prep briefs are ready (derived from items) */ prepFooter?: boolean; /** shown in the list when there are no meetings (e.g. calendar not connected) */ empty?: string }) {
   const withPrep = items.filter((m) => m.prep), ready = withPrep.filter((m) => m.prep?.ready).length;
   return (
     <section className={cx("flex flex-col", className ?? "rounded-2xl border border-zinc-200/80 bg-white")}>
@@ -219,9 +219,10 @@ export function NextMeetings({ items, onOpen, active, className, prepFooter }: {
             <span className="tnum text-[12.5px] font-medium whitespace-nowrap">{m.time}<span className="block text-[10.5px] font-normal text-zinc-400">{m.day}</span></span>
             {m.company ? <CompanyLogo c={m.company} size={24} /> : <Avatar i={m.people[0].initials} size={24} />}
             <span className="min-w-0"><span className="block truncate text-[13px] font-medium">{m.title}</span><span className="flex min-w-0 items-center gap-1 text-[11.5px] text-zinc-500"><K.icon className="size-3 shrink-0" /><span className="truncate">{K.label} · {m.duration}</span></span></span>
-            <span className="inline-flex items-center gap-1 whitespace-nowrap text-[11.5px] text-zinc-500">{m.prep?.ready ? "Prep" : "Prep at 2pm"}<ChevronRight className="size-3.5" /></span>
+            <span className="inline-flex items-center gap-1 whitespace-nowrap text-[11.5px] text-zinc-500">{m.prep ? (m.prep.ready ? "Prep" : "Prep at 2pm") : null}<ChevronRight className="size-3.5" /></span>
           </button></li>
         ); })}
+        {items.length === 0 && empty && <li data-testid="meetings-empty" className="flex items-center gap-2.5 px-4 py-4 text-[12.5px] text-zinc-500"><CalendarClock className="size-3.5 shrink-0 text-zinc-300" />{empty}</li>}
       </ul>
       {prepFooter && withPrep.length > 0 && (
         <div className="mt-auto flex items-center gap-3 border-t border-zinc-100 px-4 py-3 text-[11.5px] text-zinc-500">

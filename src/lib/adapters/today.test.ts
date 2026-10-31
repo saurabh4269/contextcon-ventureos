@@ -104,6 +104,11 @@ describe("meetings", () => {
     expect(meetingKind("Founder intro call")).toBe("founder");
     expect(meetingKind("Dentist")).toBeNull();
   });
+  it("the card gets an honest empty text: the calendar's failure, or no matching meeting", () => {
+    const base = { now, greeting: "", open: 0, inboundSpan: 7, inbound: { unavailable: "x" }, deals: [], ask: { prompt: "", chips: [], placeholder: "" } };
+    expect(toTodaySummary({ ...base, meetings: [] }).meetingsEmpty).toBe("No upcoming IC, board, LP or founder meetings on your calendar.");
+    expect(toTodaySummary({ ...base, meetings: [], meetingsUnavailable: "Google Calendar is not connected." }).meetingsEmpty).toBe("Google Calendar is not connected.");
+  });
 });
 
 describe("toTodaySummary", () => {
@@ -114,11 +119,22 @@ describe("toTodaySummary", () => {
       pipeline: [{ domain: "alpha.test", name: "alpha", href: "/deal?domain=alpha.test", source: "inbound", at: "2026-10-31T00:00:00Z" }, { domain: "beta.test", name: "beta", href: "/deal?domain=beta.test", source: "researched", at: "2026-10-30T00:00:00Z" }],
     });
     expect(d.rows.map((r) => r.id)).toEqual(["alpha.test", "beta.test"]);
+    expect(d.rows.map((r) => r.stage)).toEqual(["new", "new"]); // nobody moved them: New
     expect(d.hero.value).toBe(1);
     expect(d.waiting!.items.map((w) => w.kind)).toEqual(["review"]);
     expect(d.date).toBe("Saturday, 31 October");
     const empty = toTodaySummary({ now, greeting: "", open: 0, inboundSpan: 7, inbound: { unavailable: "x" }, meetings: [], deals: [], ask: { prompt: "", chips: [], placeholder: "" } });
     expect(empty.rows).toEqual([]);
     expect(empty.sub).toBe("Nothing waits for you in Review.");
+  });
+  it("stages come from the deal-stage rows; closed deals are not work for today", () => {
+    const d = toTodaySummary({
+      now, greeting: "", open: 0, inboundSpan: 7, inbound: { unavailable: "x" }, meetings: [], ask: { prompt: "", chips: [], placeholder: "" }, deals: [],
+      pipeline: [
+        { domain: "alpha.test", name: "Alpha", href: "/workflow?id=w1", source: "tracked", at: "2026-10-31T00:00:00Z", stage: "ic", owner: null, workflowId: "w1" },
+        { domain: "omega.test", name: "Omega", href: "/workflow?id=w2", source: "tracked", at: "2026-10-30T00:00:00Z", stage: "portfolio", owner: null, workflowId: "w2" },
+      ],
+    });
+    expect(d.rows.map((r) => [r.id, r.stage, r.href, r.company.name])).toEqual([["alpha.test", "ic", "/workflow?id=w1", "Alpha"]]);
   });
 });
