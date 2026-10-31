@@ -2,8 +2,9 @@
 //   - organizational memory (what happened since the last played greeting; the latest deal researched/opened),
 //   - connector status (what needs attention; whether inbound sources are connected at all).
 // Nothing is canned: every clause comes from a fact below, and every fact carries its source. With an LLM key
-// (ANTHROPIC_API_KEY) the deterministic draft is rephrased by the model under "add no facts" instructions; without one
+// (OPENAI_API_KEY or ANTHROPIC_API_KEY) the deterministic draft is rephrased by the model under "add no facts" instructions; without one
 // the deterministic text is used as is (composer: "deterministic"). An LLM failure is reported, not hidden.
+import { DEFAULT_OPENAI_FAST_MODEL, modelFromEnv, openaiModel } from "@/lib/agent/model";
 import { fmtDate, fmtTime, DISPLAY_TZ } from "@/lib/format";
 import type { InboxThread } from "@/lib/google/gmail";
 import type { Meeting } from "@/lib/google/calendar";
@@ -112,23 +113,18 @@ export function composeGreeting(input: { name?: string | null; memory: Memory; c
   return { text: parts.join(" "), sources, facts };
 }
 
-/** Rephrase with Claude (Anthropic Messages API) without adding facts. Throws on failure (caller reports it). */
+/** Rephrase with the configured model (Anthropic, else OpenAI: same selection as the research agent) without adding facts. Throws on failure (caller reports it). */
 export async function rephraseWithLlm(draft: string, facts: Record<string, unknown>, env: Record<string, string | undefined>, f: typeof fetch = fetch): Promise<string> {
-  const key = env.ANTHROPIC_API_KEY?.trim();
-  if (!key) throw new Error("ANTHROPIC_API_KEY not set");
-  const r = await f("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-    body: JSON.stringify({
-      model: env.DEALDESK_LLM_MODEL?.trim() || "claude-sonnet-5-5",
-      max_tokens: 400,
-      system: "You are the Deal Desk voice assistant speaking to a venture investor. Turn the factual draft into warm, natural speech, or answer the question in the facts if there is one. Use ONLY the facts given; never add companies, numbers, events or dates; if the facts do not answer the question, say so. Keep every number exactly. Plain text, no markdown, under 90 words.",
-      messages: [{ role: "user", content: `Facts (JSON): ${JSON.stringify(facts)}\n\nDraft: ${draft}\n\nWrite what to say.` }],
-    }),
+  // OpenAI path uses the light model with low reasoning: this is phrasing, spoken within seconds
+  const oa = env.OPENAI_API_KEY?.trim();
+  const model = !env.ANTHROPIC_API_KEY?.trim() && oa ? openaiModel(oa, env.OPENAI_FAST_MODEL?.trim() || DEFAULT_OPENAI_FAST_MODEL, f, { reasoningEffort: "low" }) : modelFromEnv(env, f);
+  if (!model) throw new Error("no AI model key set (OPENAI_API_KEY or ANTHROPIC_API_KEY)");
+  const turn = await model.complete({
+    system: "You are the Deal Desk voice assistant speaking to a venture investor. Turn the factual draft into warm, natural speech, or answer the question in the facts if there is one. Use ONLY the facts given; never add companies, numbers, events or dates; if the facts do not answer the question, say so. Keep every number exactly. Plain text, no markdown, under 90 words.",
+    messages: [{ role: "user", text: `Facts (JSON): ${JSON.stringify(facts)}\n\nDraft: ${draft}\n\nWrite what to say.` }],
+    tools: [],
+    maxTokens: 4000,
   });
-  const j = (await r.json().catch(() => null)) as { content?: { type: string; text?: string }[]; error?: { message?: string } } | null;
-  if (!r.ok) throw new Error(`Anthropic /v1/messages → ${r.status}${j?.error?.message ? `: ${j.error.message}` : ""}`);
-  const text = j?.content?.filter((c) => c.type === "text").map((c) => c.text).join("").trim();
-  if (!text) throw new Error("Anthropic returned no text");
-  return text;
+  if (!turn.text) throw new Error(`${model.provider} returned no text`);
+  return turn.text;
 }

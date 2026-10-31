@@ -1,7 +1,7 @@
 import "server-only";
 // One entry point for everything the voice assistant says: the /today greeting, the per-screen line of the floating
 // orb, and answers to a spoken/typed question. Facts come from memory + connector status; an LLM (Anthropic) is used
-// only when ANTHROPIC_API_KEY is set, and only to phrase those facts. Without it, questions get an honest reply.
+// only when a model key (OPENAI_API_KEY or ANTHROPIC_API_KEY) is set, and only to phrase those facts. Without it, questions get an honest reply.
 import { listIntegrations } from "@/lib/live/integrations";
 import { memoryStore, recordMemory } from "@/lib/memory/store";
 import { composeGreeting, rephraseWithLlm, type Greeting } from "./greeting";
@@ -9,6 +9,7 @@ import { composeScreenLine, type ScreenContext } from "./screen";
 import { googleConfig, GoogleApiError } from "@/lib/google/oauth";
 import { listInboxThreads } from "@/lib/google/gmail";
 import { listUpcoming } from "@/lib/google/calendar";
+import { modelFromEnv } from "@/lib/agent/model";
 import { withResilience } from "@/lib/resilience";
 
 const INBOX_MAX = 10; // threads read for the greeting
@@ -38,14 +39,14 @@ export async function buildBrief(ctx: ScreenContext & { question?: string | null
   const draft = ctx.screen === "today" && !ctx.question
     ? composeGreeting({ name: process.env.DEALDESK_GREETING_NAME?.trim() || null, memory, connectors, inbox, meetings })
     : composeScreenLine(ctx, memory, connectors);
-  const llm = !!process.env.ANTHROPIC_API_KEY?.trim();
+  const llm = !!modelFromEnv(process.env);
   let text = draft.text, composer: Greeting["composer"] = "deterministic", llmError: string | undefined;
   if (ctx.question && !llm) text = `I heard: “${ctx.question}”. I can't answer free-form questions yet: no AI model is connected. Here's what I know: ${draft.text}`;
   if (llm) {
     // bounded: a slow or down model falls back to the deterministic draft (same facts) with the reason in llmError
     const facts = { ...draft.facts, ...(ctx.question ? { question: ctx.question } : {}) };
     try {
-      text = await withResilience(({ signal }) => rephraseWithLlm(draft.text, facts, process.env, ((u, i) => fetch(u, { ...i, signal })) as typeof fetch), { label: "Anthropic (voice phrasing)", timeoutMs: 12_000, deadlineMs: 20_000, retries: 1 });
+      text = await withResilience(({ signal }) => rephraseWithLlm(draft.text, facts, process.env, ((u, i) => fetch(u, { ...i, signal })) as typeof fetch), { label: "AI model (voice phrasing)", timeoutMs: 12_000, deadlineMs: 20_000, retries: 1 });
       composer = "llm";
     }
     catch (e) { llmError = e instanceof Error ? e.message : String(e); }
