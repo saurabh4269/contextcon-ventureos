@@ -7,7 +7,7 @@ import { fmtMoney, money } from "@/lib/format";
 
 type Research = Extract<ResearchResult, { status: "ok" }>;
 
-const ENRICH_ROOT = "[0].matches[0].company_data";
+export const ENRICH_ROOT = "[0].matches[0].company_data";
 const cite = (call: LiveCall, path: string, url?: string): Citation => ({
   source: "Crustdata",
   endpoint: `${call.method} ${call.path}`,
