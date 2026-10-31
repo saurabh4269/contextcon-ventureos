@@ -288,7 +288,7 @@ Server-side OAuth refresh (`GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN`); access toke
 * `GET /api/connectors/calendar/events?max=<1..25>` → `{status:"ok", events:[{id, summary, start, end, allDay, attendees, link}]}` (primary, from now).
 * `POST /api/connectors/calendar/events {summary, start, end, description?, attendees?}` → with `OUTBOUND_MODE=dry_run`
   (default): 200 `{status:"ok", transport:"dry_run", label, wouldSend}`; live: 201 `{transport:"live", event}` (`sendUpdates=none`).
-* `DELETE /api/connectors/calendar/events/:id` → 204, or 410 if already gone.
+* `DELETE /api/connectors/calendar/events/:id` → 204, or 410 if already gone, when `OUTBOUND_MODE=live`. In dry run (default) nothing is deleted: 200 `{transport:"dry_run", wouldSend:{eventId}}`.
 
 ## Voice
 

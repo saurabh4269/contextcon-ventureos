@@ -481,3 +481,31 @@ describe("verifyAnswer filters", () => {
     expect(out.filters.map((f) => f.relaxed)).toEqual([undefined, undefined, "Lowered growth from 50% to 30%: only 4 matches"]);
   });
 });
+
+describe("runScreenAgent — client abort", () => {
+  it("stops before the next model turn and the next Crustdata call once the signal aborts (no more credits)", async () => {
+    const { client, log } = crustFetch({ "POST /company/search": { body: COMPANIES, credits: "0.46" }, "POST /person/search": { body: PEOPLE, credits: "0.92" } });
+    const ac = new AbortController();
+    const model = scriptedModel([
+      turn("Search first.", call("search_companies", SEARCH_INPUT)),
+      turn("Then people.", call("search_people", PEOPLE_INPUT)),
+    ]);
+    const events: ScreenEvent[] = [];
+    const result = await runScreenAgent({ query: QUERY, model, client, now: NOW, signal: ac.signal, emit: (e) => { events.push(e); if (e.type === "tool_result") ac.abort(); } });
+    expect(model.seen).toHaveLength(1); // the second turn never started
+    expect(log.filter((l) => l.path === "/company/search")).toHaveLength(1);
+    expect(log.filter((l) => l.path === "/person/search")).toHaveLength(0);
+    expect(result.status).toBe("incomplete");
+    expect(result.caveats.join(" ")).toMatch(/disconnect|stopped|abort/i);
+  });
+  it("does not start at all when the signal is already aborted", async () => {
+    const { client, log } = crustFetch({});
+    const ac = new AbortController();
+    ac.abort();
+    const model = scriptedModel([]);
+    const result = await runScreenAgent({ query: QUERY, model, client, now: NOW, signal: ac.signal });
+    expect(model.seen).toHaveLength(0);
+    expect(log).toHaveLength(0);
+    expect(result.status).toBe("incomplete");
+  });
+});

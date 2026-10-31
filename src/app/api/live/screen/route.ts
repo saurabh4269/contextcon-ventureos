@@ -39,7 +39,7 @@ export async function POST(req: Request) {
         }
       };
       try {
-        await runScreenAgent({ query, model, client, emit });
+        await runScreenAgent({ query, model, client, emit, signal: req.signal });
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
         console.error(`[live] /api/live/screen failed: ${message}`);

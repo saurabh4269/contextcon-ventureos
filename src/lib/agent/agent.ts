@@ -17,6 +17,8 @@ export type AgentOptions = {
   creditCap?: number; // Crustdata credits for the whole run
   emit?: (e: ScreenEvent) => void;
   now?: () => Date;
+  /** aborts the run between model turns and before each Crustdata call (the browser left: stop spending credits) */
+  signal?: AbortSignal;
 };
 
 export const DEFAULT_MAX_STEPS = 14;
@@ -188,8 +190,9 @@ export async function runScreenAgent(opts: AgentOptions): Promise<ScreenResult> 
     steps,
   });
 
+  const stopped = () => opts.signal?.aborted === true;
   let nudged = 0;
-  while (steps < maxSteps) {
+  while (steps < maxSteps && !stopped()) {
     steps++;
     if (steps === maxSteps) messages.push({ role: "user", text: `This is your last turn: call ${SUBMIT_TOOL} now with what you have (null for anything missing).` });
     emit({ type: "thinking", step: steps });
@@ -207,6 +210,7 @@ export async function runScreenAgent(opts: AgentOptions): Promise<ScreenResult> 
 
     const results: { id: string; content: string; isError?: boolean }[] = [];
     for (const call of turn.toolCalls) {
+      if (stopped()) break;
       if (call.name === SUBMIT_TOOL) {
         const body = verifyAnswer(call.input as SubmitInput, ctx.ledger, ctx.raw);
         if (!body.rows.length && !body.summary) {
@@ -233,11 +237,11 @@ export async function runScreenAgent(opts: AgentOptions): Promise<ScreenResult> 
   }
 
   const result = finish("incomplete", {
-    summary: `Stopped after ${steps} model turns without a final answer.`,
+    summary: stopped() ? `Stopped after ${steps} model turns: the client disconnected.` : `Stopped after ${steps} model turns without a final answer.`,
     columns: [],
     rows: [],
     filters: [],
-    caveats: [`The agent hit its step limit (${maxSteps}) or stopped before submitting an answer; the tool calls it made are listed.`],
+    caveats: [stopped() ? "The client disconnected, so the run was stopped before an answer; the tool calls it made are listed." : `The agent hit its step limit (${maxSteps}) or stopped before submitting an answer; the tool calls it made are listed.`],
     citationStats: { verified: 0, corrected: 0, unavailable: 0 },
   });
   emit({ type: "final", result });
