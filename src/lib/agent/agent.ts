@@ -226,7 +226,7 @@ export async function runScreenAgent(opts: AgentOptions): Promise<ScreenResult> 
       const r = await runTool(ctx, registry, call.name, call.input);
       toolMs += Date.now() - tt;
       const l = r.ref ? ctx.ledger.find((x) => x.ref === r.ref) : undefined;
-      emit({ type: "tool_result", step: steps, ref: r.ref ?? ref, tool: call.name, status: l?.status ?? "error", rows: l?.rows, totalCount: l?.totalCount, creditsUsed: l?.creditsUsed ?? null, ms: l?.ms ?? Date.now() - tt, ...(r.isError ? { error: r.content.slice(0, 300) } : {}) });
+      emit({ type: "tool_result", step: steps, ref: r.ref ?? ref, tool: call.name, status: l?.status ?? "error", rows: l?.rows, totalCount: l?.totalCount, creditsUsed: l?.creditsUsed ?? null, ms: l?.ms ?? Date.now() - tt, ...(l?.key ? { key: l.key } : {}), ...(r.isError ? { error: r.content.slice(0, 300) } : {}) });
       results.push({ id: call.id, content: r.content, ...(r.isError ? { isError: true } : {}) });
     }
     messages.push({ role: "tool", results });

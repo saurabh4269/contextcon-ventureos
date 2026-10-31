@@ -47,3 +47,33 @@ export async function deleteEvent(cfg: GoogleConfig, id: string, f: typeof fetch
 export async function primaryCalendar(cfg: GoogleConfig, f: typeof fetch = fetch) {
   return (await googleJson<{ id: string; timeZone?: string }>(cfg, `${API}/users/me/calendarList/primary`, {}, f)).data;
 }
+
+/** Busy intervals on the primary calendar (POST /calendar/v3/freeBusy; covered by calendar.readonly). */
+export async function busyIntervals(cfg: GoogleConfig, from: Date, to: Date, f: typeof fetch = fetch): Promise<{ start: string; end: string }[]> {
+  const { data } = await googleJson<{ calendars?: Record<string, { busy?: { start: string; end: string }[] }> }>(cfg, `${API}/freeBusy`, { method: "POST", body: JSON.stringify({ timeMin: from.toISOString(), timeMax: to.toISOString(), items: [{ id: "primary" }] }) }, f);
+  return data.calendars?.primary?.busy ?? [];
+}
+
+const IST_OFFSET_MS = 330 * 60_000;
+/**
+ * First `count` free slots of `minutes` length, on the half hour, inside working hours (IST, default 10:00–19:00,
+ * Mon–Fri), starting at least `leadMinutes` from now and avoiding every busy interval. Pure (tested).
+ */
+export function freeSlots(busy: { start: string; end: string }[], opts: { now: Date; minutes: number; count: number; days: number; startHour?: number; endHour?: number; leadMinutes?: number }): { start: string; end: string }[] {
+  const { minutes, count, days } = opts;
+  const startHour = opts.startHour ?? 10, endHour = opts.endHour ?? 19, lead = (opts.leadMinutes ?? 60) * 60_000;
+  const step = 30 * 60_000, len = minutes * 60_000;
+  const spans = busy.map((b) => [Date.parse(b.start), Date.parse(b.end)] as const);
+  let t = Math.ceil((opts.now.getTime() + lead) / step) * step;
+  const stop = opts.now.getTime() + days * 86_400_000;
+  const out: { start: string; end: string }[] = [];
+  for (; t < stop && out.length < count; t += step) {
+    const ist = new Date(t + IST_OFFSET_MS); // wall clock in IST via UTC getters
+    const dow = ist.getUTCDay(), mins = ist.getUTCHours() * 60 + ist.getUTCMinutes();
+    if (dow === 0 || dow === 6) continue;
+    if (mins < startHour * 60 || mins + minutes > endHour * 60) continue;
+    if (spans.some(([s, e]) => s < t + len && e > t)) continue;
+    out.push({ start: new Date(t).toISOString(), end: new Date(t + len).toISOString() });
+  }
+  return out;
+}

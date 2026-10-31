@@ -7,7 +7,7 @@ export const NO_STORE = { "cache-control": "no-store" };
 /** Run a Google call for a route: 503 not_connected without env, typed 401/403/502 errors otherwise. */
 export async function withGoogle(run: (cfg: GoogleConfig) => Promise<Response>): Promise<Response> {
   const cfg = googleConfig();
-  if (!cfg) return NextResponse.json({ status: "not_connected", message: "Google is not connected: set GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET and GOOGLE_REFRESH_TOKEN on the server." }, { status: 503, headers: NO_STORE });
+  if (!cfg) return NextResponse.json({ status: "not_connected", message: "Google is not connected: set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET, then sign in from Settings › Connectors (or set GOOGLE_REFRESH_TOKEN)." }, { status: 503, headers: NO_STORE });
   try {
     return await run(cfg);
   } catch (e) {

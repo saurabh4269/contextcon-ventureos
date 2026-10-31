@@ -1,4 +1,5 @@
-// Gmail API v1 (read only in this build — there is deliberately no send path).
+// Gmail API v1. Read paths feed Today; sendMessage/createDraft are only called by /api/outbound/email, behind
+// lib/outbound.ts (dry-run default, recipient allowlist, explicit approval token).
 //   users.threads.list   GET /gmail/v1/users/me/threads?labelIds=INBOX&q=after:<unix>&maxResults=N
 //   users.threads.get    GET /gmail/v1/users/me/threads/{id}?format=metadata&metadataHeaders=From&…Subject&…Date
 //   users.getProfile     GET /gmail/v1/users/me/profile (health check)
@@ -57,5 +58,29 @@ export async function listInboxThreads(cfg: GoogleConfig, opts: { after?: Date |
 }
 
 export async function gmailProfile(cfg: GoogleConfig, f: typeof fetch = fetch) {
-  return (await googleJson<{ messagesTotal?: number; threadsTotal?: number }>(cfg, `${API}/profile`, {}, f)).data;
+  return (await googleJson<{ emailAddress?: string; messagesTotal?: number; threadsTotal?: number }>(cfg, `${API}/profile`, {}, f)).data;
+}
+
+/** RFC 2822 message, base64url (users.messages.send / drafts.create `raw`). Subject is RFC 2047-encoded for non-ASCII. */
+export function buildRawMessage(m: { to: string[]; subject: string; body: string; from?: string }): string {
+  const subject = /^[\x20-\x7e]*$/.test(m.subject) ? m.subject : `=?UTF-8?B?${Buffer.from(m.subject, "utf8").toString("base64")}?=`;
+  const headers = [
+    ...(m.from ? [`From: ${m.from}`] : []),
+    `To: ${m.to.join(", ")}`,
+    `Subject: ${subject.replace(/[\r\n]+/g, " ")}`,
+    "MIME-Version: 1.0",
+    "Content-Type: text/plain; charset=UTF-8",
+    "Content-Transfer-Encoding: 8bit",
+  ];
+  return Buffer.from(`${headers.join("\r\n")}\r\n\r\n${m.body}`, "utf8").toString("base64url");
+}
+
+export type SentMessage = { id: string; threadId: string | null };
+export async function sendMessage(cfg: GoogleConfig, m: { to: string[]; subject: string; body: string }, f: typeof fetch = fetch): Promise<SentMessage> {
+  const { data } = await googleJson<{ id: string; threadId?: string }>(cfg, `${API}/messages/send`, { method: "POST", body: JSON.stringify({ raw: buildRawMessage(m) }) }, f);
+  return { id: data.id, threadId: data.threadId ?? null };
+}
+export async function createDraft(cfg: GoogleConfig, m: { to: string[]; subject: string; body: string }, f: typeof fetch = fetch): Promise<{ id: string; messageId: string | null }> {
+  const { data } = await googleJson<{ id: string; message?: { id?: string } }>(cfg, `${API}/drafts`, { method: "POST", body: JSON.stringify({ message: { raw: buildRawMessage(m) } }) }, f);
+  return { id: data.id, messageId: data.message?.id ?? null };
 }

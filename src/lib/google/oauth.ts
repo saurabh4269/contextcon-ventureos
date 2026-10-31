@@ -1,6 +1,9 @@
 // Google OAuth 2.0 (server only): exchange the stored refresh token for short-lived access tokens
 // (POST https://oauth2.googleapis.com/token, grant_type=refresh_token — developers.google.com/identity/protocols/oauth2/web-server#offline).
 // Access tokens are cached in process memory until shortly before `expires_in`; nothing is persisted or logged.
+// The refresh token comes from the in-app sign-in (token-store.ts, gitignored file) or, failing that, GOOGLE_REFRESH_TOKEN.
+// The sign-in itself is the standard authorization-code flow (buildAuthUrl → Google consent → exchangeCode).
+import { readStoredToken } from "./token-store";
 export type GoogleConfig = { clientId: string; clientSecret: string; refreshToken: string };
 export const GOOGLE_ENV = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN"] as const;
 export const TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -14,9 +17,65 @@ export class GoogleApiError extends Error {
   }
 }
 
-export function googleConfig(env: Record<string, string | undefined> = process.env): GoogleConfig | null {
-  const [clientId, clientSecret, refreshToken] = GOOGLE_ENV.map((k) => env[k]?.trim());
+export const GOOGLE_CLIENT_ENV = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"] as const;
+
+export function googleConfig(env: Record<string, string | undefined> = process.env, stored: () => { refreshToken: string } | null = readStoredToken): GoogleConfig | null {
+  const clientId = env.GOOGLE_CLIENT_ID?.trim(), clientSecret = env.GOOGLE_CLIENT_SECRET?.trim();
+  const refreshToken = stored()?.refreshToken || env.GOOGLE_REFRESH_TOKEN?.trim();
   return clientId && clientSecret && refreshToken ? { clientId, clientSecret, refreshToken } : null;
+}
+
+/** The scopes the existing Deal Desk client was granted: Gmail send + modify (drafts, read), Calendar read + events, email. */
+export const GOOGLE_SCOPES = [
+  "https://www.googleapis.com/auth/gmail.send",
+  "https://www.googleapis.com/auth/gmail.modify",
+  "https://www.googleapis.com/auth/calendar.events",
+  "https://www.googleapis.com/auth/calendar.readonly",
+  "https://www.googleapis.com/auth/userinfo.email",
+] as const;
+export const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
+export const CALLBACK_PATH = "/api/oauth/google/callback"; // registered on the dealdesk-ventureos Web client
+
+/** GOOGLE_REDIRECT_URI if set, else <origin of this request>/api/oauth/google/callback (must match the OAuth client exactly). */
+export const redirectUri = (origin: string, env: Record<string, string | undefined> = process.env) => env.GOOGLE_REDIRECT_URI?.trim() || `${origin.replace(/\/$/, "")}${CALLBACK_PATH}`;
+
+/** Consent URL: offline access + prompt=consent so Google always returns a refresh token; login_hint pre-selects the account. */
+export function buildAuthUrl(opts: { clientId: string; redirectUri: string; state: string; loginHint?: string }): string {
+  const qs = new URLSearchParams({
+    client_id: opts.clientId,
+    redirect_uri: opts.redirectUri,
+    response_type: "code",
+    scope: GOOGLE_SCOPES.join(" "),
+    access_type: "offline",
+    prompt: "consent",
+    include_granted_scopes: "true",
+    state: opts.state,
+    ...(opts.loginHint ? { login_hint: opts.loginHint } : {}),
+  });
+  return `${AUTH_URL}?${qs}`;
+}
+
+/** Authorization code → tokens (POST oauth2.googleapis.com/token, grant_type=authorization_code). */
+export async function exchangeCode(opts: { clientId: string; clientSecret: string; redirectUri: string; code: string }, f: typeof fetch = fetch): Promise<{ refreshToken: string; accessToken: string; expiresIn: number; scopes: string[] }> {
+  let r: Response;
+  try {
+    r = await f(TOKEN_URL, {
+      method: "POST",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ client_id: opts.clientId, client_secret: opts.clientSecret, redirect_uri: opts.redirectUri, code: opts.code, grant_type: "authorization_code" }),
+      signal: AbortSignal.timeout(GOOGLE_TIMEOUT_MS),
+    });
+  } catch (e) {
+    throw new GoogleApiError("network", `Google token endpoint unreachable: ${e instanceof Error ? e.message : String(e)}`);
+  }
+  const j = (await r.json().catch(() => null)) as { access_token?: string; refresh_token?: string; expires_in?: number; scope?: string; error?: string; error_description?: string } | null;
+  if (!r.ok || !j?.access_token) {
+    if (j?.error === "invalid_client" || j?.error === "unauthorized_client") throw new GoogleApiError("invalid_client", `Google rejected the OAuth client (${j.error}) — check GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET.`, r.status);
+    if (j?.error === "redirect_uri_mismatch") throw new GoogleApiError("invalid_client", "redirect_uri_mismatch — add the exact callback URL to the OAuth client's Authorized redirect URIs.", r.status);
+    throw new GoogleApiError("http", `Google code exchange failed (${r.status}${j?.error ? `: ${j.error}` : ""}${j?.error_description ? ` — ${j.error_description}` : ""}).`, r.status);
+  }
+  if (!j.refresh_token) throw new GoogleApiError("http", "Google returned no refresh token. Remove Deal Desk at myaccount.google.com/permissions and connect again.", r.status);
+  return { refreshToken: j.refresh_token, accessToken: j.access_token, expiresIn: j.expires_in ?? 0, scopes: (j.scope ?? "").split(" ").filter(Boolean) };
 }
 
 type Cached = { token: string; expiresAt: number };

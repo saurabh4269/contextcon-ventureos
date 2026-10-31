@@ -6,3 +6,4 @@
 if (process.env.CRUSTDATA_LIVE !== "1") {
   delete process.env.CRUSTDATA_API_KEY;
 }
+process.env.DEALDESK_GOOGLE_TOKEN_FILE = "off"; // never read a real local Google sign-in in tests

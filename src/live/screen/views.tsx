@@ -187,6 +187,7 @@ function TimelineRow({ t }: { t: TimelineItem }) {
           </span>}
         </span>
         {Object.keys(t.call.input).length > 0 && <details className="mt-0.5"><summary className="cursor-pointer list-none text-[11px] text-zinc-400 hover:text-ink [&::-webkit-details-marker]:hidden">input</summary><pre className="mt-1 max-h-48 overflow-auto rounded-lg bg-zinc-50 p-2 font-mono text-[10.5px] text-zinc-600">{JSON.stringify(t.call.input, null, 2)}</pre></details>}
+        {r?.key === "backup" && <span className="block text-[11.5px] text-amber-700">Backup Crustdata key (primary out of credits)</span>}
         {r?.error && <span className="block text-[11.5px] text-rust">{r.status === "refused" ? "Refused: " : ""}{r.error}</span>}
       </span>
     </li>
@@ -241,6 +242,7 @@ function Ledger({ calls }: { calls: LedgerCall[] }) {
             <span className={cx(c.status === "ok" ? "text-ok" : "text-rust")}>{c.status}</span>
             <span className="ml-auto">{c.creditsUsed ?? "?"} cr{c.cached ? " · cached" : ""} · {ms(c.ms)}</span>
             {c.error && <span className="basis-full text-rust">{c.error}</span>}
+            {c.key === "backup" && <span className="basis-full text-amber-700" data-testid="crustdata-backup-key">Backup key · {c.note}</span>}
           </li>
         ))}
       </ul>

@@ -50,4 +50,7 @@ export type CrustdataCallMeta = {
   stale?: boolean;
   /** "Crustdata unavailable (HTTP 503); showing the response cached at 31 Oct 2026, 13:05 IST" */
   staleNote?: string;
+  /** "backup" when the primary key was out of credits and CRUSTDATA_API_KEY_BACKUP served this call. */
+  keyUsed?: "primary" | "backup";
+  keyNote?: string;
 };

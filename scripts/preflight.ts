@@ -8,6 +8,7 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { readStoredToken } from "../src/lib/google/token-store";
 import { checkEnv, format, formatJson, hasFailures, redact, runPings } from "../src/lib/preflight";
 
 /** Minimal dotenv: KEY=VALUE lines, optional `export ` and quotes; never overrides existing env, never prints. */
@@ -27,7 +28,7 @@ async function main() {
   const args = new Set(process.argv.slice(2));
   loadEnvFile(fileURLToPath(new URL("../.env.local", import.meta.url)));
   const env = process.env;
-  const results = [...checkEnv(env), ...(args.has("--offline") ? [] : await runPings(env, fetch))];
+  const results = [...checkEnv(env, { googleStored: readStoredToken() !== null }), ...(args.has("--offline") ? [] : await runPings(env, fetch))];
   if (args.has("--json")) console.log(formatJson(results, env));
   else console.log(`${format(results, env)}${args.has("--offline") ? "\n(live pings skipped: --offline)" : ""}`);
   process.exitCode = hasFailures(results) ? 1 : 0;

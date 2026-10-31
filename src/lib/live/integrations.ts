@@ -6,7 +6,8 @@
 //   connected       a free health call succeeded (Crustdata: GET /account/credits, 0 credits)
 //   error           configured, but the health call failed or the integration cannot work in this build
 import type { IntegrationInfo, IntegrationStatus } from "./types";
-import { GOOGLE_ENV, GoogleApiError, googleConfig, type GoogleConfig } from "@/lib/google/oauth";
+import { GOOGLE_CLIENT_ENV, GoogleApiError, googleConfig, type GoogleConfig } from "@/lib/google/oauth";
+import { readStoredToken } from "@/lib/google/token-store";
 import { gmailProfile } from "@/lib/google/gmail";
 import { primaryCalendar } from "@/lib/google/calendar";
 
@@ -23,6 +24,8 @@ type Spec = {
   envMode?: "all" | "any";
   /** true when this build calls it */
   wired: boolean;
+  /** extra configuration requirement beyond env presence; returns the "not connected" message or null */
+  needs?: (env: Env) => string | null;
   /** free, read-only health call; absent ⇒ "configured but not implemented in this build" */
   check?: (env: Env, f: Fetch) => Promise<Check>;
 };
@@ -58,6 +61,9 @@ async function googleCheck(env: Env, _f: Fetch, run: (cfg: GoogleConfig) => Prom
   try { return { ok: true, detail: await run(cfg) }; }
   catch (e) { return { ok: false, detail: e instanceof GoogleApiError ? e.message : `Google check failed: ${e instanceof Error ? e.message : String(e)}` }; }
 }
+
+const tokenSource = (env: Env) => (readStoredToken() ? "signed in from Settings" : env.GOOGLE_REFRESH_TOKEN?.trim() ? "GOOGLE_REFRESH_TOKEN" : "no token");
+const googleNeeds = (env: Env) => (googleConfig(env) ? null : "Not connected: click Connect to sign in with Google (or set GOOGLE_REFRESH_TOKEN).");
 
 export const INTEGRATION_SPECS: Spec[] = [
   {
@@ -153,17 +159,19 @@ export const INTEGRATION_SPECS: Spec[] = [
     id: "gmail",
     name: "Gmail",
     docsUrl: "https://developers.google.com/gmail/api/reference/rest/v1/users/getProfile",
-    env: [...GOOGLE_ENV],
+    env: [...GOOGLE_CLIENT_ENV],
+    needs: googleNeeds,
     wired: true,
-    check: async (env, f) => googleCheck(env, f, async (cfg) => { await gmailProfile(cfg, f); return "Connected (token refresh + GET users/me/profile) · inbox feeds Today and the greeting"; }),
+    check: async (env, f) => googleCheck(env, f, async (cfg) => { const p = await gmailProfile(cfg, f); return `Connected as ${p.emailAddress ?? "(unknown account)"} (${tokenSource(env)}; token refresh + GET users/me/profile) · inbox on Today, approved sends from the memo`; }),
   },
   {
     id: "calendar",
     name: "Google Calendar / Meet",
     docsUrl: "https://developers.google.com/calendar/api/v3/reference/calendarList/get",
-    env: [...GOOGLE_ENV],
+    env: [...GOOGLE_CLIENT_ENV],
+    needs: googleNeeds,
     wired: true,
-    check: async (env, f) => googleCheck(env, f, async (cfg) => { await primaryCalendar(cfg, f); return "Connected (token refresh + GET calendarList/primary) · upcoming meetings on Today"; }),
+    check: async (env, f) => googleCheck(env, f, async (cfg) => { const c = await primaryCalendar(cfg, f); return `Connected as ${c.id} (${tokenSource(env)}; token refresh + GET calendarList/primary) · meetings on Today, free slots and approved bookings from the memo`; }),
   },
 ];
 
@@ -188,6 +196,8 @@ export async function checkIntegration(spec: Spec, env: Env, f: Fetch, now = () 
   });
   const missing = missingEnv(env, spec);
   if (missing.length) return info("not_configured", "env", `Not connected: set ${missing.join(spec.envMode === "any" ? " or " : ", ")} on the server.`, false);
+  const need = spec.needs?.(env);
+  if (need) return info("not_configured", "env", need, false);
   if (!spec.check) return info("error", "env", "Credentials are set, but this build has no OAuth flow for it yet, so nothing can use them.", false);
   try {
     const r = await spec.check(env, f);

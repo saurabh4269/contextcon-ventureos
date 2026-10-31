@@ -24,7 +24,7 @@ export function liveCrustdataClient(): CrustdataClient {
     cache: defaultResponseCache(),
     // One line per billed network call (cache hits are silent). Never includes the key or the response body.
     onLiveCall: (e) =>
-      console.info(`[crustdata] ${e.method} ${e.path} ${e.status} credits=${e.creditsUsed ?? "?"} ${e.latencyMs}ms${e.error ? ` ${e.error}` : ""}`),
+      console.info(`[crustdata] ${e.method} ${e.path} ${e.status} credits=${e.creditsUsed ?? "?"} ${e.latencyMs}ms${e.key === "backup" ? " key=backup" : ""}${e.error ? ` ${e.error}` : ""}`),
   });
   g.__dealdeskCrustdata = { key, drill, client };
   return client;

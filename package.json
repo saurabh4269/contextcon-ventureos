@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev -p 3240",
+    "dev:demo": "next dev -p 3000",
+    "start:demo": "next start -p 3000",
     "build": "next build",
     "start": "next start -p 3240",
     "shots": "node scripts/shots.mjs",
