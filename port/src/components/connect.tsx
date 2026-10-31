@@ -95,7 +95,8 @@ function Handshake({ tool, state }: { tool: ToolId; state: ConnectState }) {
   );
 }
 
-export function ConnectModal({ ask, state = "ask", onAllow, onLater, onClose, onDone }: { ask: ConnectAsk; state?: ConnectState; onAllow?: () => void; onLater?: () => void; onClose?: () => void; onDone?: () => void }) {
+/** `error`: why the last Allow failed (live mode never fakes a connection). `demo`: the connection is simulated, say so. */
+export function ConnectModal({ ask, state = "ask", onAllow, onLater, onClose, onDone, error, demo }: { ask: ConnectAsk; state?: ConnectState; onAllow?: () => void; onLater?: () => void; onClose?: () => void; onDone?: () => void; error?: string; demo?: boolean }) {
   const done = state === "connected", name = TOOL_NAME[ask.tool];
   const dismiss = onClose ?? onLater;
   return (
@@ -120,6 +121,8 @@ export function ConnectModal({ ask, state = "ask", onAllow, onLater, onClose, on
           className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-full bg-ink text-[14px] font-medium text-white shadow-[0_1px_2px_rgba(9,9,11,.2),inset_0_1px_0_rgba(255,255,255,.12)] transition-colors hover:bg-zinc-800 disabled:cursor-progress disabled:opacity-90">
           {state === "connecting" ? <><Loader2 className="size-4 animate-spin" />Connecting {name}…</> : done ? <><Check className="size-4" />Continue</> : ask.allowLabel}
         </button>
+        {error && !done && <p role="alert" className="mt-3 text-[12.5px] leading-snug text-rust">{error}</p>}
+        {demo && done && <p className="mt-3 text-[12px] text-zinc-400">Demo data · nothing was actually connected</p>}
         {!done && <button type="button" onClick={onLater} disabled={state === "connecting"} className="mt-2 h-10 w-full rounded-full text-[13.5px] text-zinc-500 transition-colors hover:bg-zinc-50 hover:text-ink disabled:opacity-40">Not now{ask.step && <span className="text-zinc-400"> · {ask.step} waits</span>}</button>}
       </div>
     </ModalFrame>

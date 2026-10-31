@@ -30,11 +30,11 @@ export function DealHead({ h, primary, walled }: { h: DealHeader; primary: React
             <DetailRows rows={[
               { k: "Stage", v: h.stageLabel },
               { k: "Next", v: h.icLabel },
-              { k: "Data room", v: <span className="inline-flex items-center gap-2"><Ring v={h.files.reviewed / h.files.total} size={18} stroke={2.5} /><span className="tnum">{h.files.reviewed}/{h.files.total} reviewed</span></span> },
+              { k: "Data room", v: h.files.total > 0 ? <span className="inline-flex items-center gap-2"><Ring v={h.files.reviewed / h.files.total} size={18} stroke={2.5} /><span className="tnum">{h.files.reviewed}/{h.files.total} reviewed</span></span> : <span className="text-zinc-500">No data room yet</span> },
               { k: "Red flags", v: <span className="inline-flex items-center gap-2"><Severity levels={h.flags} size={10} /><span className="tnum">{h.flags.length}</span></span> },
-              { k: "Range", v: <span className="tnum"><CapRange v={v} />{v.ask !== undefined && <span className="ml-1.5 font-medium text-rust">· Ask {fmtMoney(v.ask, v.unit)}</span>}</span> },
+              ...(v ? [{ k: "Range", v: <span className="tnum"><CapRange v={v} />{v.ask !== undefined && <span className="ml-1.5 font-medium text-rust">· Ask {fmtMoney(v.ask, v.unit)}</span>}</span> }] : []),
             ]} />
-            <span className="mt-3 block"><RangeMini v={v} w={290} /></span>
+            {v && <span className="mt-3 block"><RangeMini v={v} w={290} /></span>}
           </IconMenu>
           {primary}
         </div>

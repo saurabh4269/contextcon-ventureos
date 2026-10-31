@@ -28,6 +28,8 @@ export interface SettingsScreenProps extends ScreenStatus {
   onDisconnect?: (connectorId: string) => void | Promise<void>;
   /** Connectors: initial tab / search / category / open modal (from the URL). */
   connectorsView?: ConnectorsView;
+  /** Connector Connect/Sync are simulated (demo data); labelled as such in the connect modal. */
+  connectorsDemo?: boolean;
   onCopyMcp?: () => void;
   onToggleBrief?: (id: string, on: boolean) => void;
   onToggleGuardrail?: (id: string, on: boolean) => void;
@@ -79,7 +81,7 @@ export function SettingsScreen(p: SettingsScreenProps) {
         </nav>
         <section className={cx("min-w-0 pt-7 pb-12", wide ? "px-9" : "px-10")}>
           {section === "workflow" && <WorkflowSection {...p} />}
-          {section === "connectors" && <ConnectorsPage data={d.connectors} initial={p.connectorsView} onConnect={p.onConnect} onManage={p.onManageConnector} onSync={p.onSyncConnector} onScope={p.onConnectorScope} onDisconnect={p.onDisconnect} />}
+          {section === "connectors" && <ConnectorsPage data={d.connectors} initial={p.connectorsView} onConnect={p.onConnect} onManage={p.onManageConnector} onSync={p.onSyncConnector} onScope={p.onConnectorScope} onDisconnect={p.onDisconnect} demo={p.connectorsDemo} />}
           {section === "members" && <MembersSection {...p} />}
           {section === "access" && (d.isAdmin ? <AccessSection {...p} /> : <EmptyState title="Admins only" body="The access audit lists who was denied access to walled deals. Ask a firm admin." />)}
           {section === "export" && <ExportSection {...p} />}
