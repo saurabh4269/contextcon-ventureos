@@ -241,5 +241,15 @@ export async function runScreenAgent(opts: AgentOptions): Promise<ScreenResult> 
   return result;
 }
 
-const ENDPOINTS: Record<string, string> = { search_companies: "POST /company/search", search_people: "POST /person/search", enrich_companies: "POST /company/enrich", enrich_person: "POST /person/enrich" };
+const ENDPOINTS: Record<string, string> = {
+  search_companies: "POST /company/search",
+  search_people: "POST /person/search",
+  enrich_companies: "POST /company/enrich",
+  enrich_person: "POST /person/enrich",
+  identify_company: "POST /company/identify",
+  company_signals: "POST /company/enrich",
+  find_founders: "POST /person/search",
+  search_jobs: "POST /job/search",
+  web_search: "POST /web/search/live",
+};
 const endpointOf = (tool: string) => ENDPOINTS[tool] ?? tool;

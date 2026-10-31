@@ -132,7 +132,8 @@ describe("estimateCredits / creditsSpent", () => {
   it("estimates per tool", () => {
     expect(estimateCredits("search_companies", { limit: 10, fields: ["basic_info"] })).toBe(0.3);
     expect(estimateCredits("search_companies", { limit: 10, fields: ["headcount", "taxonomy"] })).toBe(3.3);
-    expect(estimateCredits("search_companies", {})).toBe(0.3);
+    // default fields (basic_info, headcount, locations, taxonomy) ≈ 0.53/row, live-calibrated
+    expect(estimateCredits("search_companies", {})).toBe(5.3);
     expect(estimateCredits("search_people", { limit: 10, filters: { field: "experience.x" }, fields: ["experience"] })).toBe(2.3);
     expect(estimateCredits("enrich_companies", { crustdata_company_ids: [1, 2], domains: ["a.com"] })).toBe(6);
     expect(estimateCredits("enrich_person", { linkedin_urls: ["a", "b"] })).toBe(2);
@@ -268,12 +269,15 @@ describe("runTool", () => {
 });
 
 describe("prune", () => {
-  it("caps arrays and strings, preserving indices", () => {
-    const out = prune({ list: Array.from({ length: 20 }, (_, i) => i), s: "x".repeat(300) }) as { list: number[]; s: string };
-    expect(out.list).toEqual(Array.from({ length: 12 }, (_, i) => i));
+  it("caps nested arrays and strings, preserving indices; never cuts top-level result lists", () => {
+    const twenty = Array.from({ length: 20 }, (_, i) => i);
+    const out = prune({ list: twenty, s: "x".repeat(300), rows: [{ past: twenty }] }) as { list: number[]; s: string; rows: { past: number[] }[] };
+    expect(out.list).toEqual(twenty);
+    expect(out.rows[0]!.past).toEqual(twenty.slice(0, 12));
     expect(out.s).toBe(`${"x".repeat(280)}…`);
     expect(prune("abcdef", 3)).toBe("abc…");
-    expect(prune([1, 2, 3], 280, 2)).toEqual([1, 2]);
+    expect(prune([[1, 2, 3]], 280, 2)).toEqual([[1, 2, 3]]);
+    expect(prune({ a: [{ b: [1, 2, 3] }] }, 280, 2)).toEqual({ a: [{ b: [1, 2] }] });
   });
 
   it("drops null values, empty arrays and noisy keys; keeps falsy scalars", () => {
