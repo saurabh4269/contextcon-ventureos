@@ -139,12 +139,12 @@ This diagram shows the build in this branch. The [detailed system diagram](docs/
 
 ```mermaid
 flowchart TB
-  subgraph S["01 · Sources (live only)"]
+  subgraph SRC["01 · Sources (live only)"]
     CD["Crustdata API v2025-11-01<br/>/company/identify · /company/enrich · /company/search<br/>/person/search · /person/enrich · /job/search · /web/search/live"]
     GM["Gmail<br/>threads.list / get (read only)"]
     GC["Google Calendar<br/>events.list / insert"]
   end
-  subgraph A["02 · Agents (parallel)"]
+  subgraph AG["02 · Agents (parallel)"]
     R["Research<br/>identify → enrich, comps"]
     P["People<br/>founders + history"]
     SG["Signals<br/>hiring, live press"]
@@ -153,30 +153,40 @@ flowchart TB
     V["Voice<br/>ElevenLabs briefings"]
     H["Health<br/>real calls, not timers"]
   end
-  subgraph M["03 · Firm memory"]
-    MEM[("Append-only event log (Postgres)<br/>GET /api/memory/events · SSE /api/memory/stream")]
+  subgraph FM["03 · Firm memory"]
+    MEM[("Append-only event log - Postgres<br/>GET /api/memory/events · SSE /api/memory/stream")]
   end
-  subgraph T["04 · Trust layer"]
-    TR["Value + method + inputs + citations, or 'unavailable' + reason<br/>ISO currency · UTC → IST · outbound dry run by default"]
+  subgraph TL["04 · Trust layer"]
+    TR["Value + method + inputs + citations, or unavailable + reason<br/>ISO currency · UTC → IST · outbound dry run by default"]
   end
-  subgraph Y["05 · You decide"]
+  subgraph YD["05 · You decide"]
     U["Today · Deal · Person · IC memo · Firm brain · Voice orb<br/>pass · meet · track · invest"]
   end
   subgraph NX["Coming next (not in this build)"]
-    F["Fit scoring"]:::next
-    D["Diligence tie-outs"]:::next
-    IC["IC memo + pricing"]:::next
-    TK["Track · Crustdata /watch/company"]:::next
-    OB["Slack · AgentMail · Fireflies"]:::next
+    F["Fit scoring"]
+    D["Diligence tie-outs"]
+    IC["IC memo + pricing"]
+    TK["Track · Crustdata /watch/company"]
+    OB["Slack · AgentMail · Fireflies"]
   end
-  CD --> R & P & SG
+  CD --> R
+  CD --> P
+  CD --> SG
   GM --> I
   GC --> I
-  R & P & SG --> N
-  R & P & SG & N & I & V & H --> MEM
+  R --> N
+  P --> N
+  SG --> N
+  R --> MEM
+  P --> MEM
+  SG --> MEM
+  N --> MEM
+  I --> MEM
+  V --> MEM
+  H --> MEM
   MEM --> V
-  MEM --> TR --> U
-  classDef next stroke-dasharray: 5 5,fill:#fff,color:#52525b
+  MEM --> TR
+  TR --> U
 ```
 
 ## 5. The approaches we tried
