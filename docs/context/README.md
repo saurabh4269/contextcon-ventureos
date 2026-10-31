@@ -19,3 +19,4 @@ with the top-level [README](../../README.md) and [AGENTS.md](../../AGENTS.md).
 | [08-decisions-contract.md](08-decisions-contract.md) | `GET /api/deals/:id/decisions`, `src/lib/numbers/decisions.ts`, `DEALDESK_BUILDER_URL` |
 | [09-demo-runbook-and-setup.md](09-demo-runbook-and-setup.md) | Local setup, preflight, the demo click path and backups |
 | [10-handoff-next-steps.md](10-handoff-next-steps.md) | State of play, known gaps and ranked next steps |
+| [11-evaluation.md](11-evaluation.md) | **Strict ContextCon judge scorecard** (31 Oct 2026), gaps ranked, doc/code drift |
