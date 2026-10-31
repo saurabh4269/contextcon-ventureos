@@ -1,44 +1,42 @@
 // /company/search request bodies.
 //
-// The builder's comparable-company searches were rejected by the API: build-deal-graph.ts sent
-// `{ filters: { industries: { contains }, employee_count_range: { in } } }` and mcp/tools.ts sent
-// `{ field: "industries", type: "(.)" }` (no such field). /company/search takes the same filter-tree shape as person and
-// job search: a SearchCondition `{ field, type, value }` or a group `{ op: "and" | "or", conditions: [...] }`, with field
-// names from the documented list (basic_info.industries, basic_info.employee_count_range, …).
+// The builder's comparable-company searches were rejected by the API (400 filter_shape, replayed live 2026-10-31):
+// build-deal-graph.ts sent `{ filters: { industries: { contains }, employee_count_range: { in } } }` and mcp/tools.ts
+// sent `{ field: "industries", type: "(.)" }` (no such field); on empty results the graph then inserted invented
+// companies ("FlowBot", "LedgerOps"). /company/search takes the same filter-tree shape as person and job search
+// (`{ field, type, value }` or `{ op, conditions }`) and optionally a ranked `search: { query, mode }`.
 
-export type CompanySearchCondition = { field: string; type: string; value: unknown };
-export type CompanySearchGroup = { op: "and" | "or"; conditions: (CompanySearchCondition | CompanySearchGroup)[] };
-
-/** Fields requested for comparable rows. `funding` is a premium group (+0.2 credits/row); basic_info is base price. */
-export const COMPS_FIELDS = ["basic_info", "funding"] as const;
+/** Base-price fields (0.03 credits/row). */
+const BASE_FIELDS = [
+  "crustdata_company_id",
+  "basic_info.name",
+  "basic_info.primary_domain",
+  "basic_info.description",
+  "basic_info.year_founded",
+  "basic_info.employee_count_range",
+] as const;
+/** Premium group (+0.2 credits/row) — only requested when the caller wants stage/raised. */
+const FUNDING_FIELDS = ["funding.total_investment_usd", "funding.last_round_type"] as const;
 
 export type ComparableInput = {
   crustdataCompanyId: number;
-  /** basic_info.industries of the target (taxonomy is a premium filter; industries is not). */
-  industries: string[];
-  /** basic_info.employee_count_range of the target, e.g. "51-200". */
-  employeeCountRange?: string | null;
+  /** What the company does, e.g. basic_info.description + taxonomy.categories. Required: no query, no search. */
+  query: string;
   limit?: number;
+  withFunding?: boolean;
 };
 
 /**
- * Companies in the same industry (any of the target's first two industries) and the same headcount band, excluding the
- * target itself, sorted by total funding. Throws when there is nothing to compare on — never sends an empty filter.
+ * Ranked (hybrid) search for companies like the target, excluding the target. Live-verified shape
+ * (`search` + `filters: { field: "crustdata_company_id", type: "not_in", value: [id] }`, 0.03 credits/row base).
  */
 export function comparableCompaniesSearchBody(input: ComparableInput) {
-  const industries = input.industries.map((i) => i.trim()).filter(Boolean).slice(0, 2);
-  if (!industries.length) throw new Error("comparableCompaniesSearchBody: target has no basic_info.industries to compare on");
-  const conditions: (CompanySearchCondition | CompanySearchGroup)[] = [
-    industries.length === 1
-      ? { field: "basic_info.industries", type: "(.)", value: industries[0] }
-      : { op: "or", conditions: industries.map((v) => ({ field: "basic_info.industries", type: "(.)", value: v })) },
-    { field: "crustdata_company_id", type: "!=", value: input.crustdataCompanyId },
-  ];
-  if (input.employeeCountRange) conditions.push({ field: "basic_info.employee_count_range", type: "=", value: input.employeeCountRange });
+  const query = input.query.replace(/\s+/g, " ").trim();
+  if (!query) throw new Error("comparableCompaniesSearchBody: a description query is required (nothing to compare on)");
   return {
-    filters: { op: "and" as const, conditions },
-    fields: [...COMPS_FIELDS],
-    sorts: [{ field: "funding.total_investment_usd", order: "desc" as const }],
+    search: { query: query.slice(0, 300), mode: "hybrid" as const },
+    filters: { field: "crustdata_company_id", type: "not_in" as const, value: [input.crustdataCompanyId] },
+    fields: [...BASE_FIELDS, ...(input.withFunding ? FUNDING_FIELDS : [])],
     limit: input.limit ?? 5,
   };
 }
