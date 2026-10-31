@@ -80,3 +80,51 @@ company/search (peers, decisions) 5.83 = **10.40 credits**. All other checks use
 - `/agents` and the Settings › Workflow section have no live source.
 - The sidebar has no "Workflow" entry (the nav is in the port shell; not changed). Reach it from `/ask` "Start deal",
   Today / Pipeline rows of workflow deals, Portfolio, or the URL.
+
+## Pass t330
+
+First-principles production pass over every screen, API route, workflow step, the MCP server and the CLI, plus a skeleton
+(loading state) audit. The look of the screens did not change; only data wiring, labels, error handling and skeleton sizes.
+
+### Live mode shows no fixtures
+
+- `/agents`, `/mandates`, `/slack`, `/preview/slack`: the unavailable page (what the screen needs, real connector status).
+  They used to render fixture agents, mandates and Slack cards under a "Demo data" badge.
+- `/agent` with no `?q=`: the Sourcing agent's request box (it was the fixture Helio flow). `/deal/room` without a domain: "No data room connected".
+- Fixture query variants (`?id=helio`, `?state=`, `?frame=`, `?restricted`, `?view=`, `?company=helio` …) are ignored in live mode on
+  Today, Deal, Person, Ask, Memo, Pipeline, Portfolio, Brain. The Settings shell no longer shows the fixture firm card.
+- The badge never says "Demo data" in live mode. The "backend / builder branch" wording on the unavailable pages now says what is true:
+  no source in this build.
+- Today's ask card used fixture chips ("Thesis fits", "IC prep") and its Send button sent the literal text `text`. It now shows the research
+  agent's example requests and opens `/ask?q=` with what was typed.
+
+### Correctness and honest errors
+
+- Valuation chart: an unpriced company showed "$NaNM" labels; the row now has no labels. Charts show "—" for a missing value.
+- Mandate page: an error response crashed the form (read `.mandate` of an error body); it now says the load failed. It has a loading skeleton.
+- Workflow list: a failing `/api/workflow` showed "No deals yet"; it now shows the error. Inbox failures name the HTTP status.
+  The page container was shrink-to-fit (its width followed its content); it is `w-full` now.
+- Today / Pipeline / Memo: a body that is not the review queue is a failure, not an empty list.
+- Review: the storage line reserves its height while loading.
+- API routes (all of `src/app/api`): JSON errors instead of bare 500s, `cache-control: no-store` on every response, `q` limits on the
+  Sourcing agent, unknown `?status=` is a 400, SSE stream stops polling when the client leaves, workflow action bodies are validated
+  (400, not 502), portfolio store failure is a 502 (not "no companies"). `docs/API.md` matches (memory works without a database; limit 1..500).
+- MCP / CLI / workflow: CLI errors print a message and exit 1, `--flag=a=b` keeps the value, MCP `screen_companies` keeps the server's
+  message, `run_deal_workflow` says it is a four-step read (it does not advance a deal) and rejects a bad `until`; a missing firm memory no
+  longer blocks a deal from running again; Crustdata errors in the research step are not reported as "no match"; uncited screen and
+  valuation facts show as unavailable; money and times use `fmtMoney` / IST; `resume` retries unavailable steps.
+
+### Skeleton audit
+
+`scripts/skeleton-audit.mjs` (Playwright, mocked APIs, 0 credits), `scripts/skeleton-audit-report.mjs`, mocks in `scripts/skeleton-audit/`.
+Output and `REPORT.md` are in `/workspace/skeleton_audit` (before/, after/, compare/, raw JSON). New skeletons: `port/src/components/skeletons.tsx`
+(Brain, Portfolio, Memo, Deal, Settings, Review) and inline ones for Today, Pipeline, Person, Mandate, Workflow. Each uses the loaded screen's
+wrapper grid and the loaded height of each card. Phone widths: Brain, Portfolio and Memo stack to one column under 900 px (they overflowed the viewport).
+Not matched by design: `/ask?q=` and `/agent?q=` (a streamed run grows step by step, so its timeline becomes a wider result).
+
+### Remaining blocker
+
+- **Storage is unchanged: no database, no new provider.** The deploy still has no `DATABASE_URL`, so the review queue, stages, workflows,
+  mandate edits and memory are per Vercel instance. Approving `DATABASE_URL` (Neon via the Vercel Marketplace) remains the one blocker.
+- Not changed, found by the audit: `DELETE /api/connectors/calendar/events/:id` deletes even in dry-run (contacts nobody, `sendUpdates=none`);
+  `/api/live/screen` keeps running after the client leaves; Today's mic button has no handler; the pipeline board toggle does nothing in live mode.
