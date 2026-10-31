@@ -310,6 +310,8 @@ function ScopeChip({ value, scopes }: { value: string; scopes?: string[] }) {
     if (e.key === "ArrowDown" || e.key === "ArrowUp") { e.preventDefault(); opts[(at + (e.key === "ArrowDown" ? 1 : opts.length - 1)) % opts.length]?.focus(); }
     if (e.key === "Escape") { e.preventDefault(); setOpen(false); trigger.current?.focus(); }
   };
+  // one scope only: a label, not a menu with nothing to choose
+  if (list.length < 2) return <span className="inline-flex h-7 min-w-0 items-center gap-1.5 rounded-full bg-zinc-50 px-2.5 text-[12px] text-zinc-600 ring-1 ring-zinc-200/80"><span className="size-1.5 shrink-0 rounded-full bg-rust" /><span className="truncate">{value}</span></span>;
   return (
     <span className="relative min-w-0" onBlur={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setOpen(false); }}>
       <button ref={trigger} type="button" aria-haspopup="listbox" aria-expanded={open} onClick={() => setOpen(!open)} onKeyDown={(e) => { if (e.key === "ArrowDown" && !open) { e.preventDefault(); setOpen(true); } }} title="What to search"
@@ -328,7 +330,7 @@ function ScopeChip({ value, scopes }: { value: string; scopes?: string[] }) {
   );
 }
 
-function Composer({ data, onSend, onStop, variant, running }: { data: AssistantData; onSend?: (text: string) => void; onStop?: () => void; variant: "dock" | "page" | "hero"; /** an answer is being written: send becomes Stop */ running?: boolean }) {
+function Composer({ data, onSend, onStop, variant, running, onAttach, onDictate }: { /** buttons render only when wired: no dead controls */ onAttach?: () => void; onDictate?: () => void; data: AssistantData; onSend?: (text: string) => void; onStop?: () => void; variant: "dock" | "page" | "hero"; /** an answer is being written: send becomes Stop */ running?: boolean }) {
   const hero = variant === "hero", dock = variant === "dock";
   return (
     <form onSubmit={(e) => { e.preventDefault(); const v = new FormData(e.currentTarget).get("q"); if (typeof v === "string" && v.trim()) onSend?.(v.trim()); }}
@@ -340,10 +342,10 @@ function Composer({ data, onSend, onStop, variant, running }: { data: AssistantD
         onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); e.currentTarget.form?.requestSubmit(); } }}
         className={cx("block w-full resize-none bg-transparent px-1.5 leading-relaxed outline-none placeholder:text-zinc-400", hero ? "min-h-[4.5rem] pt-0.5 text-[15px]" : "min-h-[1.75rem] pt-1 text-[13.5px]")} />
       <div className={cx("flex items-center gap-1.5", hero ? "mt-2" : "mt-1.5")}>
-        <button type="button" aria-label="Attach a file or deal" title="Attach a file or deal" className={cx("grid size-8 shrink-0 place-items-center rounded-full text-zinc-500 ring-1 ring-zinc-200/90 transition-colors hover:bg-zinc-50 hover:text-ink", FOCUS)}><Plus className="size-4" /></button>
+        {onAttach && <button type="button" onClick={onAttach} aria-label="Attach a file or deal" title="Attach a file or deal" className={cx("grid size-8 shrink-0 place-items-center rounded-full text-zinc-500 ring-1 ring-zinc-200/90 transition-colors hover:bg-zinc-50 hover:text-ink", FOCUS)}><Plus className="size-4" /></button>}
         <ScopeChip value={data.context} scopes={data.scopes} />
         <span className="ml-auto flex shrink-0 items-center gap-1.5">
-          <button type="button" aria-label="Dictate" title="Dictate" className={cx("grid place-items-center rounded-full bg-white text-zinc-600 ring-1 ring-zinc-200/90 shadow-[0_1px_2px_rgba(9,9,11,.05)] transition-colors hover:text-ink hover:ring-zinc-300", dock ? "size-8" : "size-9")}><Mic className="size-4" strokeWidth={1.75} /></button>
+          {onDictate && <button type="button" onClick={onDictate} aria-label="Dictate" title="Dictate" className={cx("grid place-items-center rounded-full bg-white text-zinc-600 ring-1 ring-zinc-200/90 shadow-[0_1px_2px_rgba(9,9,11,.05)] transition-colors hover:text-ink hover:ring-zinc-300", dock ? "size-8" : "size-9")}><Mic className="size-4" strokeWidth={1.75} /></button>}
           {running
             ? <button type="button" onClick={onStop} aria-label="Stop" title="Stop" className={cx("relative grid place-items-center rounded-full bg-ink text-white shadow-[0_1px_2px_rgba(9,9,11,.2),inset_0_1px_0_rgba(255,255,255,.14)] transition-colors hover:bg-zinc-800", dock ? "size-8" : "size-9")}><span className="absolute -inset-[3px] rounded-full border-2 border-rust/25 border-t-rust motion-safe:animate-spin" /><Square className="size-3 fill-current" /></button>
             : <button type="submit" aria-label="Send" title="Send" className={cx("grid place-items-center rounded-full bg-ink text-white shadow-[0_1px_2px_rgba(9,9,11,.2),inset_0_1px_0_rgba(255,255,255,.14)] transition-colors hover:bg-zinc-800", dock ? "size-8" : "size-9")}><ArrowUp className="size-4" /></button>}
@@ -378,7 +380,7 @@ function anchorLastQuestion(root: HTMLElement | null, scroller?: HTMLElement | n
   if (scroller) scroller.scrollTop = Math.max(0, q.offsetTop - 16);
   else q.scrollIntoView({ block: "start" });
 }
-export function AssistantDock({ data, onSuggestion: onSuggestionProp, onSend: onSendProp, onClose, top, expandHref }: { data: AssistantData; expandHref?: string; onSuggestion?: (action: string) => void; onSend?: (text: string) => void; onClose?: () => void; /** v3.2 · optional block under the header, e.g. LiveRail */ top?: ReactNode }) {
+export function AssistantDock({ data, onSuggestion: onSuggestionProp, onSend: onSendProp, onClose, onNewChat, top, expandHref }: { data: AssistantData; /** only shown when the host can really start a new chat */ onNewChat?: () => void; expandHref?: string; onSuggestion?: (action: string) => void; onSend?: (text: string) => void; onClose?: () => void; /** v3.2 · optional block under the header, e.g. LiveRail */ top?: ReactNode }) {
   const ask = useAsk();
   // Default (host passes no handler): a question (or suggestion) opens the research agent at /ask?q=…, which runs it.
   const router = useRouter();
@@ -397,7 +399,7 @@ export function AssistantDock({ data, onSuggestion: onSuggestionProp, onSend: on
         <Orb size={20} thinking={!!thinking} />
         <span className="text-[13px] font-medium">{data.title}</span>
         <span className="ml-auto flex items-center gap-0.5">
-          <IconBtn icon={<SquarePen />} label="New chat" tone="bare" size="sm" />
+          {onNewChat && <IconBtn icon={<SquarePen />} label="New chat" tone="bare" size="sm" onClick={onNewChat} />}
           <Link href={expandHref ?? ROUTES.ask()} aria-label="Open full page" title="Open full page" className="grid size-7 place-items-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-ink"><Maximize2 className="size-3.5" /></Link>
           <IconBtn icon={<X />} label="Close" tone="bare" size="sm" onClick={onClose ?? (() => ask?.setOpen(false))} />
         </span>

@@ -20,7 +20,7 @@ export function CitePop({ cites, reasoning, method, children, label = "Source" }
   return (
     <span ref={ref} className="group/cite relative inline-flex align-middle" onMouseEnter={place} onFocus={place} onMouseLeave={() => setPinned(false)}>
       <button type="button" aria-label={`${label}: ${cites[0]?.endpoint ?? "source"}`} aria-expanded={pinned} onClick={(e) => { e.stopPropagation(); place(); setPinned((p) => !p); }}
-        className="ml-1 inline-grid size-[15px] shrink-0 place-items-center rounded-full bg-[#f3ede6] text-[8.5px] leading-none font-semibold text-[#8a4a1c] ring-1 ring-[#e7d8c8] transition-colors hover:bg-rust hover:text-white hover:ring-rust focus-visible:ring-2 focus-visible:ring-rust/50 focus-visible:outline-none">
+        className="relative ml-1 inline-grid size-[15px] shrink-0 after:absolute after:-inset-2 after:content-[''] place-items-center rounded-full bg-[#f3ede6] text-[8.5px] leading-none font-semibold text-[#8a4a1c] ring-1 ring-[#e7d8c8] transition-colors hover:bg-rust hover:text-white hover:ring-rust focus-visible:ring-2 focus-visible:ring-rust/50 focus-visible:outline-none">
         {children ?? "C"}
       </button>
       <span role="tooltip" className={cx("absolute top-[calc(100%+6px)] z-40 w-[290px] max-w-[calc(100vw-24px)] rounded-xl bg-ink p-3 text-left text-[11.5px] leading-snug font-normal text-zinc-200 shadow-[0_16px_40px_-12px_rgba(9,9,11,.55)] transition-opacity duration-150",
