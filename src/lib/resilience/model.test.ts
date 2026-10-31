@@ -57,6 +57,20 @@ describe("resilientModel", () => {
     expect(events.find((e) => e.type === "fallback")?.detail).toBe("OpenAI gpt-main failed (upstream_unavailable 503); trying OpenAI gpt-fast once");
   });
 
+  it("primary and fallback share one budget: no fallback when the primary used it all", async () => {
+    let clock = 0;
+    const primary = fakeModel("gpt-main", async () => {
+      clock += 1_000; // each attempt "takes" 1 s of the 2.5 s budget
+      throw new ModelApiError("OpenAI", 503, "overloaded");
+    });
+    const fallback = fakeModel("gpt-fast", async () => turnWith());
+    const err = await resilientModel(primary, { fallback, ...fast, now: () => clock, deadlineMs: 2_500, breaker: new CircuitBreaker() })
+      .complete(INPUT)
+      .catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ResilienceError);
+    expect(fallback.complete).not.toHaveBeenCalled();
+  });
+
   it("does not fall back on 401 — misconfiguration is surfaced, not hidden", async () => {
     const primary = fakeModel("gpt-main", async () => {
       throw new ModelApiError("OpenAI", 401, "Incorrect API key provided");

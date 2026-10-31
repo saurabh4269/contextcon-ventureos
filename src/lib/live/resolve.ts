@@ -4,6 +4,7 @@
 // suggestions, and Crustdata errors are thrown (the route maps them to a failure), never reported as no_match.
 import type { CrustdataClient } from "@/lib/crustdata";
 import type { CrustdataCallMeta } from "@/lib/crustdata/types";
+import { CrustdataMalformedResponseError } from "@/lib/crustdata/http";
 import { clean, normalizeDomainInput } from "./normalize";
 import type { IdentifyData, LiveCall } from "./types";
 
@@ -76,15 +77,19 @@ type IdentifyRow = {
 
 /** All candidates of an identify response (top-level array, one row per identifier), de-duplicated by id. */
 function candidates(data: unknown): Suggestion[] {
+  // identify always answers a top-level array; anything else is a broken response, never "no match"
+  if (!Array.isArray(data)) throw new CrustdataMalformedResponseError(200, "POST", "/company/identify", JSON.stringify(data) ?? "", "not the documented top-level array");
   const seen = new Set<number>();
   const out: Suggestion[] = [];
-  for (const row of Array.isArray(data) ? (data as IdentifyRow[]) : []) {
-    for (const m of row?.matches ?? []) {
+  for (const row of data as IdentifyRow[]) {
+    for (const m of Array.isArray(row?.matches) ? row.matches : []) {
       const cd = m?.company_data;
       const id = cd?.crustdata_company_id ?? cd?.basic_info?.crustdata_company_id;
       if (id == null || seen.has(id)) continue;
       seen.add(id);
-      out.push({ companyId: id, name: clean(cd?.basic_info?.name), domain: clean(cd?.basic_info?.primary_domain), confidence: m?.confidence_score ?? undefined });
+      if (typeof id !== "number") continue;
+      const str = (v: unknown) => (typeof v === "string" ? clean(v) : undefined);
+      out.push({ companyId: id, name: str(cd?.basic_info?.name), domain: str(cd?.basic_info?.primary_domain), confidence: typeof m?.confidence_score === "number" ? m.confidence_score : undefined });
     }
   }
   return out;
@@ -109,12 +114,21 @@ const identifyData = (c: Suggestion): IdentifyData => ({ id: c.companyId, name: 
 const didYouMean = (s: Suggestion[]) =>
   s.length ? ` Did you mean ${s.map((x) => (x.domain ? `${x.name ?? x.domain} (${x.domain})` : x.name ?? `#${x.companyId}`)).join(", ")}?` : "";
 
+/** The label a company is named after: "app.razorpay.com" → "razorpay", "flipkart.co.in" → "flipkart", "strpe.com" → "strpe". */
+export function brandLabel(domain: string): string {
+  const labels = domain.split(".");
+  labels.pop(); // TLD
+  // second-level public suffixes such as co.in, com.au, co.uk
+  if (labels.length >= 2 && labels.at(-1)!.length <= 3 && /^(co|com|net|org|ac|gov|edu|ltd|plc)$/.test(labels.at(-1)!)) labels.pop();
+  return labels.at(-1) ?? domain;
+}
+
 /**
  * "Did you mean" for a domain with no identify match: identify the first label as a name (0 credits). Suggestions
  * only, never auto-picked. Best effort — if this lookup fails, the honest no_match still stands (the call says why).
  */
 export async function suggestForDomain(client: CrustdataClient, domain: string): Promise<{ suggestions: Suggestion[]; message: string; suggest: LiveCall }> {
-  const sBody = { names: [domain.split(".")[0]!], exact_match: false };
+  const sBody = { names: [brandLabel(domain)], exact_match: false };
   const t0 = Date.now();
   try {
     const sRes = await client.identifyCompany(sBody);

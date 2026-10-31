@@ -8,6 +8,7 @@ import { COMPANY_ENRICH_FIELD_GROUPS } from "@/lib/crustdata/enrich-fields";
 import { jobSearchByCompanyId } from "@/lib/crustdata/job-queries";
 import { founderPersonSearchBody, linkedInPersonEnrichBody } from "@/lib/crustdata/person-queries";
 import type { CompanyEnrichData, CrustdataCallMeta, PersonEnrichData } from "@/lib/crustdata/types";
+import { CrustdataMalformedResponseError } from "@/lib/crustdata/http";
 import { firstMatch, normalizeComps, normalizeCompany, normalizeJobs, normalizeNews, normalizePerson } from "./normalize";
 import type { CompanyLookup, IdentifyData, LiveCall, LiveComp, LiveCompany, LiveJobs, LiveNews, LivePerson, PersonLookup, ResearchResult } from "./types";
 
@@ -43,6 +44,8 @@ export async function lookupCompany(client: CrustdataClient, domain: string): Pr
   const idBody = { domains: [domain] };
   const idSpec: CallSpec = { id: "identify", method: "POST", path: "/company/identify", body: idBody };
   const identified = await client.identifyCompany(idBody);
+  // identify always answers a top-level array; anything else is a broken response, never "no match"
+  if (!Array.isArray(identified.data)) throw new CrustdataMalformedResponseError(200, "POST", "/company/identify", JSON.stringify(identified.data) ?? "", "not the documented top-level array");
   const match = firstMatch<{ crustdata_company_id?: number; basic_info?: { name?: string; crustdata_company_id?: number } }>(identified.data);
   const id = match?.companyData.crustdata_company_id ?? match?.companyData.basic_info?.crustdata_company_id;
   if (!match || id == null) return { status: "no_match", domain, identify: fromMeta(idSpec, identified.meta, "no_match") };

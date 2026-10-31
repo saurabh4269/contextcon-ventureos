@@ -4,6 +4,7 @@ import { normalizeDomainInput } from "@/lib/live/normalize";
 import { researchCompany } from "@/lib/live/research";
 import { failureFrom, failureResponse, liveCrustdataClient } from "@/lib/live/server";
 import { safeDecode } from "./decode";
+import { enforceCited } from "@/lib/provenance";
 import { companyFields } from "./company-fields";
 import { liveDealNumbers, liveDealValuation, type DealNumbers, type DealValuation } from "./deal-numbers";
 
@@ -24,7 +25,8 @@ export async function resolveDealNumbers(
     const r = await researchCompany(liveCrustdataClient(), domain);
     if (r.status === "no_match") return { ok: false, response: NextResponse.json({ status: "no_match", domain, message: `No Crustdata match for ${domain}.` }, { status: 404 }) };
     if (r.status !== "ok") return { ok: false, response: failureResponse(r) };
-    return { ok: true, id: domain, source: "crustdata", fields: liveDealNumbers(companyFields(r)), explainable: liveDealValuation() };
+    // every ok decision/number must carry a source; anything that does not is withheld (unavailable), never shown bare
+    return { ok: true, id: domain, source: "crustdata", fields: enforceCited(liveDealNumbers(companyFields(r))), explainable: enforceCited(liveDealValuation()) };
   } catch (e) {
     return { ok: false, response: failureResponse(failureFrom(e)) };
   }

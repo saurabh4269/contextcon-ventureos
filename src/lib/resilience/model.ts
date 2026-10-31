@@ -12,7 +12,7 @@
 // `modelUnavailableMessage(e)`, and answer calls whose input has `__invalid_arguments` with an isError tool_result.
 import { fmtTime } from "@/lib/format";
 import { CircuitBreaker } from "./breaker";
-import { classifyError, ResilienceError, scrub, withResilience, type ErrorClass, type ErrorKind } from "./index";
+import { classifyError, ResilienceError, ResilienceTimeoutError, scrub, withResilience, type ErrorClass, type ErrorKind } from "./index";
 
 export type ToolSpecLike = { name: string; description?: string; input_schema?: Record<string, unknown> };
 export type ToolCallLike = { id: string; name: string; input: Record<string, unknown> };
@@ -33,6 +33,7 @@ export type ResilientModelOptions<I extends CompleteInputLike> = {
   /** per attempt; default 120 s (reasoning models are slow) */
   timeoutMs?: number;
   /** per complete() call incl. backoff; default 240 s (the route's maxDuration is 300 s) */
+  /** one budget for the whole call, primary + fallback; default 240 s */
   deadlineMs?: number;
   /** default 2 for the primary; the fallback gets at most 1 */
   retries?: number;
@@ -40,6 +41,7 @@ export type ResilientModelOptions<I extends CompleteInputLike> = {
   onEvent?: (e: ModelEvent) => void;
   sleep?: (ms: number) => Promise<void>;
   random?: () => number;
+  now?: () => number;
 };
 
 const PROVIDER_NAME = { anthropic: "Anthropic", openai: "OpenAI" } as const;
@@ -53,12 +55,15 @@ const sharedBreaker = new CircuitBreaker(4, 60_000);
 export function resilientModel<I extends CompleteInputLike>(primary: ModelClientLike<I>, opts: ResilientModelOptions<I> = {}): ModelClientLike<I> {
   const breaker = opts.breaker ?? sharedBreaker;
   const emit = (type: ModelEvent["type"], detail: string) => opts.onEvent?.({ type, detail });
-  const run = (client: ModelClientLike<I>, input: I, retries: number) => {
+  const now = opts.now ?? Date.now;
+  /** `deadlineAt`: one budget for the whole complete() — the fallback only gets what the primary left. */
+  const run = (client: ModelClientLike<I>, input: I, retries: number, deadlineAt: number) => {
     const label = labelOf(client);
     return withResilience(() => client.complete(input), {
       label,
       timeoutMs: opts.timeoutMs ?? 120_000,
-      deadlineMs: opts.deadlineMs ?? 240_000,
+      deadlineMs: Math.max(0, deadlineAt - now()),
+      now: opts.now,
       retries,
       breaker,
       breakerKey: `model:${client.provider}:${client.model}`,
@@ -73,15 +78,17 @@ export function resilientModel<I extends CompleteInputLike>(primary: ModelClient
     model: primary.model,
     async complete(input) {
       let turn: ModelTurnLike;
+      const deadlineAt = now() + (opts.deadlineMs ?? 240_000);
       try {
-        turn = await run(primary, input, opts.retries ?? 2);
+        turn = await run(primary, input, opts.retries ?? 2, deadlineAt);
       } catch (e) {
         const fb = opts.fallback;
         const c = classifyError(e, labelOf(primary));
         if (!fb || !FALLBACK_KINDS.has(c.kind) || (fb.provider === primary.provider && fb.model === primary.model)) throw asResilience(e, c);
         emit("fallback", `${labelOf(primary)} failed (${c.kind}${c.status ? ` ${c.status}` : ""}); trying ${labelOf(fb)} once`);
         try {
-          turn = await run(fb, input, Math.min(1, opts.retries ?? 2));
+          if (deadlineAt - now() < 1_000) throw new ResilienceTimeoutError(`${labelOf(fb)} (no time left in the call's budget)`, opts.deadlineMs ?? 240_000);
+          turn = await run(fb, input, Math.min(1, opts.retries ?? 2), deadlineAt);
         } catch (e2) {
           const c2 = classifyError(e2, labelOf(fb));
           const attempts = (e instanceof ResilienceError ? e.attempts : 1) + (e2 instanceof ResilienceError ? e2.attempts : 1);

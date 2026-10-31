@@ -1,5 +1,5 @@
 "use client";
-import { Sun, Layers, Brain, Search, Settings, Sparkles, ArrowUp, X, PieChart, Briefcase, ChevronLeft, Workflow, History, PanelLeftClose, PanelLeftOpen, Menu, NotebookPen } from "lucide-react";
+import { Sun, Layers, Brain, Search, Settings, Sparkles, ArrowUp, X, PieChart, Briefcase, ChevronLeft, Workflow, History, PanelLeftClose, PanelLeftOpen, Menu, NotebookPen, Inbox } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { AppRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
@@ -11,13 +11,14 @@ import { Pulse } from "./motion";
 import { Mascot } from "./brand/mascot";
 import { AccountMenu } from "./brand/account";
 import { ROUTES } from "../routes";
+import { useOpenExceptions } from "./useOpenExceptions";
 import type { AssistantData, Crumb, Mode, Nav, ShellData, Tone2, User } from "../types";
 
 export type { Nav, Mode };
 
 const navHref: Record<Nav, (m: Mode) => string> = {
   today: (m) => ROUTES.today(m), pipeline: () => ROUTES.pipeline, portfolio: () => ROUTES.portfolio,
-  mandates: () => ROUTES.mandates, brain: () => ROUTES.brain, settings: () => ROUTES.settings(), agents: () => ROUTES.agents, runs: () => ROUTES.runs, assistant: () => ROUTES.ask(),
+  mandates: () => ROUTES.mandates, brain: () => ROUTES.brain, settings: () => ROUTES.settings(), agents: () => ROUTES.agents, runs: () => ROUTES.runs, review: () => ROUTES.review, assistant: () => ROUTES.ask(),
 };
 
 /* ───────────── v5 · shell UI state: collapsible rail (lg+), off-canvas drawer (below lg) ───────────── */
@@ -55,6 +56,7 @@ function Tip({ show, children }: { show: boolean; children: ReactNode }) {
 // Four destinations per mode. Watchlist / Passed / Mine are saved views of Pipeline; People open from search or a deal.
 export function Sidebar({ active, mode = "invest", shell, onSearch, onAsk }: { active: Nav; mode?: Mode; shell: ShellData; onSearch?: () => void; onAsk?: () => void }) {
   const b = shell.badges;
+  const openExc = useOpenExceptions();
   // v3.2: three labelled groups (Work / Agents / Firm). Settings joins Firm; "N agents working" sits on the Agents row.
   const ask = useAsk();
   const ui = useShellUI();
@@ -65,7 +67,7 @@ export function Sidebar({ active, mode = "invest", shell, onSearch, onAsk }: { a
   const closeDrawer = () => ui?.setDrawer(false);
   const groups: { label?: string; items: { id: Nav; label: string; icon: typeof Sun }[] }[] = [
     { label: "Work", items: [{ id: "today", label: "Today", icon: Sun }, { id: "pipeline", label: "Pipeline", icon: Layers }, mode === "bank" ? { id: "mandates", label: "Mandates", icon: Briefcase } : { id: "portfolio", label: "Portfolio", icon: PieChart }] },
-    { label: "Agents", items: [{ id: "agents", label: "Agents", icon: Workflow }, { id: "runs", label: "Runs", icon: History }] },
+    { label: "Agents", items: [{ id: "agents", label: "Agents", icon: Workflow }, { id: "runs", label: "Runs", icon: History }, { id: "review", label: "Review", icon: Inbox }] },
     { label: "Firm", items: [{ id: "brain", label: "Firm brain", icon: Brain }, { id: "settings", label: "Settings", icon: Settings }] },
   ];
   const row = cx("group relative flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-rust/30", R("lg:justify-center lg:px-0"));
@@ -113,7 +115,7 @@ export function Sidebar({ active, mode = "invest", shell, onSearch, onAsk }: { a
           <div key={gi} className={cx("space-y-px", gi > 0 && "mt-4", R("lg:mt-2.5 lg:border-t lg:border-zinc-200/80 lg:pt-2.5"))}>
             {g.label && <div className={cx("px-2.5 pb-1 text-[11px] text-zinc-400", R("lg:hidden"))}>{g.label}</div>}
             {g.items.map((it) => {
-              const I = it.icon, on = it.id === active, badge = b[it.id], live = it.id === "agents" && (shell.agentsWorking ?? 0) > 0;
+              const I = it.icon, on = it.id === active, badge = b[it.id] ?? (it.id === "review" && openExc ? { count: openExc, alert: true } : undefined), live = it.id === "agents" && (shell.agentsWorking ?? 0) > 0;
               const extra = live ? `${shell.agentsWorking} ${shell.agentsWorking === 1 ? "agent" : "agents"} working` : badge ? `${badge.count}` : "";
               return (
                 <Link key={it.id} href={navHref[it.id](mode)} onClick={closeDrawer} aria-current={on ? "page" : undefined} className={cx(row, "cursor-pointer", on ? "bg-white font-medium text-ink shadow-[0_1px_2px_rgba(9,9,11,.06)] ring-1 ring-zinc-200/80" : "text-zinc-600 hover:bg-zinc-200/50")}>

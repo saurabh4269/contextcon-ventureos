@@ -28,5 +28,10 @@ describe("signal graph robustness labels", () => {
     expect(withNote.calls[0]!.chips[1]).toMatchObject({ field: "did you mean", value: "Stripe (stripe.com)" });
     const staleNote = noMatchSignals("strpe.com", { ...identify, stale: true, note: "Crustdata unavailable (HTTP 503); showing the response cached at 31 Oct 2026, 13:00 IST" }, "2026-10-31T07:51:39.241Z");
     expect(staleNote.calls[0]!.chips.some((c) => c.id === "dym")).toBe(false);
+    // a no-match served from the stale cache says so
+    expect(staleNote.calls[0]!.chips.find((c) => c.id === "stale")?.path).toMatch(/cached at 31 Oct 2026, 13:00 IST$/);
+    const both = noMatchSignals("strpe.com", { ...identify, stale: true, note: "Crustdata unavailable (HTTP 503); showing the response cached at 31 Oct 2026, 13:00 IST · No company found for the domain strpe.com. Did you mean Stripe (stripe.com)?" }, "2026-10-31T07:51:39.241Z");
+    expect(both.calls[0]!.chips.map((c) => c.id)).toEqual(["m", "stale", "dym"]);
+    expect(both.calls[0]!.chips.find((c) => c.id === "stale")?.path).toMatch(/IST$/);
   });
 });

@@ -22,7 +22,7 @@ export const GET = liveRoute(
     if (r.status !== "no_match") return r;
     // unknown domain (often a typo): "did you mean" suggestions, never auto-picked
     const { suggestions, message, suggest } = await suggestForDomain(client, domain);
-    return { ...r, message, suggestions, calls: { identify: suggestions.length ? { ...r.calls.identify, note: message } : r.calls.identify, suggest } };
+    return { ...r, message, suggestions, calls: { identify: suggestions.length ? { ...r.calls.identify, note: [r.calls.identify.note, message].filter(Boolean).join(" · ") } : r.calls.identify, suggest } };
   },
   { deadlineMs: 55_000 }, // maxDuration 60
 );

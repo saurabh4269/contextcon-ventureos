@@ -200,7 +200,8 @@ export function SrcPop({ source, pinned = false, side = "below", align = "start"
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, [sticky]);
-  if (!ex) return <Src k={source.kind} n={source.n}>{source.label}</Src>;
+  // no excerpt: a plain chip, clickable when the source has somewhere to go (never a dead "#" link)
+  if (!ex) return source.href ? <a href={source.href} target={/^https?:/.test(source.href) ? "_blank" : undefined} rel="noreferrer" className="inline-flex max-w-full min-w-0"><Src k={source.kind} n={source.n} className="hover:border-zinc-300">{source.label}</Src></a> : <Src k={source.kind} n={source.n}>{source.label}</Src>;
   const [a, b] = ex.quote.split(ex.highlight);
   return (
     <span
@@ -232,7 +233,7 @@ export function SrcPop({ source, pinned = false, side = "below", align = "start"
           <span className="block rounded-xl border border-zinc-200 bg-white p-3 text-left shadow-[0_12px_32px_-8px_rgba(9,9,11,.22),0_2px_6px_rgba(9,9,11,.06)]">
             <span className="flex items-center gap-1.5 text-[10.5px] text-zinc-500"><span className="font-mono">{ex.where}</span><span className="ml-auto text-zinc-400">Exact text</span></span>
             <span className="mt-1.5 block border-l-2 border-zinc-200 pl-2.5 text-[12px] leading-[18px] font-normal text-zinc-700">“{a}<mark className="rounded-[3px] bg-[#fdf0c4] px-0.5 text-ink">{ex.highlight}</mark>{b}”</span>
-            <span className="mt-2 flex items-center justify-between text-[11px]"><a href={ex.href ?? source.href ?? "#"} className="font-medium text-ink hover:underline">Open page ↗</a><span className="text-zinc-400"><Kbd>⌘</Kbd> click</span></span>
+            {(ex.href ?? source.href) && <span className="mt-2 flex items-center justify-between text-[11px]"><a href={ex.href ?? source.href} className="font-medium text-ink hover:underline">Open page ↗</a><span className="text-zinc-400"><Kbd>⌘</Kbd> click</span></span>}
           </span>
         </span>
       )}

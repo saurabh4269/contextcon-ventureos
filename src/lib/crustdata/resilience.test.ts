@@ -18,7 +18,7 @@ import {
 } from "./http";
 import { outageReason } from "./stale";
 
-type Step = { status: number; body?: string; headers?: Record<string, string> } | "hang" | "network";
+type Step = { status: number; body?: string; headers?: Record<string, string> } | "hang" | "network" | "refused" | "reset" | "body-reset";
 
 /** fetch that plays `steps` in order (the last step repeats) and counts calls. */
 function scripted(steps: Step[]) {
@@ -27,6 +27,11 @@ function scripted(steps: Step[]) {
     calls.push({ url, method: init.method ?? "GET", body: init.body as string | undefined });
     const step = steps[Math.min(calls.length - 1, steps.length - 1)]!;
     if (step === "network") throw new TypeError("fetch failed");
+    if (step === "refused" || step === "reset") throw Object.assign(new TypeError("fetch failed"), { cause: { code: step === "refused" ? "ECONNREFUSED" : "ECONNRESET" } });
+    if (step === "body-reset") {
+      const body = new ReadableStream({ start: (c) => c.error(Object.assign(new TypeError("terminated"), { cause: { code: "ECONNRESET" } })) });
+      return new Response(body, { status: 200 });
+    }
     if (step === "hang") {
       return new Promise<Response>((_, reject) => {
         init.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
@@ -112,12 +117,21 @@ describe("crustdataFetch fault injection", () => {
     expect(down.calls).toHaveLength(1);
   });
 
-  it("reconnects a write once when the connection failed before any response", async () => {
-    const { f, calls } = scripted(["network"]);
-    const e = await fetchOnce(f, {}, "/watch/company").catch((x) => x);
+  it("reconnects a write once only when the connection provably never opened", async () => {
+    const refused = scripted(["refused"]);
+    const e = await fetchOnce(refused.f, {}, "/watch/company").catch((x) => x);
     expect(e).toBeInstanceOf(CrustdataTransportError);
     expect(e.kind).toBe("network");
-    expect(calls).toHaveLength(2);
+    expect(refused.calls).toHaveLength(2);
+    // a reset, an unknown transport error, or a body that dies mid-read may come after Crustdata created the watch
+    for (const step of ["reset", "network", "body-reset"] as const) {
+      const s = scripted([step]);
+      await expect(fetchOnce(s.f, {}, "/watch/company")).rejects.toBeInstanceOf(CrustdataTransportError);
+      expect(s.calls, step).toHaveLength(1);
+    }
+    // reads are replayed after a mid-body failure
+    const read = scripted(["body-reset", ok(IDENTIFY_E2B)]);
+    expect((await fetchOnce(read.f)).data).toEqual(IDENTIFY_E2B);
   });
 
   it("treats a malformed 200 as an error (retried), never as data or as no-match", async () => {
@@ -131,10 +145,38 @@ describe("crustdataFetch fault injection", () => {
     expect((await fetchOnce(truncated.f)).data).toEqual(IDENTIFY_E2B);
   });
 
-  it("rejects an empty 200 body on a read, accepts an empty 204 on DELETE", async () => {
+  it("rejects an empty 200 body on a read, accepts an empty 204 or a plain-text 200 on DELETE", async () => {
     await expect(fetchOnce(scripted([{ status: 200, body: "" }]).f)).rejects.toThrow(/empty body/);
     const del = await fetchOnce(scripted([{ status: 204 }]).f, {}, "/watch/company/7", "DELETE");
     expect(del.data).toBeNull();
+    expect((await fetchOnce(scripted([{ status: 200, body: "OK" }]).f, {}, "/watch/company/7", "DELETE")).data).toBeNull();
+  });
+
+  it("odd error bodies ({error: null}, arrays, text) still produce a CrustdataApiError", async () => {
+    for (const body of ['{"error": null}', "[1,2]", "null", "Service Unavailable"]) {
+      const e = await fetchOnce(scripted([{ status: 503, body }]).f).catch((x) => x);
+      expect(e, body).toBeInstanceOf(CrustdataApiError);
+      expect(e.status).toBe(503);
+    }
+  });
+
+  it("a malformed 200 counts as an outage for the breaker", async () => {
+    const breaker = new CircuitBreaker(2, 60_000);
+    await expect(fetchOnce(scripted([{ status: 200, body: "<html>" }]).f, { breaker, transientRetries: 0 })).rejects.toBeInstanceOf(CrustdataMalformedResponseError);
+    await expect(fetchOnce(scripted([{ status: 200, body: "<html>" }]).f, { breaker, transientRetries: 0 })).rejects.toBeInstanceOf(CrustdataMalformedResponseError);
+    await expect(fetchOnce(scripted([ok(IDENTIFY_E2B)]).f, { breaker })).rejects.toBeInstanceOf(CircuitOpenError);
+  });
+
+  it("never waits on the rate limiter past the deadline", async () => {
+    const limiter = new RateLimiter();
+    const f = scripted([ok({ results: [] })]).f;
+    // /web/search/live allows 10/min: fill the window, then the 11th call must fail fast instead of sleeping ~60 s
+    for (let i = 0; i < 10; i++) await crustdataFetch("k", "/web/search/live", { method: "POST", body: "{}" }, limiter, { fetchImpl: f, sleep: noSleep });
+    const t0 = Date.now();
+    const e = await crustdataFetch("k", "/web/search/live", { method: "POST", body: "{}" }, limiter, { fetchImpl: f, sleep: noSleep, deadlineMs: 5_000 }).catch((x) => x);
+    expect(Date.now() - t0).toBeLessThan(500);
+    expect(e).toBeInstanceOf(CrustdataTransportError);
+    expect(e.message).toMatch(/rate limit \(10\/min\) needs a \d+ s wait, past this request's deadline/);
   });
 
   it("stops retrying when the total deadline is spent", async () => {
@@ -298,6 +340,16 @@ describe("request-scoped deadline", () => {
 });
 
 describe("breaker trial slot", () => {
+  it("is released even when the half-open trial ends in a 5xx with a malformed error body", async () => {
+    let now = 0;
+    const breaker = new CircuitBreaker(1, 1_000, () => now);
+    await expect(fetchOnce(scripted([err(503)]).f, { breaker, transientRetries: 0 })).rejects.toBeInstanceOf(CrustdataApiError);
+    now = 5_000;
+    await expect(fetchOnce(scripted([{ status: 503, body: '{"error": null}' }]).f, { breaker, transientRetries: 0 })).rejects.toBeInstanceOf(CrustdataApiError);
+    now = 10_000;
+    await expect(fetchOnce(scripted([ok(IDENTIFY_E2B)]).f, { breaker })).resolves.toBeTruthy();
+  });
+
   it("is released when the deadline runs out before the trial reaches Crustdata", async () => {
     let now = 0;
     const breaker = new CircuitBreaker(1, 1_000, () => now);

@@ -12,7 +12,8 @@ import { SparkArea, RangeChart } from "./charts";
 import { StagePill } from "./dealbits";
 import { motion } from "framer-motion";
 import { Rise, Grow, GrowUp, useReducedMotion } from "./motion";
-import type { DealSection, DealEvent, CapRow } from "../types";
+import type { DealSection, DealEvent, CapRow, Why } from "../types";
+import { WhyChip } from "./why";
 
 export const CARD = "rounded-[20px] border border-zinc-200/70 bg-white shadow-[0_1px_2px_rgba(9,9,11,.03),0_12px_32px_-18px_rgba(9,9,11,.10)]";
 const TH = "h-10 border-b border-zinc-100 text-[12px] font-normal text-zinc-500";
@@ -29,12 +30,12 @@ function Card({ title, right, children, className, i = 1 }: { title?: ReactNode;
 function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "rust" }) {
   return <div className="min-w-0"><div className="text-[12px] text-zinc-500">{label}</div><div className={cx("numeral mt-1 text-[28px] leading-none", tone === "rust" && "text-rust")}>{value}</div>{sub && <div className="mt-1.5 truncate text-[12px] text-zinc-500">{sub}</div>}</div>;
 }
-function StatRow({ stats }: { stats: { id: string; label: string; value: string; sub?: string; hint?: string }[] }) {
+function StatRow({ stats }: { stats: { id: string; label: string; value: string; sub?: string; hint?: string; why?: Why }[] }) {
   return (
     <Card i={1}>
       {/* Phone: two per row, no dividers. */}
       <div className="grid grid-cols-2 gap-5 @min-[720px]/main:grid-cols-(--n)" style={{ "--n": `repeat(${stats.length}, minmax(0,1fr))` } as CSSProperties}>
-        {stats.map((s, i) => <div key={s.id} title={s.hint} className={cx(i > 0 && "@min-[720px]/main:border-l @min-[720px]/main:border-zinc-100 @min-[720px]/main:pl-5")}><Stat label={s.label} value={s.value} sub={s.sub} /></div>)}
+        {stats.map((s, i) => <div key={s.id} title={s.hint} className={cx(i > 0 && "@min-[720px]/main:border-l @min-[720px]/main:border-zinc-100 @min-[720px]/main:pl-5")}><Stat label={s.label} value={s.value} sub={s.sub} />{s.why && <div className="mt-1.5"><WhyChip why={s.why} label={s.label} value={s.value} /></div>}</div>)}
       </div>
     </Card>
   );
@@ -100,7 +101,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
         <Rise i={1} className="mt-5 grid grid-cols-4 gap-3 @max-[1040px]/main:grid-cols-2 @max-[720px]/main:gap-2">
           {s.kpis.map((k) => (
             <div key={k.id} title={k.hint} className={cx(CARD, "p-4")}>
-              <div className="flex items-center gap-1.5 text-[12px] text-zinc-500"><span className="truncate">{k.label}</span>{k.verified && <span title="Verified against source" className="ml-auto grid size-4 shrink-0 place-items-center rounded-full bg-ok-50 text-ok"><Check className="size-2.5" strokeWidth={3} /></span>}</div>
+              <div className="flex items-center gap-1.5 text-[12px] text-zinc-500"><span className="truncate">{k.label}</span><WhyChip why={k.why} label={k.label} value={k.value} />{k.verified && <span title="Read from a cited source" className="ml-auto grid size-4 shrink-0 place-items-center rounded-full bg-ok-50 text-ok"><Check className="size-2.5" strokeWidth={3} /></span>}</div>
               <div className="numeral mt-2 truncate text-[30px] leading-none @max-[720px]/main:text-[24px]">{k.value}</div>
               <div className="mt-1.5 truncate text-[12px] text-zinc-500">{k.sub}</div>
               {k.trend && <div className="mt-3"><SparkArea d={k.trend} w={120} h={28} color="#9c440f" /></div>}
@@ -119,7 +120,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
           </Card>}
           <Card title="Company" i={2}>
             <dl className="-my-1.5 divide-y divide-zinc-100">
-              {s.facts.map((f) => <div key={f.k} className="flex items-center justify-between gap-4 py-[7px] text-[13px]"><dt className="shrink-0 text-zinc-500">{f.k}</dt><dd className="min-w-0 truncate text-right font-medium">{f.v}</dd></div>)}
+              {s.facts.map((f) => <div key={f.k} className="flex items-center justify-between gap-4 py-[7px] text-[13px]"><dt className="shrink-0 text-zinc-500">{f.k}</dt><dd className="flex min-w-0 items-center justify-end gap-1.5 text-right font-medium"><span className="truncate">{f.v}</span><WhyChip why={f.why} label={f.k} value={f.v} /></dd></div>)}
             </dl>
           </Card>
         </div>
@@ -133,7 +134,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
         <>
           {head}
           <StatRow stats={s.stats} />
-          <Card title="Key people" right={<span className="text-[12px] text-zinc-500">{s.people.filter((p) => p.check.ok).length} of {s.people.length} verified</span>} i={2} className="p-0 pt-5">
+          <Card title="Key people" right={<span className="text-[12px] text-zinc-500">{s.people.filter((p) => p.check.ok).length} of {s.people.length} with a cited profile</span>} i={2} className="p-0 pt-5">
 <div className="overflow-x-auto"><div className="@max-[720px]/main:min-w-[540px]">
             <div className="px-5"><div className={cx("grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_164px] items-center gap-x-4", TH)}><span>Name</span><span>Before</span><span>Check</span></div></div>
             {s.people.map((p) => {
@@ -142,7 +143,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
                 <div key={p.id} className="row-hover grid h-[60px] grid-cols-[minmax(0,1fr)_minmax(0,1fr)_164px] items-center gap-x-4 border-t border-zinc-100 px-5 text-[13px] first-of-type:border-0">
                   {p.href ? <Link href={p.href} title={`Open ${p.name}`} className="group/p flex min-w-0 items-center gap-3">{name}</Link> : <span className="flex min-w-0 items-center gap-3">{name}</span>}
                   <span className="min-w-0"><span className="block truncate text-zinc-700">{p.prev}</span><span className="tnum block truncate text-[12px] text-zinc-500">{p.tenure}</span></span>
-                  <span title={p.hint}><StagePill tone={p.check.ok ? "ok" : "warn"}>{p.check.label}</StagePill></span>
+                  <span title={p.hint} className="inline-flex items-center gap-1.5"><StagePill tone={p.check.ok ? "ok" : "warn"}>{p.check.label}</StagePill><WhyChip why={p.why} label={p.name} value={p.role} /></span>
                 </div>
               );
             })}
@@ -214,7 +215,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
               <div key={c.id} className={cx("row-hover grid h-[60px] grid-cols-[minmax(0,1.6fr)_92px_88px_64px] items-center gap-x-3 border-t border-zinc-100 px-5 text-[13px] first-of-type:border-0", c.us && "bg-[#fdf8f3]")}>
                 <span className="flex min-w-0 items-center gap-3"><CompanyLogo c={c.company} size={30} /><span className="min-w-0"><span className="block truncate font-medium">{c.company.name}{c.us && <span className="ml-2 rounded-full bg-rust-50 px-1.5 py-px text-[11px] font-medium text-rust">This deal</span>}</span><span className="block truncate text-[12px] text-zinc-500">{c.note}</span></span></span>
                 <span className="text-zinc-600">{c.stage}</span>
-                <span className="tnum text-right text-zinc-600">{c.raised}</span>
+                <span className="tnum flex items-center justify-end gap-1 text-right text-zinc-600">{c.raised}<WhyChip why={c.why} label={`${c.company.name} · raised`} value={c.raised} /></span>
                 <span className={cx("tnum text-right font-semibold", c.us && "text-rust")}>{c.multiple}</span>
               </div>
             ))}
