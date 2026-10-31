@@ -3,11 +3,55 @@
 > ## 🚀 Live demo: **[contextcon.ventureos.xyz](https://contextcon.ventureos.xyz)**
 > Try it now: [Today inbox](https://contextcon.ventureos.xyz/today) · [Ask](https://contextcon.ventureos.xyz/ask) · [Detailed system diagram](docs/architecture/SYSTEM_DIAGRAM.md)
 
+<p align="center">
+  <a href="https://contextcon.ventureos.xyz/deal?domain=efficieno.ai">
+    <img src="docs/assets/screenshots/deal.png" alt="Deal Desk deal page for Efficieno AI with live Crustdata research" width="100%" />
+  </a>
+  <br />
+  <sub><b>Deal page, live Crustdata.</b> Deal Desk calls Crustdata for Efficieno AI. Each number shows its source. <a href="https://contextcon.ventureos.xyz/deal?domain=efficieno.ai">Open the live page →</a></sub>
+</p>
+
 **Deal Desk is an agentic OS for venture investors. It uses live Crustdata to check a founder's claims and turn them into a cited investment decision and IC memo.**
 
 Team **thExplorers**: Saurabh Gupta, Shiwani Mishra · ContextCon 03 @ IIT Bombay (Techfest), 31 Oct 2026 · Theme: **Investing**
 
 > **Trust rule:** Each number shows its value, method, inputs and source. If a number has no source, the screen shows "unavailable" and the reason.
+
+## Screenshots
+
+These screenshots come from the live site, [contextcon.ventureos.xyz](https://contextcon.ventureos.xyz). Click an image to open the page.
+
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://contextcon.ventureos.xyz/today"><img src="docs/assets/screenshots/today.png" alt="Today. See the new inbound deals and the decisions for today." /></a>
+      <br /><sub><b>Today.</b> See the new inbound deals and the decisions for today.</sub>
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://contextcon.ventureos.xyz/pipeline"><img src="docs/assets/screenshots/pipeline.png" alt="Pipeline. Follow each deal from sourced to term sheet." /></a>
+      <br /><sub><b>Pipeline.</b> Follow each deal from sourced to term sheet.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://contextcon.ventureos.xyz/memo?id=efficieno.ai"><img src="docs/assets/screenshots/memo.png" alt="IC memo. Read the recommendation. Each number has a citation." /></a>
+      <br /><sub><b>IC memo.</b> Read the recommendation. Each number has a citation.</sub>
+    </td>
+    <td width="50%" valign="top">
+      <a href="https://contextcon.ventureos.xyz/portfolio"><img src="docs/assets/screenshots/portfolio.png" alt="Portfolio. Monitor runway, ARR and alerts for each company." /></a>
+      <br /><sub><b>Portfolio.</b> Monitor runway, ARR and alerts for each company.</sub>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <a href="https://contextcon.ventureos.xyz/ask"><img src="docs/assets/screenshots/ask.png" alt="Ask. Ask a question in plain English. The answer cites its sources." /></a>
+      <br /><sub><b>Ask.</b> Ask a question in plain English. The answer cites its sources.</sub>
+    </td>
+    <td width="50%"></td>
+  </tr>
+</table>
+
+> **Note:** The deal page uses live Crustdata. Some other screens show sample data. A "Demo data" badge identifies sample data.
 
 ## 1. The service
 
