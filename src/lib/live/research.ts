@@ -2,6 +2,7 @@
 // parallel. Every call reports status, latency and credits; one failing call never hides the others, and an empty
 // identify `matches[]` is "no_match" — errors are never reported as no-match.
 import type { CrustdataClient } from "@/lib/crustdata";
+import { companyFields } from "@/lib/numbers/company-fields";
 import { comparableCompaniesSearchBody } from "@/lib/crustdata/company-queries";
 import { COMPANY_ENRICH_FIELD_GROUPS } from "@/lib/crustdata/enrich-fields";
 import { jobSearchByCompanyId } from "@/lib/crustdata/job-queries";
@@ -17,12 +18,13 @@ const fromMeta = <T>(spec: CallSpec, meta: CrustdataCallMeta, status: LiveCall["
   status,
   ms: meta.latencyMs,
   cached: meta.cached,
+  retrievedAt: meta.retrievedAt,
   creditsUsed: meta.creditsUsed,
   ...(data === undefined ? {} : { data }),
 });
 
 function errorCall<T>(spec: CallSpec, e: unknown, ms: number): LiveCall<T> {
-  return { ...spec, status: "error", ms, cached: false, creditsUsed: null, error: e instanceof Error ? e.message : String(e) };
+  return { ...spec, status: "error", ms, cached: false, retrievedAt: null, creditsUsed: null, error: e instanceof Error ? e.message : String(e) };
 }
 
 /** Run one call; failures become an error LiveCall instead of rejecting the whole research. */
@@ -89,7 +91,7 @@ export async function searchNews(client: CrustdataClient, query: string, mustMen
 export async function searchComps(client: CrustdataClient, company: Pick<LiveCompany, "id" | "description" | "categories">, limit = 5): Promise<LiveCall<LiveComp[]>> {
   const query = [company.description, company.categories.slice(0, 3).join(", ")].filter(Boolean).join(" · ");
   if (!query) {
-    return { id: "comps", method: "POST", path: "/company/search", body: null, status: "skipped", ms: 0, cached: false, creditsUsed: null, note: "No description or categories to search comparables on." };
+    return { id: "comps", method: "POST", path: "/company/search", body: null, status: "skipped", ms: 0, cached: false, retrievedAt: null, creditsUsed: null, note: "No description or categories to search comparables on." };
   }
   const body = comparableCompaniesSearchBody({ crustdataCompanyId: company.id, query, limit, withFunding: true });
   const spec: CallSpec = { id: "comps", method: "POST", path: "/company/search", body };
@@ -122,11 +124,6 @@ export async function researchCompany(client: CrustdataClient, domain: string): 
     searchNews(client, `"${c.name}" ${c.categories[0] ?? c.description ?? ""}`.trim(), c.name),
     searchComps(client, c),
   ]);
-  return {
-    status: "ok",
-    domain,
-    requestedAt,
-    company: c,
-    calls: { identify: looked.identify, enrich: looked.enrich, founders, jobs, news, comps },
-  };
+  const base = { status: "ok" as const, domain, requestedAt, company: c, calls: { identify: looked.identify, enrich: looked.enrich, founders, jobs, news, comps } };
+  return { ...base, fields: companyFields({ ...base, fields: {} }) };
 }

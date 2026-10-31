@@ -1,3 +1,4 @@
+import type { ComputedField } from "@/lib/fields";
 // Normalized live-data shapes returned by /api/live/* and /api/integrations/connectors.
 // Pure types (no server imports) so client adapters can use them too. Field comments name the Crustdata source path.
 
@@ -39,6 +40,7 @@ export type LiveCompany = {
     qoqPct?: number;
     monthly: Point[]; // …monthly_visitors_timeseries
   };
+  followers: { count?: number; qoqPct?: number; sixMonthPct?: number; yoyPct?: number }; // followers.*
   news: { title: string; url?: string; date?: string; publisher?: string }[]; // news[].article_*
 };
 
@@ -87,6 +89,8 @@ export type LiveCall<T = unknown> = {
   /** observed latency of the original network call (cache hits report the original latency) */
   ms: number;
   cached: boolean;
+  /** ISO time the upstream response was fetched (null when no call was made) */
+  retrievedAt: string | null;
   creditsUsed: string | null;
   error?: string;
   /** why a call was skipped (e.g. "no description to search on") */
@@ -107,6 +111,8 @@ export type ResearchResult =
       domain: string;
       requestedAt: string;
       company: LiveCompany;
+      /** explainable numbers computed from the calls below (see src/lib/numbers/company-fields.ts) */
+      fields: Record<string, ComputedField<unknown>>;
       calls: {
         identify: LiveCall<IdentifyData>;
         enrich: LiveCall<LiveCompany>;

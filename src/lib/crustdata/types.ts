@@ -41,6 +41,8 @@ export type CrustdataCallMeta = {
   creditsUsed: string | null;
   requestId: string | null;
   asOf: string;
+  /** ISO time the upstream response was fetched (for cache hits: when it was originally fetched). */
+  retrievedAt: string;
   /** Observed latency of the original network call, ms (0 for fixtures). */
   latencyMs: number;
   /** True when served from the response cache (no credits spent for this read). */

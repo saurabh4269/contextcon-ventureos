@@ -87,6 +87,12 @@ export function normalizeCompany(company: CompanyEnrichData, requestedDomain: st
       monthly: monthly((t?.monthly_visitors_timeseries ?? []).map((p) => ({ date: p.date, value: p.monthly_visitors })), 12),
     },
     // enrich news is matched by name and is noisy for short names ("Pepperdine E2B"); keep high-confidence matches only
+    followers: {
+      count: num(company.followers?.count),
+      qoqPct: num(company.followers?.qoq_percent),
+      sixMonthPct: num(company.followers?.six_months_growth_percent),
+      yoyPct: num(company.followers?.yoy_percent),
+    },
     news: (company.news ?? [])
       .filter((n) => clean(n.article_title) && (n.confidence_score ?? 0) >= NEWS_MIN_CONFIDENCE)
       .map((n) => ({ title: clean(n.article_title)!, url: clean(n.article_url), date: day(n.article_publish_date), publisher: clean(n.article_publisher_name) }))
