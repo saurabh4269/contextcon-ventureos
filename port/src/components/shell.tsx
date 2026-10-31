@@ -316,7 +316,7 @@ export function Page({ active, children, top, mode, overlay, shell, dock, tone =
             "max-lg:fixed max-lg:inset-0 max-lg:z-[75]", desktop === null && "max-lg:hidden",
             "lg:sticky lg:top-0 lg:h-screen lg:w-[360px] lg:shrink-0 lg:border-l lg:border-zinc-200/70")}>
             {/* phones: full-screen sheet with its own way out (some docks bring no close button) */}
-            <div className="flex h-12 shrink-0 items-center gap-2 border-b border-zinc-100 px-3 lg:hidden">
+            <div className="flex h-12 shrink-0 items-center gap-2 border-b border-zinc-100 px-3 lg:hidden [&:has(+div_button[aria-label=Close])]:hidden">
               <Mascot size={22} /><span className="serif text-[15px] text-ink">Ask Deal Desk</span>
               <button type="button" onClick={() => setOpen(false)} aria-label="Close assistant" className="ml-auto grid size-9 place-items-center rounded-full text-zinc-500 hover:bg-zinc-100 hover:text-ink"><X className="size-[18px]" /></button>
             </div>

@@ -61,7 +61,7 @@ export function ShortcutsDialog({ onClose }: { onClose: () => void }) {
     [<><Kbd>{mod}</Kbd><Kbd>J</Kbd></>, "Open or close the assistant"],
     [<Kbd>/</Kbd>, "Search this page, or find companies"],
     [<><Kbd>{mod}</Kbd><Kbd>\</Kbd></>, "Collapse or expand the sidebar"],
-    [<Kbd>Esc</Kbd>, "Close menus, dialogs and panels"],
+    [<Kbd>Esc</Kbd>, "Close menus and dialogs"],
   ];
   return (
     <Dialog title="Keyboard shortcuts" onClose={onClose} w={400}>
@@ -155,7 +155,7 @@ export function AccountMenu({ user, place = "top-start", children, onNavigate }:
             </div>
           </div>
           {user.github && (
-            <a role="menuitem" href={`https://github.com/${user.github}`} target="_blank" rel="noreferrer" onClick={go} className={cx(itemCls, "h-7 text-[12px] text-zinc-500")}>
+            <a role="menuitem" href={`https://github.com/${user.github}`} target="_blank" rel="noopener noreferrer" onClick={go} className={cx(itemCls, "h-7 text-[12px] text-zinc-500")}>
               <Github className="size-3.5" strokeWidth={1.75} />@{user.github}<ExternalLink className="ml-auto size-3 text-zinc-300" />
             </a>
           )}
@@ -164,7 +164,7 @@ export function AccountMenu({ user, place = "top-start", children, onNavigate }:
           <Link role="menuitem" href={ROUTES.connectors} onClick={go} className={itemCls}><Plug className="size-[15px] text-zinc-500" strokeWidth={1.75} />Connectors</Link>
           <button role="menuitem" type="button" onClick={() => openDialog("keys")} className={itemCls}><Keyboard className="size-[15px] text-zinc-500" strokeWidth={1.75} />Keyboard shortcuts</button>
           <button role="menuitem" type="button" onClick={() => openDialog("how")} className={itemCls}><BookOpen className="size-[15px] text-zinc-500" strokeWidth={1.75} />How Deal Desk works</button>
-          <a role="menuitem" href={REPO_URL} target="_blank" rel="noreferrer" onClick={go} className={itemCls}><Github className="size-[15px] text-zinc-500" strokeWidth={1.75} />Source code on GitHub<ExternalLink className="ml-auto size-3 text-zinc-300" /></a>
+          <a role="menuitem" href={REPO_URL} target="_blank" rel="noopener noreferrer" onClick={go} className={itemCls}><Github className="size-[15px] text-zinc-500" strokeWidth={1.75} />Source code on GitHub<ExternalLink className="ml-auto size-3 text-zinc-300" /></a>
           <div className="my-1 border-t border-zinc-100" />
           <div className="flex items-center gap-1.5 px-2.5 pt-1 pb-1.5 text-[11px] text-zinc-400"><span className="size-1.5 rounded-full bg-[#2f9a5c]" />Live data only · outbound in dry-run</div>
         </div>
