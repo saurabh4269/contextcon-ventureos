@@ -36,6 +36,8 @@ function chip(id: string, field: string, f: F | undefined, fmt: (v: unknown) => 
 const chips = (xs: (SignalChip | null)[]) => xs.filter((x): x is SignalChip => !!x);
 const spark = (id: string, field: string, label: string, pts: Point[], fmt: (v: number) => string): SignalSpark | null =>
   pts.length >= 2 ? { id, field, label, points: pts.map((p) => ({ date: p.date, v: p.v })), value: fmt(pts[pts.length - 1]!.v) } : null;
+/** Crustdata was down and this call was answered from the last good cached response: say so, with when (IST). */
+const staleChip = (c: LiveCall): SignalChip[] => (c.stale ? [{ id: "stale", field: "cached", value: "stale", path: c.note ?? `cached at ${fmtDateTime(c.retrievedAt)}`, short: "cached" }] : []);
 const errChip = (c: LiveCall): SignalChip[] => (c.status === "error" ? [{ id: "err", field: "error", value: "failed", path: c.error ?? "request failed" }] : c.status === "skipped" ? [{ id: "skip", field: "skipped", value: "—", path: c.note ?? "skipped" }] : []);
 
 export function toSignalGraph(r: Ok, now: Date = new Date()): SignalGraphData {
@@ -54,7 +56,7 @@ export function toSignalGraph(r: Ok, now: Date = new Date()): SignalGraphData {
     body: body(x),
     ms: x.ms,
     ...extra,
-    chips: extra.chips.length ? extra.chips : errChip(x).length ? errChip(x) : [{ id: "none", field: "results", value: "none", path: "no data returned" }],
+    chips: [...(extra.chips.length ? extra.chips : errChip(x).length ? errChip(x) : [{ id: "none", field: "results", value: "none", path: "no data returned" }]), ...staleChip(x)],
     lead: extra.chips.length ? extra.lead : (errChip(x)[0]?.id ?? "none"),
   });
 
@@ -317,7 +319,13 @@ export function noMatchSignals(domain: string, identify: LiveCall, requestedAt: 
     headline: { pre: `No Crustdata match for ${domain}` },
     requestedAt,
     requestedAgo: fmtAgo(requestedAt),
-    calls: [{ id: "identify", method: identify.method, path: identify.path, body: JSON.stringify(identify.body), ms: identify.ms, icon: "identify", chips: [{ id: "m", field: "matches", value: "[]", path: "[0].matches" }] }],
+    calls: [
+      {
+        id: "identify", method: identify.method, path: identify.path, body: JSON.stringify(identify.body), ms: identify.ms, icon: "identify",
+        // identify.note carries the route's "did you mean" suggestions for a typo'd domain (never auto-picked)
+        chips: [{ id: "m", field: "matches", value: "[]", path: "[0].matches" }, ...(identify.note && /Did you mean /.test(identify.note) ? [{ id: "dym", field: "did you mean", value: identify.note.replace(/^.*Did you mean /, "").replace(/\?$/, ""), path: identify.note, short: "did you mean" }] : [])],
+      },
+    ],
     fit: { label: "Signal score", unscored: { reason: "No company matched, so there is nothing to score." }, base: { label: "—", value: null }, bands: { strong: "Strong", maybe: "Possible", weak: "Weak" }, contributions: [], recommendation: { label: "", why: "", actions: [] } },
     timeline: [{ at: 0, type: "query" }],
     frames: [0],
