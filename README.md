@@ -29,7 +29,7 @@ npm run dev                    # http://localhost:3240
 | `/settings` → Connectors | Real health checks (Crustdata `GET /account/credits`, ElevenLabs, Gmail, Calendar) |
 | `/today` | Gmail + Calendar read, spoken greeting (ElevenLabs) |
 
-`npm test` (vitest, no network; 662 passing, 5 skipped that need a live key or Postgres) · `npm run typecheck` · Details for contributors: [AGENTS.md](AGENTS.md) · state of play: [docs/HANDOFF.md](docs/HANDOFF.md).
+`npm test` (vitest, no network; 664 passing, 5 skipped that need a live key or Postgres) · `npm run typecheck` · Details for contributors: [AGENTS.md](AGENTS.md) · state of play: [docs/HANDOFF.md](docs/HANDOFF.md).
 
 ---
 
