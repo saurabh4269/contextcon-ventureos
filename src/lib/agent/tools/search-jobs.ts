@@ -41,7 +41,7 @@ export const searchJobs: ToolDef = {
     },
   },
   estimateCredits: (input) => round2(clampInt(input.limit, 0, MAX_LIMIT, 20) * PER_ROW),
-  execute: (input, client) => {
+  execute: async (input, client) => {
     if (!input.filters || typeof input.filters !== "object") throw new Error("search_jobs needs filters.");
     const aggs = aggregations(input.aggregations);
     const limit = clampInt(input.limit, 0, MAX_LIMIT, 20);

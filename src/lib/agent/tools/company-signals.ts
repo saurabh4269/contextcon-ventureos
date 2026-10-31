@@ -68,7 +68,7 @@ export const companySignals: ToolDef = {
     },
   },
   estimateCredits: (input) => CREDITS_PER_COMPANY * Math.min(MAX, ints(input.crustdata_company_ids, MAX).length || strings(input.domains, MAX).length),
-  execute: (input, client) => {
+  execute: async (input, client) => {
     const ids = ints(input.crustdata_company_ids, MAX);
     const domains = strings(input.domains, MAX);
     if (!ids.length && !domains.length) throw new Error("company_signals needs crustdata_company_ids or domains.");

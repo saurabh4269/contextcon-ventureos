@@ -22,7 +22,7 @@ export const identifyCompany: ToolDef = {
     },
   },
   estimateCredits: () => 0,
-  execute: (input, client) => {
+  execute: async (input, client) => {
     const ids = ints(input.crustdata_company_ids, MAX);
     const domains = strings(input.domains, MAX).map((d) => d.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, ""));
     const urls = strings(input.linkedin_urls, MAX).filter((u) => /linkedin\.com\/company\//i.test(u));

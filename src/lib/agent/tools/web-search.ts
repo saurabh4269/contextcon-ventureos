@@ -34,7 +34,7 @@ export const webSearch: ToolDef = {
     },
   },
   estimateCredits: () => 1,
-  execute: (input, client) => {
+  execute: async (input, client) => {
     const query = typeof input.query === "string" ? input.query.trim().slice(0, 1000) : "";
     if (!query) throw new Error("web_search needs a query.");
     const sources = (Array.isArray(input.sources) ? input.sources : []).filter((s): s is (typeof SOURCES)[number] => (SOURCES as readonly unknown[]).includes(s));

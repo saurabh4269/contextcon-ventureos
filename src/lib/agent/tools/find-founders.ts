@@ -13,9 +13,9 @@ export const findFounders: ToolDef = {
     name: "find_founders",
     description:
       "POST /person/search — founders (title matches 'Founder': Co-Founder, Founder & CEO …) currently at the given crustdata_company_ids (up to 25 companies per call). " +
-      "Response: profiles[i].basic_profile.name/.headline, profiles[i].experience.employment_details.current[j] (company_id, company_name, title, start_date), " +
-      "profiles[i].experience.employment_details.past[j] (company_name, title, start_date, end_date) = what they did before, profiles[i].education.schools[j], profiles[i].social_handles.professional_network_identifier.profile_url. " +
-      "Match a person to a company via experience.employment_details.current[j].company_id. Companies with no row have no founder on Crustdata — say so, do not guess. Cost ≈0.23 credits per returned person.",
+      "Response: profiles[i].basic_profile.name/.headline, profiles[i].experience.employment_details.current[j] (crustdata_company_id, name = employer name, title, start_date), " +
+      "profiles[i].experience.employment_details.past[j] (name = employer name, crustdata_company_id, title, start_date, end_date, years_at_company) = what they did before, profiles[i].education.schools[j], profiles[i].social_handles.professional_network_identifier.profile_url. " +
+      "Match a person to a company via experience.employment_details.current[j].crustdata_company_id. Companies with no row have no founder on Crustdata — say so, do not guess. Cost ≈0.23 credits per returned person.",
     input_schema: {
       type: "object",
       properties: {
@@ -30,7 +30,7 @@ export const findFounders: ToolDef = {
     const n = ints(input.crustdata_company_ids, MAX_COMPANIES).length;
     return round2(clampInt(input.limit, 1, 50, Math.min(50, Math.max(1, n * 3))) * PER_ROW);
   },
-  execute: (input, client) => {
+  execute: async (input, client) => {
     const ids = ints(input.crustdata_company_ids, MAX_COMPANIES);
     if (!ids.length) throw new Error("find_founders needs crustdata_company_ids (use identify_company or search_companies first).");
     const title = typeof input.title_keyword === "string" && input.title_keyword.trim() ? input.title_keyword.trim().slice(0, 60) : "Founder";
