@@ -260,7 +260,8 @@ The builder implements the same contract on its main; this repo only stores/list
 Server-side OAuth refresh (`GOOGLE_CLIENT_ID/SECRET/REFRESH_TOKEN`); access tokens cached in memory. Errors:
 503 `not_connected` · 401 `{code:"expired"}` ("Google connection expired — reconnect") · 403 `forbidden` · 502.
 
-* `GET /api/connectors/gmail/threads?since=<ISO>&max=<1..25>` → `{status:"ok", since, threads:[{id, from, fromAddress, subject, lastMessageAt, messages, unread}], estimate}` (INBOX, `format=metadata`).
+* `GET /api/connectors/gmail/threads?since=<ISO>&max=<1..25>` → `{status:"ok", since, threads:[{id, from, fromAddress, subject, snippet, companyDomain, lastMessageAt, messages, unread}], estimate}` (INBOX, `format=metadata`). `companyDomain` is the sender host or a website named in the subject/snippet; null for personal mail with no domain.
+* `GET /api/pipeline/deals` → `{status:"ok", deals:[{domain, name, href, source:"inbound"|"opened"|"researched", at}], sources:{inbox, memory}}`. Live inbox + memory only; empty when neither has a company.
 * `GET /api/connectors/calendar/events?max=<1..25>` → `{status:"ok", events:[{id, summary, start, end, allDay, attendees, link}]}` (primary, from now).
 * `POST /api/connectors/calendar/events {summary, start, end, description?, attendees?}` → with `OUTBOUND_MODE=dry_run`
   (default): 200 `{status:"ok", transport:"dry_run", label, wouldSend}`; live: 201 `{transport:"live", event}` (`sendUpdates=none`).

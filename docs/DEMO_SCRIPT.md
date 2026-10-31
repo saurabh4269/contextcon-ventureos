@@ -16,6 +16,24 @@ seen taken through to finished work, and where each fact came from.
 An `/ask` run takes about 1.5–2.5 minutes live (model + Crustdata). **Trim the wait in Loom's editor** after the
 first tool calls appear; do not pretend it is instant.
 
+## Sidebar click path (Efficieno / inbound deal)
+
+Do **not** type a domain. The left sidebar is labelled **Work** / **Agents** / **Firm**.
+
+**Before recording:** from Shiwani's Gmail, send this to the connected inbox. The subject **must** contain `efficieno.ai` or the row will not become a deal.
+
+- To: the Gmail connected in Settings › Connectors
+- Subject: `Efficieno AI (efficieno.ai) — seed pitch`
+- Body: any short pitch; include `https://efficieno.ai` once
+
+Then (sidebar labels stay the same; you click a row *inside* the page):
+
+1. In the **left sidebar**, under **Work**, click **Today** (sun icon, first item).
+2. On Today, the left card is titled **Inbound**. Click the Efficieno pitch row — the right edge says **Open deal**. That opens the deal page.
+3. **Or** in the same sidebar click **Pipeline** (stacked-layers icon, directly under Today). On that page, click the Efficieno row in the company list.
+4. On the deal page wait for research to finish. Click any number to open its source. The two header buttons are **Data room** and **IC memo**. Click **IC memo** (there is no "Proceed to diligence" button).
+5. On the memo, scroll, then click **Find a 30-min slot**. Click a time, then **Approve & book …**. Click **Review email**, then **Approve & send to …**. Dry run builds the email and does not send it.
+
 ## Loom (≤ 2:00)
 
 | Time | URL and clicks | Say |

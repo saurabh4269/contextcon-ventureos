@@ -3,6 +3,7 @@
 //   users.threads.list   GET /gmail/v1/users/me/threads?labelIds=INBOX&q=after:<unix>&maxResults=N
 //   users.threads.get    GET /gmail/v1/users/me/threads/{id}?format=metadata&metadataHeaders=From&…Subject&…Date
 //   users.getProfile     GET /gmail/v1/users/me/profile (health check)
+import { companyDomainFromInbox } from "@/lib/inbox/company";
 import { googleJson, type GoogleConfig } from "./oauth";
 
 const API = "https://gmail.googleapis.com/gmail/v1/users/me";
@@ -13,13 +14,17 @@ export type InboxThread = {
   from: string;
   fromAddress: string | null;
   subject: string;
+  /** Gmail list snippet (plain text); used only to find a company domain */
+  snippet: string;
+  /** Company website when the sender host, subject or snippet names one; null for personal mail with no domain */
+  companyDomain: string | null;
   /** UTC ISO of the thread's last message (internalDate) */
   lastMessageAt: string;
   messages: number;
   unread: boolean;
 };
 
-type ThreadList = { threads?: { id: string }[]; resultSizeEstimate?: number };
+type ThreadList = { threads?: { id: string; snippet?: string }[]; resultSizeEstimate?: number };
 type Thread = { id: string; messages?: { internalDate?: string; labelIds?: string[]; payload?: { headers?: { name: string; value: string }[] } }[] };
 
 /** "Ana Ruiz <ana@x.com>" → { name: "Ana Ruiz", address: "ana@x.com" } */
@@ -29,7 +34,7 @@ export function parseFrom(v: string): { name: string; address: string | null } {
   return { name: v.trim(), address: v.includes("@") ? v.trim() : null };
 }
 
-export function toInboxThread(t: Thread): InboxThread {
+export function toInboxThread(t: Thread, snippet = ""): InboxThread {
   const msgs = t.messages ?? [];
   const last = msgs.at(-1);
   const h = (name: string) => last?.payload?.headers?.find((x) => x.name.toLowerCase() === name.toLowerCase())?.value ?? "";
@@ -40,6 +45,8 @@ export function toInboxThread(t: Thread): InboxThread {
     from: from.name || "(unknown sender)",
     fromAddress: from.address,
     subject,
+    snippet,
+    companyDomain: companyDomainFromInbox({ fromAddress: from.address, subject, snippet }),
     lastMessageAt: new Date(Number(last?.internalDate ?? 0)).toISOString(),
     messages: msgs.length,
     unread: msgs.some((m) => m.labelIds?.includes("UNREAD")),
@@ -50,9 +57,10 @@ export async function listInboxThreads(cfg: GoogleConfig, opts: { after?: Date |
   const qs = new URLSearchParams({ labelIds: "INBOX", maxResults: String(opts.max) });
   if (opts.after) qs.set("q", `after:${Math.floor(opts.after.getTime() / 1000)}`);
   const { data } = await googleJson<ThreadList>(cfg, `${API}/threads?${qs}`, {}, f);
-  const ids = (data.threads ?? []).map((t) => t.id);
+  const listed = data.threads ?? [];
+  const snippetOf = Object.fromEntries(listed.map((t) => [t.id, t.snippet ?? ""]));
   const meta = "format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date";
-  const threads = await Promise.all(ids.map(async (id) => toInboxThread((await googleJson<Thread>(cfg, `${API}/threads/${encodeURIComponent(id)}?${meta}`, {}, f)).data)));
+  const threads = await Promise.all(listed.map(async (row) => toInboxThread((await googleJson<Thread>(cfg, `${API}/threads/${encodeURIComponent(row.id)}?${meta}`, {}, f)).data, snippetOf[row.id] ?? "")));
   threads.sort((a, b) => b.lastMessageAt.localeCompare(a.lastMessageAt));
   return { threads, estimate: data.resultSizeEstimate ?? threads.length };
 }

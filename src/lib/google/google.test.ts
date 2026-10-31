@@ -48,7 +48,7 @@ describe("Google OAuth refresh", () => {
 describe("Gmail", () => {
   it("lists INBOX threads after a time and reads metadata only", async () => {
     const { f, calls } = mock((u) => tokenOk(u) ?? (u.includes("/threads?")
-      ? json(200, { threads: [{ id: "t1" }, { id: "t2" }], resultSizeEstimate: 2 })
+      ? json(200, { threads: [{ id: "t1", snippet: "See the deck" }, { id: "t2" }], resultSizeEstimate: 2 })
       : u.includes("/threads/t1") ? json(200, { id: "t1", messages: [{ internalDate: "1761872400000", labelIds: ["INBOX", "UNREAD"], payload: { headers: [{ name: "From", value: "Ana Ruiz <ana@example.com>" }, { name: "Subject", value: "Deck" }] } }] })
       : json(200, { id: "t2", messages: [{ internalDate: "1761868800000", labelIds: ["INBOX"], payload: { headers: [{ name: "From", value: "bob@example.com" }] } }] })));
     const r = await listInboxThreads(cfg, { after: new Date("2026-10-30T18:30:00Z"), max: 5 }, f);
@@ -58,8 +58,8 @@ describe("Gmail", () => {
     expect(calls.filter((c) => c.url.includes("/threads/")).every((c) => c.url.includes("format=metadata"))).toBe(true);
     expect(calls.every((c) => !/messages\/send|\/send/.test(c.url))).toBe(true);
     expect(r.threads).toEqual([
-      { id: "t1", from: "Ana Ruiz", fromAddress: "ana@example.com", subject: "Deck", lastMessageAt: "2025-10-31T01:00:00.000Z", messages: 1, unread: true },
-      { id: "t2", from: "bob@example.com", fromAddress: "bob@example.com", subject: "(no subject)", lastMessageAt: "2025-10-31T00:00:00.000Z", messages: 1, unread: false },
+      { id: "t1", from: "Ana Ruiz", fromAddress: "ana@example.com", subject: "Deck", snippet: "See the deck", companyDomain: "example.com", lastMessageAt: "2025-10-31T01:00:00.000Z", messages: 1, unread: true },
+      { id: "t2", from: "bob@example.com", fromAddress: "bob@example.com", subject: "(no subject)", snippet: "", companyDomain: "example.com", lastMessageAt: "2025-10-31T00:00:00.000Z", messages: 1, unread: false },
     ]);
     expect((calls[1]!.init!.headers as Record<string, string>).authorization).toBe("Bearer at-1");
   });
