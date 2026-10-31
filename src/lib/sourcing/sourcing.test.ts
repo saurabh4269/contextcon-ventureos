@@ -62,6 +62,13 @@ describe("growthFromSeries", () => {
   it("gives no % without a point near the window", () => {
     expect(growthFromSeries([{ date: "2026-09-15", employee_count: 30 }], "6m")?.pct).toBeUndefined();
   });
+  it("never labels a 5-month span as 6-month growth", () => {
+    // the series skips March: April (5 months back) is within 45 days of the target but is not 6 months back
+    const g = growthFromSeries([{ date: "2026-09-01", employee_count: 30 }, { date: "2026-04-01", employee_count: 20 }, { date: "2026-08-01", employee_count: 29 }], "6m");
+    expect(g?.pct).toBeUndefined();
+    expect(g?.then).toBeUndefined();
+    expect(growthFromSeries([{ date: "2026-09-30", employee_count: 30 }, { date: "2026-03-01", employee_count: 20 }], "6m")?.then?.date).toBe("2026-03-01");
+  });
 });
 
 /* ───────────── runner through an injected fetch ───────────── */

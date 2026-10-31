@@ -172,12 +172,16 @@ export function growthFromSeries(points: { date?: string | null; employee_count?
   const target = new Date(`${last.date}T00:00:00Z`);
   target.setUTCMonth(target.getUTCMonth() - months);
   const t = target.getTime();
+  // Only a point exactly `months` calendar months before the latest one: a "6-month" figure must not come from a
+  // point 5 months back (the nearest-within-45-days rule allowed that and still labelled it 6-month).
+  const monthIndex = (d: string) => Number(d.slice(0, 4)) * 12 + Number(d.slice(5, 7)) - 1;
   let best: { date: string; v: number } | undefined, bestD = Infinity;
   for (const p of pts) {
+    if (monthIndex(last.date) - monthIndex(p.date) !== months) continue;
     const d = Math.abs(new Date(`${p.date}T00:00:00Z`).getTime() - t);
     if (d < bestD) { bestD = d; best = p; }
   }
-  if (!best || bestD > 45 * 86400e3 || best.date === last.date) return { last, then: undefined, pct: undefined, pts };
+  if (!best || best.date === last.date) return { last, then: undefined, pct: undefined, pts };
   if (best.v <= 0) return { last, then: best, pct: undefined, pts };
   return { last, then: best, pct: round1(((last.v - best.v) / best.v) * 100), pts };
 }
@@ -463,7 +467,16 @@ export async function runAgent(input: unknown, deps: RunDeps): Promise<RunSummar
       ? `Kept in Crustdata's relevance order for “${plan.keywords.join(" ")}” (ranked search).`
       : "Ranked by current headcount (largest first).";
   const num = (f: ComputedField<number>) => (f.status === "ok" ? f.value : -Infinity);
-  const added = (r: AgentRow) => (r.headcountNow.status === "ok" && r.headcountThen.status === "ok" ? r.headcountNow.value - r.headcountThen.value.value : -Infinity);
+  // People added = the same two series points the growth % is computed from (headcount.total can differ from the
+  // series' latest point, and mixing them made the order disagree with the shown growth).
+  const added = (r: AgentRow) => {
+    if (r.growth.status === "ok") {
+      const pts = r.growth.inputs as { name: string; value: unknown }[] | undefined;
+      const then = pts?.find((p) => p.name === "then")?.value, latest = pts?.find((p) => p.name === "now")?.value;
+      if (typeof then === "number" && typeof latest === "number") return latest - then;
+    }
+    return r.headcountNow.status === "ok" && r.headcountThen.status === "ok" ? r.headcountNow.value - r.headcountThen.value.value : -Infinity;
+  };
   if (plan.growth) rows.sort((a, b) => added(b) - added(a) || num(b.growth) - num(a.growth) || num(b.headcountNow) - num(a.headcountNow));
   else if (!plan.keywords.length) rows.sort((a, b) => num(b.headcountNow) - num(a.headcountNow));
   rows.forEach((r, i) => { r.rank = i + 1; emit({ type: "row", row: r }); });
