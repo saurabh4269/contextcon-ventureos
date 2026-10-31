@@ -132,6 +132,30 @@ icMemoValuation, icMemoCompsLine`.
 `{ id, source, explainable: { low, high, cap, ask, returnMultipleLow, returnMultipleHigh, compsMedianMultiple } }`
 (each a `ComputedField`). Live: all unavailable (needs verified revenue + pricing model).
 
+### `GET /api/deals/:id/decisions`
+
+Builder (Origin `main` e28ea49) decision contract, ported: `{ dealId, companyDomain, source: "crustdata" |
+"crustdata+builder", decisions, endpoints, fields, builder? }`. `decisions` has one `ComputedField` per key —
+`fitScore, screenerVerdict, valuationRange, returnMultipleLow, returnMultipleHigh, compsMedianMultiple,
+diligenceVerdict, icMemoArrUsedM, icMemoValuation, icMemoCompsLine`; `endpoints[key]` names the route that computed it;
+`fields` = every `/numbers` key + the decisions + `valuationLow/High/Cap, founderAsk`. Used by the deal page (fit tile,
+Decision · valuation section) and `/memo`.
+
+* id = company domain. This build computes the Crustdata-backed numbers; pipeline decisions are `unavailable` with the
+  reason unless the builder backend is configured.
+* `DEALDESK_BUILDER_URL` (optional): base URL of the builder deployment. Its decisions fill keys that are not already
+  `ok` here, only when `ok` with citations; any field whose citations/inputs/method mention fixture/sample/demo/seed/mock
+  data is dropped. Citations are re-anchored to `GET /api/deals/:id/decisions` + `fields.<key>.citations[i]` + our
+  retrieval time, then `enforceCited` runs. `builder.status`: `used` | `not_configured` | `unavailable` (+ reason).
+  8 s timeout; on any error the local result is returned.
+* Review queue: `fitScore, screenerVerdict, valuationRange, diligenceVerdict, icMemoArrUsedM, icMemoValuation,
+  icMemoCompsLine` that are `unavailable` are raised as `missing_data`, and `ok` ones computed with an unavailable/empty
+  input as `low_confidence`, on run `deal:<domain>:decisions` (source `deal`, idempotent per key; resolved keys are not
+  re-raised). A person's **edit** fills the decision as `ok`, cited `{ source: "Deal Desk review queue (entered by you)",
+  endpoint: "POST /api/exceptions/<id>", path: "resolution.value", retrievedAt }`; rejecting a low-confidence decision
+  withholds it. `review: { runId, href, open[], resolved[] }` is on the response; `?review=0` reads without recording.
+  The deal page's fit and screener stats open the sources panel with each mandate criterion (`whyFromDecision`).
+
 ### `GET /api/integrations/connectors[?fresh=1]`
 
 Real status for the connectors Deal Desk actually integrates; catalogue tiles (Affinity, Attio, Carta, PitchBook, …) are
