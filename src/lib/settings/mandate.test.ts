@@ -6,6 +6,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 
 import { createMandateStore, EMPTY_MANDATE, parseMandate, unsetMandateFields } from "./mandate";
+import { createFileDocStore, createMemoryDocStore, resetDocStore } from "@/lib/store/docs";
 
 describe("parseMandate", () => {
   it("normalises lists (comma strings, trims, dedupes) and keeps unset fields unset", () => {
@@ -41,32 +42,29 @@ describe("createMandateStore", () => {
     for (const d of dirs.splice(0)) fs.rmSync(d, { recursive: true, force: true });
   });
 
-  it("in memory: starts empty (no built-in mandate) and returns what was set", () => {
-    const s = createMandateStore({ file: null });
-    expect(s.get()).toEqual(EMPTY_MANDATE);
+  it("in memory: starts empty (no built-in mandate) and returns what was set", async () => {
+    const s = createMandateStore({ docs: createMemoryDocStore() });
+    expect(await s.get()).toEqual(EMPTY_MANDATE);
     const p = parseMandate({ sectors: ["AI"] });
     if (!p.ok) throw new Error();
-    s.set(p.mandate);
-    expect(s.get().sectors).toEqual(["AI"]);
+    await s.set(p.mandate);
+    expect((await s.get()).sectors).toEqual(["AI"]);
   });
 
-  it("file-backed: persists across store instances, keeps updatedAt; an unreadable file reads as unset", () => {
+  it("file-backed: persists across store instances and keeps updatedAt", async () => {
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), "mandate-"));
     dirs.push(dir);
-    const file = path.join(dir, "nested", "mandate.json");
-    const p = parseMandate({ geos: ["India"], priors: { returnMultiple: { low: 3, high: 10 } } }, new Date("2026-10-31T08:00:00Z"));
+    const p = parseMandate({ geos: ["India"], priors: { returnMultiple: { low: 3, high: 10 } }, partners: [{ name: "A. Partner", focus: ["AI"] }] }, new Date("2026-10-31T08:00:00Z"));
     if (!p.ok) throw new Error();
-    createMandateStore({ file }).set(p.mandate);
-    expect(createMandateStore({ file }).get()).toMatchObject({ geos: ["India"], priors: { returnMultiple: { low: 3, high: 10 } }, updatedAt: "2026-10-31T08:00:00.000Z" });
-    fs.writeFileSync(file, "{not json");
-    expect(createMandateStore({ file }).get()).toEqual(EMPTY_MANDATE);
+    await createMandateStore({ docs: createFileDocStore(dir) }).set(p.mandate);
+    expect(await createMandateStore({ docs: createFileDocStore(dir) }).get()).toMatchObject({ geos: ["India"], priors: { returnMultiple: { low: 3, high: 10 } }, partners: [{ name: "A. Partner", focus: ["ai"] }], updatedAt: "2026-10-31T08:00:00.000Z" });
   });
 });
 
 describe("GET/PUT /api/settings/mandate", () => {
   it("PUT validates and stores; GET returns it with the unset fields", async () => {
-    process.env.MANDATE_FILE = "memory";
-    delete (globalThis as { __dealdeskMandate?: unknown }).__dealdeskMandate;
+    process.env.DEALDESK_STORE = "memory";
+    resetDocStore();
     const { GET, PUT } = await import("@/app/api/settings/mandate/route");
     const put = (body: string) => PUT(new Request("http://localhost/api/settings/mandate", { method: "PUT", headers: { "content-type": "application/json" }, body }));
     expect((await put("nope")).status).toBe(400);
@@ -77,19 +75,27 @@ describe("GET/PUT /api/settings/mandate", () => {
     const ok = await put(JSON.stringify({ sectors: ["Fintech"], stages: ["seed"] }));
     expect(ok.status).toBe(200);
     expect(await (await GET()).json()).toMatchObject({ mandate: { sectors: ["Fintech"], stages: ["seed"] }, unset: ["geographies", "check size"] });
-    delete (globalThis as { __dealdeskMandate?: unknown }).__dealdeskMandate;
-    delete process.env.MANDATE_FILE;
+    delete process.env.DEALDESK_STORE;
+    resetDocStore();
   });
 });
 
-describe("MANDATE_JSON seed (serverless)", () => {
-  it("uses the seed when no file is present, and a set() still wins", () => {
-    const s = createMandateStore({ file: null, seed: JSON.stringify({ sectors: ["B2B SaaS"], stages: ["Seed"] }) });
-    expect(s.get().sectors).toEqual(["B2B SaaS"]);
-    s.set({ ...s.get(), sectors: ["Fintech"] });
-    expect(s.get().sectors).toEqual(["Fintech"]);
+describe("MANDATE_JSON: one mandate source", () => {
+  const seed = JSON.stringify({ sectors: ["B2B SaaS"], stages: ["Seed"], priors: { returnMultiple: { low: 3, high: 8 } } });
+  it("durable store: the seed is used until a mandate is saved; the saved one wins", async () => {
+    const s = createMandateStore({ docs: createFileDocStore(fs.mkdtempSync(path.join(os.tmpdir(), "mandate-"))), seed });
+    expect(await s.source()).toMatchObject({ mandate: { sectors: ["B2B SaaS"], priors: { returnMultiple: { low: 3, high: 8 } } }, source: { kind: "env" } });
+    const r = await s.set({ ...(await s.get()), sectors: ["Fintech"] });
+    expect(r.ok).toBe(true);
+    expect(await s.source()).toMatchObject({ mandate: { sectors: ["Fintech"] }, source: { kind: "stored" } });
   });
-  it("ignores an invalid seed", () => {
-    expect(createMandateStore({ file: null, seed: "{nope" }).get().sectors).toEqual([]);
+  it("no durable store (Vercel /tmp): MANDATE_JSON is the one source and saving is refused with the reason", async () => {
+    const s = createMandateStore({ docs: createFileDocStore(fs.mkdtempSync(path.join(os.tmpdir(), "mandate-")), { serverless: true }), seed });
+    const r = await s.set({ ...(await s.get()), sectors: ["Fintech"] });
+    expect(r).toMatchObject({ ok: false, status: 409, message: expect.stringMatching(/MANDATE_JSON.*DATABASE_URL/) });
+    expect(await s.source()).toMatchObject({ mandate: { sectors: ["B2B SaaS"] }, source: { kind: "env", writable: false } });
+  });
+  it("ignores an invalid seed", async () => {
+    expect((await createMandateStore({ docs: createMemoryDocStore(), seed: "{nope" }).get()).sectors).toEqual([]);
   });
 });

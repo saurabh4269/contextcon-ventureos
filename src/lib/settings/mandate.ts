@@ -4,6 +4,7 @@
 // needs it says so.
 import fs from "node:fs";
 import path from "node:path";
+import { docStore, type DocStore, type StorageInfo } from "@/lib/store/docs";
 
 export type Range = { low: number; high: number };
 export type Mandate = {
@@ -17,6 +18,8 @@ export type Mandate = {
     /** the fund's target gross return multiple on an investment */
     returnMultiple?: Range;
   };
+  /** partners a deal meeting can be booked with, by sector focus (optional; the deal workflow's schedule step uses it) */
+  partners?: { name: string; focus: string[] }[];
   updatedAt: string | null;
 };
 
@@ -45,6 +48,18 @@ const range = (v: unknown, field: string, max?: number): Range | undefined => {
   return { low, high };
 };
 
+const partners = (v: unknown): { name: string; focus: string[] }[] | undefined => {
+  if (v == null) return undefined;
+  if (!Array.isArray(v)) throw new Error("partners must be a list of { name, focus }");
+  const out = v.map((p, i) => {
+    const o = (p ?? {}) as Record<string, unknown>;
+    const name = String(o.name ?? "").trim();
+    if (!name) throw new Error(`partners[${i}].name is required`);
+    return { name, focus: list(o.focus, `partners[${i}].focus`).map((f) => f.toLowerCase()) };
+  });
+  return out.length ? out.slice(0, 20) : undefined;
+};
+
 /** Validate an untrusted PUT body. */
 export function parseMandate(body: unknown, now = new Date()): { ok: true; mandate: Mandate } | { ok: false; message: string } {
   if (!body || typeof body !== "object") return { ok: false, message: "body must be a JSON object" };
@@ -65,6 +80,7 @@ export function parseMandate(body: unknown, now = new Date()): { ok: true; manda
           ...(range(priors.dilutionPct, "priors.dilutionPct", 100) ? { dilutionPct: range(priors.dilutionPct, "priors.dilutionPct", 100) } : {}),
           ...(range(priors.returnMultiple, "priors.returnMultiple") ? { returnMultiple: range(priors.returnMultiple, "priors.returnMultiple") } : {}),
         },
+        ...(partners(b.partners) ? { partners: partners(b.partners) } : {}),
         updatedAt: now.toISOString(),
       },
     };
@@ -73,57 +89,78 @@ export function parseMandate(body: unknown, now = new Date()): { ok: true; manda
   }
 }
 
+/** Where the mandate in use comes from (shown in Settings and returned by GET /api/settings/mandate). */
+export type MandateSource = { kind: "stored" | "env" | "unset"; writable: boolean; note: string; storage: StorageInfo };
+
 export interface MandateStore {
-  get(): Mandate;
-  set(m: Mandate): Mandate;
+  get(): Promise<Mandate>;
+  source(): Promise<{ mandate: Mandate; source: MandateSource }>;
+  set(m: Mandate): Promise<{ ok: true; mandate: Mandate; source: MandateSource } | { ok: false; status: 409; message: string }>;
 }
 
-export function createMandateStore(opts: { file: string | null; seed?: string | null }): MandateStore {
-  let mem: Mandate | null = null;
-  const read = (): Mandate => {
-    if (mem) return mem;
-    if (opts.file && fs.existsSync(opts.file)) {
-      try {
-        const parsed = parseMandate(JSON.parse(fs.readFileSync(opts.file, "utf8")));
-        if (parsed.ok) mem = { ...parsed.mandate, updatedAt: (JSON.parse(fs.readFileSync(opts.file, "utf8")) as Mandate).updatedAt ?? null };
-      } catch {
-        /* unreadable file → unset mandate */
-      }
+export const NS_SETTINGS = "settings";
+const MANDATE_ID = "mandate";
+
+const parseSeed = (seed: string | null | undefined): Mandate | null => {
+  if (!seed) return null;
+  try {
+    const parsed = parseMandate(JSON.parse(seed));
+    return parsed.ok ? { ...parsed.mandate, updatedAt: null } : null;
+  } catch {
+    return null; // invalid MANDATE_JSON → as if unset
+  }
+};
+const reparse = (raw: unknown): Mandate | null => {
+  const parsed = parseMandate(raw);
+  return parsed.ok ? { ...parsed.mandate, updatedAt: typeof (raw as Mandate | null)?.updatedAt === "string" ? (raw as Mandate).updatedAt : null } : null;
+};
+
+/**
+ * One mandate for the whole app (deal decisions, the workflow screener, valuation priors, Settings):
+ *   · a mandate saved in Settings, when the store is durable (Postgres, or local files on one server);
+ *   · else MANDATE_JSON (server env);
+ *   · else unset (every score that needs it says so).
+ * On a deploy without a durable store (Vercel /tmp), a saved mandate would exist on one instance only, so MANDATE_JSON
+ * wins there and Settings refuses to save (409) with the reason. Without MANDATE_JSON it saves per instance, labelled.
+ */
+export function createMandateStore(opts: { docs: DocStore; seed?: string | null; legacyFile?: string | null }): MandateStore {
+  const seed = parseSeed(opts.seed);
+  const stored = async (): Promise<Mandate | null> => {
+    const doc = await opts.docs.get<unknown>(NS_SETTINGS, MANDATE_ID);
+    if (doc) return reparse(doc);
+    // pre-store local file (.cache/mandate.json): read once so a local mandate is not lost
+    if (opts.legacyFile && fs.existsSync(opts.legacyFile)) {
+      try { return reparse(JSON.parse(fs.readFileSync(opts.legacyFile, "utf8"))); } catch { return null; }
     }
-    if (!mem && opts.seed) {
-      // Serverless (Vercel): the file lives in per-instance /tmp, so MANDATE_JSON pins the firm mandate across cold starts.
-      try {
-        const parsed = parseMandate(JSON.parse(opts.seed));
-        if (parsed.ok) mem = { ...parsed.mandate, updatedAt: null };
-      } catch {
-        /* invalid MANDATE_JSON → unset mandate */
-      }
-    }
-    return mem ?? EMPTY_MANDATE;
+    return null;
+  };
+  const resolve = async (): Promise<{ mandate: Mandate; source: MandateSource }> => {
+    const storage = opts.docs.info();
+    if (!storage.durable && seed) return { mandate: seed, source: { kind: "env", writable: false, storage, note: `From MANDATE_JSON. ${storage.note} So the env mandate is the one source; change MANDATE_JSON or set DATABASE_URL to edit it here.` } };
+    const s = await stored();
+    if (s) return { mandate: s, source: { kind: "stored", writable: true, storage, note: `Saved in Settings. ${storage.note}` } };
+    if (seed) return { mandate: seed, source: { kind: "env", writable: true, storage, note: "From MANDATE_JSON until you save a mandate here." } };
+    return { mandate: EMPTY_MANDATE, source: { kind: "unset", writable: true, storage, note: `No mandate yet. ${storage.note}` } };
   };
   return {
-    get: read,
-    set(m) {
-      mem = m;
-      if (opts.file) {
-        fs.mkdirSync(path.dirname(opts.file), { recursive: true });
-        fs.writeFileSync(opts.file, JSON.stringify(m, null, 2));
-      }
-      return m;
+    get: async () => (await resolve()).mandate,
+    source: resolve,
+    async set(m) {
+      const storage = opts.docs.info();
+      if (!storage.durable && seed) return { ok: false, status: 409, message: `Not saved: this deploy has no durable store (no DATABASE_URL), so the firm mandate comes from MANDATE_JSON for every server instance. Change MANDATE_JSON, or set DATABASE_URL to save it here.` };
+      await opts.docs.put(NS_SETTINGS, MANDATE_ID, m);
+      return { ok: true, ...(await resolve()) };
     },
   };
 }
 
-function defaultFile(): string | null {
-  const env = process.env.MANDATE_FILE?.trim();
-  if (env === "memory") return null;
-  return env || path.join(process.cwd(), ".cache", "mandate.json");
+/** The app's mandate store (durable store + MANDATE_JSON). */
+export function mandateStore(env: Record<string, string | undefined> = process.env): MandateStore {
+  return createMandateStore({ docs: docStore(env), seed: env.MANDATE_JSON?.trim() || null, legacyFile: env.VERCEL ? null : path.join(process.cwd(), ".cache", "mandate.json") });
 }
 
-const g = globalThis as unknown as { __dealdeskMandate?: MandateStore };
-export function mandateStore(): MandateStore {
-  return (g.__dealdeskMandate ??= createMandateStore({ file: defaultFile(), seed: process.env.MANDATE_JSON?.trim() || null }));
-}
+/** The firm mandate in use right now (one source for decisions, the workflow and valuation). */
+export const firmMandate = (): Promise<Mandate> => mandateStore().get();
 
 /** Which mandate fields are unset, in words (shown next to the fit score). */
 export function unsetMandateFields(m: Mandate): string[] {

@@ -34,11 +34,11 @@ const FIELDS: { key: keyof Form; label: string; hint: string; group: string }[] 
 
 export function MandateSettings() {
   const [form, setForm] = useState<Form | null>(null);
-  const [meta, setMeta] = useState<{ updatedAt: string | null; unset: string[] }>({ updatedAt: null, unset: [] });
+  const [meta, setMeta] = useState<{ updatedAt: string | null; unset: string[]; note: string; partners?: Mandate["partners"] }>({ updatedAt: null, unset: [], note: "" });
   const [msg, setMsg] = useState<string>("");
-  const load = (d: { mandate: Mandate; unset: string[] }) => {
+  const load = (d: { mandate: Mandate; unset: string[]; source?: { note: string } }) => {
     setForm(toForm(d.mandate));
-    setMeta({ updatedAt: d.mandate.updatedAt, unset: d.unset });
+    setMeta({ updatedAt: d.mandate.updatedAt, unset: d.unset, note: d.source?.note ?? "", partners: d.mandate.partners });
   };
   useEffect(() => {
     fetch("/api/settings/mandate").then((r) => r.json()).then(load, (e) => setMsg(`Could not load the mandate: ${e}`));
@@ -51,6 +51,8 @@ export function MandateSettings() {
       geos: form.geos,
       checkSizeUsd: { min: form.checkMin.trim() || undefined, max: form.checkMax.trim() || undefined },
       priors: { dilutionPct: pair(form.dilLow, form.dilHigh), returnMultiple: pair(form.retLow, form.retHigh) },
+      // partners have no field here (MANDATE_JSON or the API sets them); keep them on save
+      ...(meta.partners ? { partners: meta.partners } : {}),
     };
     const res = await fetch("/api/settings/mandate", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
     const d = await res.json();
@@ -64,7 +66,8 @@ export function MandateSettings() {
         <div className="serif text-[22px]">Firm mandate</div>
         <p className="mt-1 text-[13px] text-zinc-500">
           Fit score, screener verdict, valuation range and return multiples are computed from these values and live Crustdata data. Empty fields stay unset and are reported as such.
-          {meta.updatedAt ? ` Last saved ${fmtDateTime(meta.updatedAt)}.` : " Not set yet."}
+          {meta.updatedAt ? ` Last saved ${fmtDateTime(meta.updatedAt)}.` : ""}
+          {meta.note ? ` ${meta.note}` : ""}
           {meta.unset.length ? ` Unset: ${meta.unset.join(", ")}.` : ""}
         </p>
         {form && (
