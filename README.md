@@ -27,7 +27,7 @@ npm run dev                    # http://localhost:3240
 | `/settings` → Connectors | Real health checks (Crustdata `GET /account/credits`, ElevenLabs, Gmail, Calendar) |
 | `/today` | Gmail + Calendar read, spoken greeting (ElevenLabs) |
 
-`npm test` (vitest, no network) · `npm run typecheck` · Details for contributors: [AGENTS.md](AGENTS.md) · state of play: [docs/HANDOFF.md](docs/HANDOFF.md).
+`npm test` (vitest, no network; 603 passing, 5 skipped that need a live key or Postgres) · `npm run typecheck` · Details for contributors: [AGENTS.md](AGENTS.md) · state of play: [docs/HANDOFF.md](docs/HANDOFF.md).
 
 ---
 
@@ -46,7 +46,7 @@ Deal Desk does that job end to end and hands back a decision-ready, cited shortl
 It is a **service, not a tool** (the deck's distinction): the output is the finished shortlist with reasons and
 sources, not a search box.
 
-**Pricing (hypothesis, not yet validated with customers):** per seat per month for the fund team, plus Crustdata credits
+**Pricing (unvalidated hypothesis, not yet tested with customers):** per seat per month for the fund team, plus Crustdata credits
 passed through at cost (a fresh single-company diligence costs about 5.6 credits; repeats are free from cache). The test a
 fund applies: does one seat replace enough associate hours on sourcing and first-pass diligence to pay for itself? We
 have not run that test with a paying customer yet.
@@ -72,14 +72,14 @@ have not run that test with a paying customer yet.
 | Inbox and calendar | Gmail threads + Calendar events (read only), spoken daily greeting | Replies, meetings |
 | Voice | ElevenLabs speech-to-text mic on the `/agent` request box, "Read aloud" run summary, Today greeting, context orb; a conversational voice session (when `ELEVENLABS_AGENT_ID` is set) that can start a sourcing run or open a company | — |
 | Contacting anyone | **Never automatic.** Calendar invites are built and shown as "Dry run — not sent" | Sends it themselves |
-| Fit score, verdict, valuation, IC memo numbers | Shown as **unavailable with the reason** (needs the firm mandate and a pricing model; decision engine not merged) | Partner decides |
+| Fit score, verdict, valuation, IC memo numbers | `GET /api/deals/:id/decisions` (`src/lib/numbers/decisions.ts`): valuation from the deal's cited Crustdata numbers where the inputs exist; fit score, screener verdict and IC-memo figures from the decision engine (`DEALDESK_BUILDER_URL`), re-cited to our own calls. Without that backend they show **unavailable with the reason** and raise a `/review` item | Partner decides; fills missing inputs in `/review` (cited back to the review item) |
 
 ## 3. What comes next, and why not now
 
 | Next | What | Why not now |
 | --- | --- | --- |
 | **Track: "not yet, keep watching"** | A verdict that is a clear no for this round, with 2–4 measurable milestones (e.g. team ≥ 50, next round raised). Crustdata `/watch/company` webhooks fire when a milestone is hit; Deal Desk re-scores and asks "re-review?" | Needs a public HTTPS webhook URL, HMAC verification and a deal store to attach the watch to. Watch creation is already in the client (`watchCompany`, documented body, live-verified create/delete) but nothing calls it, by design: the old code created one watch per page view and never deleted it. |
-| **Decision engine** | Fit score against the firm mandate, verdict advance / track / pass, valuation range, IC memo | Built in a separate builder repo; not merged into this build. Fields show "unavailable" with the reason instead of a guess. |
+| **Decision engine as a hosted service** | Fit score against the firm mandate, verdict advance / track / pass, IC memo from the builder pipeline (screener, data room, pricing) | The contract and client are merged (`/api/deals/:id/decisions`), but the builder service is not deployed for the event, so those fields show "unavailable" with the reason instead of a guess. |
 | **Warm forward** | On a thesis-mismatch pass, suggest 2–3 co-investors (inferred from Crustdata funding data, cited), double opt-in, drafts only | Event rule: agents may contact only the team, Crustdata and Techfest. Also needs founder consent flows. |
 | Hiring signal at scale | `/job/search` counts as a sourcing filter, not just on the deal page | Credit cost per candidate; added after the core flow was proven |
 | Crustdata MCP server | Let any agent (Claude, Cursor) drive Deal Desk's sourcing with the same tools | Not needed for a single app; no time to harden |
@@ -256,4 +256,4 @@ The rules say code is written from 10:30 AM IST on 31 Oct. Every commit in this 
 
 After 13:15 IST (see `git log`): the shell (collapsible sidebar, mobile drawer, Dex mascot, account menu), ElevenLabs speech-to-text and the conversational voice session, the deterministic Sourcing agent (`/agent`), the LLM research agent (`/ask`), Crustdata resilience (retries, deadlines, circuit breaker, stale-cache fallback, did-you-mean), the exception review queue (`/review`), the reasons-and-sources panel and citation enforcement, the responsive pass, and these docs.
 
-Authorship: 14 early commits carry the author identity `Yogesh <you@example.com>`, the identity of the coding-agent environment the team used; all others are Saurabh Gupta. Design references, plans and research notes from before the event are allowed by the rules and are not in this repo.
+Authorship: 14 early commits were first recorded under `Yogesh <you@example.com>`, the default git identity of the coding-agent environment the team used (not a team member), and some carried coding-assistant `Co-authored-by` trailers. Before submission the history was re-attributed to Saurabh Gupta (author and committer) and those trailers removed; commit contents and timestamps are unchanged. Design references, plans and research notes from before the event are allowed by the rules and are not in this repo.
