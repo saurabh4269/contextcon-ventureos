@@ -79,7 +79,7 @@ Cost of a fresh run (live, measured 2026-10-31 for e2b.dev): identify 0 · enric
 with experience) · job search 0.75 (0.03/row, limit 25) · web search 1 · company search 1.15 (≈0.23/row with funding)
 = **5.56 credits**. Repeats are served from the response cache (0 credits).
 
-### `GET /api/live/company?domain=` → `{status:"ok", company, identify, enrich}` | `{status:"no_match", domain, identify}` (identify 0 + enrich 2)
+### `GET /api/live/company?domain=` → `{status:"ok", company, identify, enrich}` | `{status:"no_match", domain, identify, message, suggestions, suggest}` (identify 0 + enrich 2; "did you mean" suggestions on no_match, never auto-picked — also on `/api/live/research`)
 ### `GET /api/live/people?companyId=` (or `domain=` / `company=`) → `LiveCall<{ total, people: LivePerson[] }>` (founders; ≈0.23/row, limit 5)
 ### `GET /api/live/person?linkedin=https://www.linkedin.com/in/<handle>` → `{status:"ok", person, call}` | `{status:"no_match", linkedinUrl, call}` (1 credit)
 ### `GET /api/live/jobs?companyId=` (or `domain=` / `company=`) → `LiveCall<{ total, listings[], byCategory[] }>` (0.03/row, limit 25)
@@ -93,6 +93,9 @@ normalised (case, whitespace, scheme/`www.`/path, invisible characters, IDN → 
 otherwise HTTP 200 `{ status: "no_match"|"ambiguous", input, message, suggestions: [{ companyId, name, domain,
 confidence }], calls }` (an unknown domain gets "did you mean" suggestions from a name identify on its first label).
 A broken domain (`strpe..com`, `stripe,com`) is a 400 `{ status:"error", message, suggestion: "strpe.com" }`.
+
+Failures, retries, the circuit breaker, stale-cache fallback ("cached at … IST"), per-route deadlines and the outage
+drill are described in [ROBUSTNESS.md](ROBUSTNESS.md). Failure bodies: `{ status: "error", message, upstreamStatus?, retryable? }`.
 
 ### `GET /api/deals/:id/numbers`
 
