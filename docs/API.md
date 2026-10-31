@@ -97,6 +97,23 @@ A broken domain (`strpe..com`, `stripe,com`) is a 400 `{ status:"error", message
 Failures, retries, the circuit breaker, stale-cache fallback ("cached at … IST"), per-route deadlines and the outage
 drill are described in [ROBUSTNESS.md](ROBUSTNESS.md). Failure bodies: `{ status: "error", message, upstreamStatus?, retryable? }`.
 
+### Review queue (exceptions for a person) — `/review`
+
+Agents auto-complete everything they can verify and raise an item only when a person is needed: ambiguous company
+match, missing or conflicting data, a credit threshold, low confidence, an incomplete run, and every outbound send
+(approve = dry run only; `OUTBOUND_MODE=live` is ignored here). Storage: a JSON file on the server
+(`.cache/exceptions.json`, or `EXCEPTIONS_FILE`; `EXCEPTIONS_FILE=memory` for memory only) because `DATABASE_URL` is
+unset; the response's `storage.note` says so.
+
+- `GET /api/exceptions[?status=open|all][&run=<runId>]` → `{ storage, open, items, runs }`; `?count=1` → `{ open }` (nav badge)
+- `POST /api/exceptions { item: { kind, key, title, reason, evidence[], subject?, proposed?, runId?, target? } }` → raise one
+  item (idempotent per open `key`; 400 on an unknown kind)
+- `POST /api/exceptions/:id { action: "approve"|"reject"|"edit", note?, value? }` → `{ status:"ok", item, run, open }`;
+  404 unknown id, 409 already resolved, 400 bad action / empty edit. The last open item of a run finishes the run.
+- In-process seams: `raiseException()` / `exceptionStore().recordRun()` (src/lib/exceptions/store.ts), item builders
+  `ambiguousMatch`, `missingData`, `conflictingData`, `creditThreshold`, `outboundSend` (src/lib/exceptions/raise.ts), and
+  run rules `fromSourcingRun` (wired into `/api/agent/run`) and `fromScreenResult` (for the LLM screening loop).
+
 ### `GET /api/deals/:id/numbers`
 
 `{ id, source: "crustdata", fields }` with one `ComputedField` per key:
