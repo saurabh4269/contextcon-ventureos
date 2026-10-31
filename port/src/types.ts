@@ -375,6 +375,10 @@ export interface PortfolioData {
   exportName?: string;
   /** v4 · one-line page subtitle. */
   sub?: string;
+  /** Live data: no KPI source (ARR, burn, runway). The ARR and runway cards read "—" with this reason. */
+  unknownKpis?: string;
+  /** Live data: each company's own detail panel (fixtures build it from the company's KPIs). */
+  panels?: Record<ID, PortfolioPanel>;
 }
 
 /* ───────────── Mandates (banking) ───────────── */

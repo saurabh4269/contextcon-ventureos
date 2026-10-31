@@ -60,14 +60,15 @@ function Stats({ d, onFilter }: { d: PortfolioData; onFilter: (f: string) => voi
   const low = cs.filter((c) => c.runwayMonths < alert).length;
   const kpi = d.reports.find((r): r is Extract<ReportTile, { kind: "kpiRequests" }> => r.kind === "kpiRequests");
   const dot = (c: PortfolioCompany) => c.runwayMonths < alert ? "bg-rust" : attention(c) ? "bg-[#d39a2c]" : c.alert?.tone === "ok" ? "bg-[#2f9a5c]" : "bg-zinc-300";
+  const none = d.unknownKpis; // live data with no KPI source: "—" and the reason, never "$0.0M" or "0 mo"
   return (
     <div className="grid grid-cols-4 gap-4">
-      <Stat label="Companies" sub={`${d.fundLabel} · ${cs.filter((c) => !c.onTrack).length} with news`} value={<Count to={cs.length} />}
+      <Stat label="Companies" sub={none ? d.fundLabel : `${d.fundLabel} · ${cs.filter((c) => !c.onTrack).length} with news`} value={<Count to={cs.length} />}
         viz={<span className="grid grid-cols-7 gap-[3px]" aria-label="Status of each company">{cs.map((c) => <span key={c.id} title={`${c.company.name}${c.alert ? ` · ${c.alert.label}` : " · on track"}`} className={cx("size-[9px] rounded-[3px]", dot(c))} />)}</span>} />
-      <Stat label="Combined ARR" sub={`${total.length} months · latest KPIs`} value={fmtM(lastOf(total))} chip={<Delta up={growth >= 0}>{`${growth >= 0 ? "+" : "−"}${Math.round(Math.abs(growth) * 100)}%`}</Delta>}
-        vizWide viz={<Spark d={total} w={86} h={30} color="#09090b" />} />
-      <Stat label="Median runway" sub={low ? `${low} below the ${alert} mo line` : `All above the ${alert} mo line`} value={<Count to={med} />} unit="mo" onClick={low ? () => onFilter("runway") : undefined}
-        viz={<MiniBars d={runways} w={92} h={30} hl={0} tone={low ? "rust" : "ink"} />} />
+      <Stat label="Combined ARR" sub={none ?? `${total.length} months · latest KPIs`} value={none ? "—" : fmtM(lastOf(total))} chip={none ? undefined : <Delta up={growth >= 0}>{`${growth >= 0 ? "+" : "−"}${Math.round(Math.abs(growth) * 100)}%`}</Delta>}
+        vizWide viz={none ? undefined : <Spark d={total} w={86} h={30} color="#09090b" />} />
+      <Stat label="Median runway" sub={none ?? (low ? `${low} below the ${alert} mo line` : `All above the ${alert} mo line`)} value={none ? "—" : <Count to={med} />} unit={none ? undefined : "mo"} onClick={!none && low ? () => onFilter("runway") : undefined}
+        viz={none ? undefined : <MiniBars d={runways} w={92} h={30} hl={0} tone={low ? "rust" : "ink"} />} />
       {kpi && <Stat label="KPIs in" sub={kpi.caption} value={<>{kpi.received}<span className="font-sans text-[15px] text-zinc-400">/{kpi.total}</span></>}
         viz={<span className="flex gap-[3px]">{Array.from({ length: kpi.total }).map((_, i) => <span key={i} className={cx("h-[22px] w-[5px] rounded-[2px]", i < kpi.received ? "bg-ink" : "bg-zinc-200")} />)}</span>} />}
     </div>
@@ -76,6 +77,7 @@ function Stats({ d, onFilter }: { d: PortfolioData; onFilter: (f: string) => voi
 
 /* ───────── Table ───────── */
 function RunwayBar({ c, d }: { c: PortfolioCompany; d: PortfolioData }) {
+  if (!Number.isFinite(c.runwayMonths)) return <span className="tnum text-[12.5px] text-zinc-400" title={d.unknownKpis}>—</span>;
   const low = c.runwayMonths < d.alertLineMonths;
   return (
     <span className="flex items-center gap-2.5" title={`${c.runwayMonths} months · alert line ${d.alertLineMonths} mo`}>
@@ -92,7 +94,7 @@ function Row({ c, d, sel, onSelect, i }: { c: PortfolioCompany; d: PortfolioData
         {sel && <motion.span layoutId="pf-sel" className="absolute inset-y-2 left-0 w-[3px] rounded-r-full bg-rust" />}
         <span className="flex min-w-0 items-center gap-3"><CompanyLogo c={c.company} size={32} /><span className="min-w-0"><span className="block truncate font-medium">{c.company.name}</span>{c.line && <span className="block truncate text-[11.5px] text-zinc-500">{c.line}</span>}</span></span>
         <span className="tnum text-right font-medium">{c.arr}</span>
-        <span className={cx(WIDE, "justify-center")}><Spark d={c.arrTrend} w={80} h={24} color={flat ? "#c58a26" : c.runwayMonths < d.alertLineMonths ? "#9c440f" : "#09090b"} /></span>
+        <span className={cx(WIDE, "justify-center")}>{c.arrTrend.length > 1 && <Spark d={c.arrTrend} w={80} h={24} color={flat ? "#c58a26" : c.runwayMonths < d.alertLineMonths ? "#9c440f" : "#09090b"} />}</span>
         <RunwayBar c={c} d={d} />
         <span className={cx(WIDE, "tnum text-[12.5px]", c.lastUpdate.late ? "font-medium text-warn" : "text-zinc-500")}>{c.lastUpdate.label}</span>
         <span className="flex items-center justify-end gap-2">{c.alert ? <StagePill tone={TONE[c.alert.tone]}>{c.alert.label}</StagePill> : <span className="text-[12px] text-zinc-400">On track</span>}<ArrowRight className={cx("size-3.5 transition-all", sel ? "text-rust" : "-translate-x-1 text-zinc-300 opacity-0 group-hover:translate-x-0 group-hover:opacity-100")} /></span>
@@ -117,7 +119,7 @@ function Table({ d, filter, setFilter, sel, onSelect }: { d: PortfolioData; filt
   const shown = folds ? sorted.filter((c) => !c.onTrack) : sorted, hidden = sorted.length - shown.length;
   const exportCsv = (rows: PortfolioCompany[], tag: string) => {
     const head = ["Company", "Sector · stage", "ARR", "Burn / mo", "Cash", "Runway (mo)", "Last update", "Status"];
-    const body = rows.map((c) => csvRow([c.company.name, c.line ?? "", c.arr, c.burn, c.cash ?? "", c.runwayMonths, c.lastUpdate.label, c.alert?.label ?? "On track"]));
+    const body = rows.map((c) => csvRow([c.company.name, c.line ?? "", c.arr, c.burn, c.cash ?? "", Number.isFinite(c.runwayMonths) ? c.runwayMonths : "", c.lastUpdate.label, c.alert?.label ?? "On track"]));
     const name = `${d.exportName ?? "portfolio"}${tag}.csv`;
     downloadText(name, [csvRow(head), ...body].join("\n"), "text/csv");
     setSaved(`${name} · ${rows.length} rows`); setTimeout(() => setSaved(null), 2600);
@@ -241,8 +243,8 @@ function DocSheet({ doc, onClose, done, onDone, onUndo, decision }: { doc: Portf
 /* ───────── Detail column ───────── */
 type Detail = { company: PortfolioCompany["company"]; alert?: { label: string; tone: Tone }; runwayMonths: number; history: { month: string; months: number }[]; projection?: number; facts: PortfolioPanel["facts"]; pattern?: string; patternLabel: string; action: PortfolioPanel["action"]; decision?: PortfolioPanel["decision"]; line?: string; onboarded?: PortfolioPanel["onboarded"] };
 function detailFor(d: PortfolioData, id: string): Detail {
-  const c = d.companies.find((x) => x.id === id), pn = d.panel;
-  if (!c || c.id === pn.company.id) return { ...pn, line: c?.line, patternLabel: pn.onboarded ? "What to watch" : "Pattern match" };
+  const c = d.companies.find((x) => x.id === id), own = d.panels?.[id], pn = own ?? d.panel;
+  if (!c || own || c.id === pn.company.id) return { ...pn, line: c?.line, patternLabel: pn.onboarded ? "What to watch" : "Pattern match" };
   const hist = c.runwayHistory ?? [{ month: c.lastUpdate.label, months: c.runwayMonths }];
   const kpis = { kind: "xlsx" as const, label: `${c.lastUpdate.label} KPIs` };
   return {
@@ -254,14 +256,14 @@ function detailFor(d: PortfolioData, id: string): Detail {
   };
 }
 function DetailCard({ x, alert, onPrimary, done, onUndo }: { x: Detail; alert: number; onPrimary: () => void; done?: string; onUndo: () => void }) {
-  const low = x.runwayMonths < alert;
+  const low = x.runwayMonths < alert, known = Number.isFinite(x.runwayMonths);
   return (
     <section className={cx(CARD, "@container/dc p-5")}>
       <div className="flex items-center gap-3"><CompanyLogo c={x.company} size={36} /><span className="min-w-0"><span className="block truncate text-[15px] font-medium">{x.company.name}</span>{x.line && <span className="block truncate text-[12px] text-zinc-500">{x.line}</span>}</span>{x.alert && <span className="ml-auto"><StagePill tone={TONE[x.alert.tone]}>{x.alert.label}</StagePill></span>}</div>
-      <div className="mt-5 flex items-end gap-2"><span className={cx("numeral text-[52px] leading-[.85]", low ? "text-rust" : "text-ink")}><Count key={x.company.id} to={x.runwayMonths} decimals={Number.isInteger(x.runwayMonths) ? 0 : 1} /></span><span className="pb-0.5 text-[13px] whitespace-nowrap text-zinc-500">months of runway</span>{low && <span className="mb-0.5 ml-auto hidden h-6 whitespace-nowrap @[300px]/dc:inline-flex items-center gap-1 rounded-full bg-rust-50 px-2 text-[11.5px] font-medium text-rust"><TriangleAlert className="size-3" />below {alert} mo</span>}</div>
+      <div className="mt-5 flex items-end gap-2"><span className={cx("numeral text-[52px] leading-[.85]", low ? "text-rust" : "text-ink")}>{known ? <Count key={x.company.id} to={x.runwayMonths} decimals={Number.isInteger(x.runwayMonths) ? 0 : 1} /> : "—"}</span><span className="pb-0.5 text-[13px] whitespace-nowrap text-zinc-500">months of runway</span>{low && <span className="mb-0.5 ml-auto hidden h-6 whitespace-nowrap @[300px]/dc:inline-flex items-center gap-1 rounded-full bg-rust-50 px-2 text-[11.5px] font-medium text-rust"><TriangleAlert className="size-3" />below {alert} mo</span>}</div>
       <div className="mt-4 rounded-[16px] bg-[#fafaf9] px-3 pt-3 pb-1 ring-1 ring-zinc-200/60">
         <div className="mb-1 flex items-center justify-between px-1 text-[11.5px] text-zinc-500"><span>Runway · months</span>{x.onboarded ? <span className="inline-flex items-center gap-1 rounded-full bg-ink px-2 py-0.5 text-[10.5px] font-medium text-white"><Sparkles className="size-3" />{x.onboarded.label} · {x.onboarded.at}</span> : <span className="flex items-center gap-1.5"><span className="h-px w-3 border-t border-dashed border-rust" />{alert} mo alert</span>}</div>
-        <RunwayChart key={x.company.id} history={x.history} projection={x.projection} alert={alert} w={300} h={150} />
+        {x.history.length > 0 ? <RunwayChart key={x.company.id} history={x.history} projection={x.projection} alert={alert} w={300} h={150} /> : <div className="grid h-[150px] place-items-center px-4 text-center text-[12px] text-zinc-400">No runway data: no KPI source is connected.</div>}
       </div>
       {x.onboarded && <div className="mt-3 flex flex-wrap items-center gap-1.5 text-[11.5px]"><span className="text-zinc-500">From the deal:</span>{x.onboarded.from.map((f) => <span key={f} className="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-0.5 text-zinc-700"><Check className="size-3 text-ok" />{f}</span>)}</div>}
       <dl className="mt-4 divide-y divide-zinc-100 text-[13px]">
@@ -307,10 +309,10 @@ export function PortfolioScreen(p: PortfolioScreenProps) {
         <div className="grid grid-cols-[minmax(0,1fr)_360px] items-start gap-5 @max-[1120px]/main:grid-cols-[minmax(0,1fr)_340px]">
           <div className="flex min-w-0 flex-col gap-5">
             <Rise i={1}><Table d={d} filter={filter} setFilter={setFilter} sel={sel} onSelect={select} /></Rise>
-            <Rise i={2} className="grid grid-cols-2 items-stretch gap-4">
+            {(d.live || d.reports.length > 0) && <Rise i={2} className="grid grid-cols-2 items-stretch gap-4">
               {d.live && <LiveRail run={d.live} boxed tone="sienna" className={cx(CARD, "h-full")} />}
               <Reports reports={d.reports} done={done} onOpen={(id) => { p.onOpenReport?.(id); if (d.docs?.[id]) setOpen(id); }} />
-            </Rise>
+            </Rise>}
           </div>
           <Rise i={1} className="sticky top-[72px] flex flex-col gap-4">
             <DetailCard x={x} alert={alert} onPrimary={primary} done={decisionDone ?? done[x.action.id]} onUndo={() => undo(x.action.id)} />
