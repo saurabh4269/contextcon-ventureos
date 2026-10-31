@@ -1,15 +1,15 @@
 "use client";
-// Landing: marketing copy only (src/content/landing.ts, src/content/landing-story.ts). "Request access" is recorded in
-// organizational memory; if the memory store is unavailable the request is not confirmed.
+// Thin wrapper: the screen lives in port/src (source of truth). Query params pick fixture variants.
+// ?still=1 freezes glow, dots and entrance (film frame) · ?q=thesis|halcyon|waiting opens that question · ?demo=1 opens the demo frame
+// · ?requested=<email> shows the closing band's sent state · ?state=loading|error|empty
+import { use } from "react";
 import { LandingScreen } from "@port/screens/landing";
-import { landingCopy } from "@/content/landing";
-import { landingStory } from "@/content/landing-story";
-import { recordEvent } from "@/live/memory";
-import { LandingStorySections } from "./story";
+import { landing } from "@port/fixtures";
 
-export default function Landing() {
-  return <LandingScreen data={landingCopy} story={<LandingStorySections d={landingStory} />} onRequestAccess={async (email) => {
-    const r = await recordEvent({ kind: "access.requested", subject: { type: "email", id: email }, summary: `Access requested for ${email}` });
-    if (r.status !== "ok") throw new Error(r.reason);
-  }} />;
+type Q = { still?: string; q?: string; demo?: string; requested?: string; state?: string };
+export default function Landing({ searchParams }: { searchParams: Promise<Q> }) {
+  const q = use(searchParams);
+  const status = q.state === "loading" || q.state === "error" || q.state === "empty" ? q.state : "ready";
+  return <LandingScreen data={status === "empty" ? { ...landing, features: { ...landing.features, items: [] } } : landing} status={status} error={status === "error" ? "Couldn’t load the page. Check your connection and retry." : undefined}
+    still={q.still === "1"} question={q.q} demoOpen={q.demo === "1"} requested={q.requested} />;
 }

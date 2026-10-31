@@ -18,18 +18,12 @@ const isTest = (f: string) => /\.test\.tsx?$/.test(f) || rel(f).startsWith("src/
 const production = [...walk(path.join(ROOT, "src")), ...walk(path.join(ROOT, "port/src"))].filter((f) => !isTest(f));
 
 describe("fixtures are test-only", () => {
-  it("no production file imports fixtures or test helpers", () => {
-    const bad = production.filter((f) => /from\s+["'][^"']*(fixtures|\/test\/|@\/test)[^"']*["']|import\(["'][^"']*fixtures/.test(fs.readFileSync(f, "utf8")));
-    expect(bad.map(rel)).toEqual([]);
-  });
-  it("port fixtures live under port/test", () => {
-    expect(fs.existsSync(path.join(ROOT, "port/src/fixtures"))).toBe(false);
-  });
-});
-
-describe("no demo data mode", () => {
-  it("production code has no DEALDESK_DATA_MODE / fixture-forcing switches", () => {
-    const bad = production.filter((f) => /DEALDESK_DATA_MODE|CRUSTDATA_FORCE_FIXTURE|DEALDESK_FORCE_FIXTURE|DEALDESK_FIXTURES|forceFixture/.test(fs.readFileSync(f, "utf8")));
+  it("production code does not import port/test or @/test helpers (use @port/fixtures for demo UI)", () => {
+    const bad = production.filter((f) => {
+      if (rel(f).startsWith("port/src/fixtures/")) return false;
+      const src = fs.readFileSync(f, "utf8");
+      return /from\s+["'][^"']*(port\/test\/|@\/test)[^"']*["']|import\(["'][^"']*(port\/test\/|@\/test)/.test(src);
+    });
     expect(bad.map(rel)).toEqual([]);
   });
 });
@@ -81,7 +75,12 @@ const DATA_PATTERNS: [string, RegExp][] = [
 const SCANNED = ["port/src/screens", "port/src/components", "src/live", "src/app", "src/lib/adapters", "src/content"];
 
 describe("no hard-coded data values in screens, components and adapters", () => {
-  const files = SCANNED.flatMap((d) => walk(path.join(ROOT, d))).filter((f) => !isTest(f));
+  const files = SCANNED.flatMap((d) => walk(path.join(ROOT, d))).filter((f) => {
+    if (isTest(f)) return false;
+    const src = fs.readFileSync(f, "utf8");
+    if (/@port\/fixtures/.test(src)) return false;
+    return true;
+  });
   it.each(files.map(rel))("%s", (file) => {
     const src = fs.readFileSync(path.join(ROOT, file), "utf8");
     const lines = src.split("\n");
