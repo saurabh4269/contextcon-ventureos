@@ -10,7 +10,7 @@ import { dryRun, outboundMode } from "@/lib/outbound";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-const DEFAULT_MAX = 5, MAX = 25, MAX_SUMMARY = 200;
+const DEFAULT_MAX = 5, MAX = 25, MAX_SUMMARY = 200, MAX_DESCRIPTION = 8000, MAX_ATTENDEES = 50;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function GET(req: Request) {
@@ -23,10 +23,14 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const b = (await req.json().catch(() => null)) as { summary?: unknown; start?: unknown; end?: unknown; description?: unknown; attendees?: unknown } | null;
   const bad = (message: string) => NextResponse.json({ status: "error", message }, { status: 400 });
-  if (!b || typeof b.summary !== "string" || !b.summary.trim() || b.summary.length > MAX_SUMMARY) return bad(`summary is required (≤ ${MAX_SUMMARY} chars)`);
+  if (!b || typeof b !== "object" || Array.isArray(b)) return bad("body must be a JSON object {summary, start, end, description?, attendees?}");
+  if (typeof b.summary !== "string" || !b.summary.trim() || b.summary.length > MAX_SUMMARY) return bad(`summary is required (≤ ${MAX_SUMMARY} chars)`);
   if (typeof b.start !== "string" || typeof b.end !== "string" || Number.isNaN(Date.parse(b.start)) || Number.isNaN(Date.parse(b.end))) return bad("start and end must be ISO timestamps");
   if (Date.parse(b.end) <= Date.parse(b.start)) return bad("end must be after start");
+  if (b.attendees != null && !Array.isArray(b.attendees)) return bad("attendees must be an array of email addresses");
+  if (b.description != null && (typeof b.description !== "string" || b.description.length > MAX_DESCRIPTION)) return bad(`description must be a string (≤ ${MAX_DESCRIPTION} chars)`);
   const attendees = Array.isArray(b.attendees) ? b.attendees : [];
+  if (attendees.length > MAX_ATTENDEES) return bad(`at most ${MAX_ATTENDEES} attendees`);
   if (!attendees.every((a) => typeof a === "string" && EMAIL.test(a))) return bad("attendees must be email addresses");
   const draft = { calendar: "primary", summary: b.summary as string, start: new Date(b.start as string).toISOString(), end: new Date(b.end as string).toISOString(), attendees: attendees as string[], sendUpdates: "none" };
   if (outboundMode() === "dry_run") {

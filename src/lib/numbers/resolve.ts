@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { normalizeDomainInput } from "@/lib/live/normalize";
 import { researchCompany } from "@/lib/live/research";
 import { failureFrom, failureResponse, liveCrustdataClient } from "@/lib/live/server";
+import { safeDecode } from "./decode";
 import { companyFields } from "./company-fields";
 import { liveDealNumbers, liveDealValuation, type DealNumbers, type DealValuation } from "./deal-numbers";
 
@@ -13,9 +14,12 @@ import { liveDealNumbers, liveDealValuation, type DealNumbers, type DealValuatio
 export async function resolveDealNumbers(
   rawId: string,
 ): Promise<{ ok: true; id: string; source: "crustdata"; fields: DealNumbers; explainable: DealValuation } | { ok: false; response: Response }> {
-  const id = decodeURIComponent(rawId);
+  const id = safeDecode(rawId);
   const domain = normalizeDomainInput(id);
-  if (!domain) return { ok: false, response: NextResponse.json({ status: "error", message: `A deal id is the company domain (e.g. e2b.dev); "${id}" is not one.` }, { status: 404 }) };
+  if (!domain) {
+    const shown = id.length > 80 ? `${id.slice(0, 80)}…` : id;
+    return { ok: false, response: NextResponse.json({ status: "error", message: `A deal id is the company domain (e.g. e2b.dev); ${JSON.stringify(shown)} is not one.` }, { status: 404 }) };
+  }
   try {
     const r = await researchCompany(liveCrustdataClient(), domain);
     if (r.status === "no_match") return { ok: false, response: NextResponse.json({ status: "no_match", domain, message: `No Crustdata match for ${domain}.` }, { status: 404 }) };

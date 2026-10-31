@@ -206,6 +206,6 @@ export function normalizeDomainInput(raw: string | null | undefined): string | u
 /** Normalize a LinkedIn profile URL; undefined when it isn't one. */
 export function normalizeLinkedInUrl(raw: string | null | undefined): string | undefined {
   if (!raw) return undefined;
-  const m = raw.trim().match(/^(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/in\/([A-Za-z0-9_%-]+)\/?(?:[?#].*)?$/i);
+  const m = raw.trim().match(/^(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/in\/([A-Za-z0-9_%-]{1,300})\/?(?:[?#].*)?$/i);
   return m ? `https://www.linkedin.com/in/${m[1]}` : undefined;
 }

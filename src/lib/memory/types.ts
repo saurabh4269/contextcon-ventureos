@@ -65,3 +65,6 @@ export function parseMemoryEventInput(body: unknown): { ok: true; input: MemoryE
     input: { kind, actor: { type: actor.type as ActorType, id: text(actor.id), name: text(actor.name) }, subject, summary, data, source },
   };
 }
+
+/** `since` cursor: an event id (bigint in Postgres), so at most 18 digits; longer would overflow into a store error (502). */
+export const isEventId = (v: string) => /^\d{1,18}$/.test(v);

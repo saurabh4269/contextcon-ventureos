@@ -10,7 +10,7 @@ export const GET = liveRoute(
     const id = companyIdParam(q);
     if (!id.ok) return id;
     const query = q.get("q")?.trim();
-    return query ? { ok: true, input: { id: id.input, query } } : { ok: false, message: "q (what the company does) is required" };
+    return query && query.length <= 500 ? { ok: true, input: { id: id.input, query } } : { ok: false, message: "q (what the company does) is required (≤ 500 chars)" };
   },
   (client, { id, query }) => searchComps(client, { id, description: query, categories: [] }),
 );

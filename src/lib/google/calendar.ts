@@ -33,12 +33,13 @@ export async function insertEvent(cfg: GoogleConfig, e: NewEvent, f: typeof fetc
   return toMeeting(data);
 }
 
-/** 204 when deleted; 410 when it was already gone (both mean "not on the calendar"). */
+/** 204 when deleted; 410 when it was already gone; 404 when the id never existed (all mean "not on the calendar"). */
 export async function deleteEvent(cfg: GoogleConfig, id: string, f: typeof fetch = fetch): Promise<number> {
   try {
     return (await googleJson<null>(cfg, `${API}/calendars/primary/events/${encodeURIComponent(id)}?sendUpdates=none`, { method: "DELETE" }, f)).status;
   } catch (e) {
-    if ((e as { httpStatus?: number }).httpStatus === 410) return 410;
+    const st = (e as { httpStatus?: number }).httpStatus;
+    if (st === 410 || st === 404) return st;
     throw e;
   }
 }
