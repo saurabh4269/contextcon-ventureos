@@ -152,6 +152,14 @@ describe("runScreen + reduceScreen (mocked stream)", () => {
   });
 });
 
+describe("malformed input", () => {
+  it("a final event without a well-formed result becomes an error instead of crashing", async () => {
+    const { state } = await run(mockFetch(streamResponse([ndjson([start, { type: "final" } as unknown as ScreenEvent])])));
+    expect(state.phase).toBe("error");
+    expect(html(state)).toContain('data-testid="error"');
+  });
+});
+
 describe("result views", () => {
   const done = (r: ScreenResult) => [...midRun, { type: "final", result: r } as ScreenEvent].reduce(reduceScreen, initialScreen("q"));
 
@@ -170,6 +178,8 @@ describe("result views", () => {
     expect(h).toContain('data-status="corrected"');
     expect(h).toMatch(/data-cell="hq" data-status="unavailable"><span[^>]*>unavailable</);
     expect(h).toContain("model said &quot;55%&quot;");
+    // reasons are visible text inside the tap popover, not hover-only
+    expect(h).toContain("Unavailable: not on Crustdata");
     // timeline collapses once done
     expect(h).toContain('data-testid="timeline-collapsed"');
   });

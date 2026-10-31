@@ -3,6 +3,7 @@
 // ranked result (table on desktop, cards on mobile). Every value carries its status and a tappable citation to the
 // Crustdata call (ref), endpoint and JSON path it was checked against; missing data reads "unavailable", never a guess.
 import { AlertTriangle, Ban, Check, CheckCheck, CircleSlash, Cpu, Database, Loader2, Pencil, Search, Sparkles, Wrench } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { AppliedFilter, Citation, LedgerCall, ScreenCell, ScreenPerson, ScreenResult, ScreenRow } from "@/lib/agent/contract";
 import { Pill, cx, CARD } from "@port/components/ui";
 import { fmtDateTime } from "@/lib/format";
@@ -13,43 +14,86 @@ const num = (n: number) => n.toLocaleString("en-US");
 
 /* ───────────── citation + status ───────────── */
 
-/** Tappable citation: a small ref chip that opens the call, endpoint and JSON path (native <details>, works on touch). */
-export function Cite({ c }: { c: Citation }) {
+const STATUS_ICON = { verified: Check, corrected: Pencil, unavailable: CircleSlash } as const;
+const STATUS_TONE = { verified: "text-ok", corrected: "text-warn", unavailable: "text-zinc-400" } as const;
+const POP_W = 260;
+
+/**
+ * Tap/click popover on a native <details> (works on touch and keyboard). The panel is position:fixed, placed under the
+ * trigger and clamped to the viewport, so table scroll containers don't clip it and it never runs off a phone screen.
+ */
+function Pop({ trigger, label, children, testid, dataRef }: { trigger: ReactNode; label: string; children: ReactNode; testid?: string; dataRef?: string }) {
+  const ref = useRef<HTMLDetailsElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
+  const place = () => {
+    const d = ref.current;
+    if (!d?.open) return setPos(null);
+    const r = d.querySelector("summary")!.getBoundingClientRect();
+    setPos({ top: r.bottom + 4, left: Math.max(8, Math.min(r.left, window.innerWidth - POP_W - 8)) });
+  };
+  useEffect(() => {
+    if (!pos) return;
+    const close = () => { if (ref.current) ref.current.open = false; setPos(null); };
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) close(); };
+    window.addEventListener("scroll", close, true);
+    window.addEventListener("resize", close);
+    document.addEventListener("mousedown", onDoc);
+    return () => { window.removeEventListener("scroll", close, true); window.removeEventListener("resize", close); document.removeEventListener("mousedown", onDoc); };
+  }, [pos]);
   return (
-    <details className="group relative inline-block align-middle" data-testid="cite" data-ref={c.ref}>
-      <summary className="inline-flex h-[18px] cursor-pointer list-none items-center rounded-[5px] border border-zinc-200 bg-zinc-50 px-1 font-mono text-[10px] text-zinc-500 hover:border-zinc-300 hover:text-ink group-open:border-ink/30 group-open:bg-white group-open:text-ink [&::-webkit-details-marker]:hidden" aria-label={`Source ${c.ref}: ${c.method} ${c.endpoint} ${c.path}`}>
-        {c.ref}
-      </summary>
-      <span role="dialog" aria-label={`Source ${c.ref}`} className="absolute top-full left-0 z-30 mt-1 block w-[260px] max-w-[80vw] rounded-xl border border-zinc-200 bg-white p-2.5 text-left text-[11px] leading-[16px] shadow-[0_12px_32px_-8px_rgba(9,9,11,.22),0_2px_6px_rgba(9,9,11,.06)]">
-        <span className="flex items-center gap-1.5"><span className="rounded bg-ink px-1 font-mono text-[9.5px] text-white">{c.method}</span><span className="truncate font-mono text-ink">{c.endpoint}</span></span>
-        <span className="mt-1 block font-mono break-all text-zinc-600">{c.path}</span>
-        <span className="mt-1 flex justify-between text-zinc-400"><span>Crustdata · call {c.ref}</span>{c.retrievedAt && <span>{fmtDateTime(c.retrievedAt)}</span>}</span>
+    <details ref={ref} onToggle={place} onKeyDown={(e) => { if (e.key === "Escape" && ref.current) { ref.current.open = false; setPos(null); } }} className="group inline-block align-middle" data-testid={testid} data-ref={dataRef}>
+      <summary aria-label={label} className="inline-flex cursor-pointer list-none items-center gap-0.5 rounded-[5px] focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-ink [&::-webkit-details-marker]:hidden">{trigger}</summary>
+      <span style={pos ? { top: pos.top, left: pos.left, width: POP_W } : { width: POP_W }} className={cx("z-50 block max-w-[calc(100vw-16px)] rounded-xl border border-zinc-200 bg-white p-2.5 text-left text-[11px] leading-[16px] font-normal not-italic shadow-[0_12px_32px_-8px_rgba(9,9,11,.22),0_2px_6px_rgba(9,9,11,.06)]", pos ? "fixed" : "absolute")}>
+        {children}
       </span>
     </details>
   );
 }
 
-const STATUS_ICON = { verified: Check, corrected: Pencil, unavailable: CircleSlash } as const;
-const STATUS_TONE = { verified: "text-ok", corrected: "text-warn", unavailable: "text-zinc-400" } as const;
+/** What a citation points at: call ref, method + endpoint, JSON path, retrieval time. */
+function CiteBody({ c }: { c: Citation }) {
+  return (
+    <>
+      <span className="flex items-center gap-1.5"><span className="rounded bg-ink px-1 font-mono text-[9.5px] text-white">{c.method}</span><span className="truncate font-mono text-ink">{c.endpoint}</span></span>
+      <span className="mt-1 block font-mono break-all text-zinc-600">{c.path}</span>
+      <span className="mt-1 flex justify-between gap-2 text-zinc-400"><span>Crustdata · call {c.ref}</span>{c.retrievedAt && <span>{fmtDateTime(c.retrievedAt)}</span>}</span>
+    </>
+  );
+}
+
+const refChip = (ref: string) => <span className="inline-flex h-[18px] items-center rounded-[5px] border border-zinc-200 bg-zinc-50 px-1 font-mono text-[10px] text-zinc-500 group-open:border-ink/30 group-open:bg-white group-open:text-ink hover:border-zinc-300 hover:text-ink">{ref}</span>;
+
+/** Tappable citation chip on its own. */
+export function Cite({ c }: { c: Citation }) {
+  return <Pop testid="cite" dataRef={c.ref} label={`Source ${c.ref}: ${c.method} ${c.endpoint} ${c.path}`} trigger={refChip(c.ref)}><CiteBody c={c} /></Pop>;
+}
+
+const statusText = (cell: ScreenCell) =>
+  cell.status === "corrected" ? `Corrected to the Crustdata value${cell.claimed !== undefined ? ` (model said ${JSON.stringify(cell.claimed)})` : ""}`
+    : cell.status === "unavailable" ? `Unavailable${cell.reason ? `: ${cell.reason}` : ""}`
+    : "Verified against the cited field";
 
 /** Status chip for one value: icon-only when verified, labelled when corrected / unavailable. */
-export function StatusChip({ cell, full }: { cell: ScreenCell; full?: boolean }) {
+export function StatusChip({ cell }: { cell: ScreenCell }) {
   const Icon = STATUS_ICON[cell.status];
-  const title = cell.status === "corrected" ? `Corrected from Crustdata${cell.claimed !== undefined ? ` (model said ${JSON.stringify(cell.claimed)})` : ""}` : cell.status === "unavailable" ? `Unavailable${cell.reason ? `: ${cell.reason}` : ""}` : "Verified against the cited field";
-  if (cell.status === "verified" && !full) return <span title={title} data-status="verified" className="inline-flex"><Icon aria-label="verified" className={cx("size-3 shrink-0", STATUS_TONE.verified)} /></span>;
-  return <Pill tone={cell.status === "verified" ? "ok" : cell.status === "corrected" ? "warn" : "neutral"} dot={false} className="!px-1.5 !text-[10px]"><span data-status={cell.status} title={title} className="inline-flex items-center gap-1"><Icon className="size-2.5" />{cell.status}</span></Pill>;
+  if (cell.status === "verified") return <span data-status="verified" className="inline-flex"><Icon aria-label="verified" className={cx("size-3 shrink-0", STATUS_TONE.verified)} /></span>;
+  return <Pill tone={cell.status === "corrected" ? "warn" : "neutral"} dot={false} className="!px-1.5 !text-[10px]"><span data-status={cell.status} className="inline-flex items-center gap-1"><Icon className="size-2.5" />{cell.status}</span></Pill>;
 }
 
 const fmtValue = (v: ScreenCell["value"]) => (v === null ? null : typeof v === "number" ? num(v) : typeof v === "boolean" ? (v ? "Yes" : "No") : v);
 
-/** One value with its status and citation. Unavailable values read "unavailable" (with the reason on hover/tap). */
+/** One value; tap its status/ref chip to see why (correction, missing-data reason) and the cited call + path. */
 export function CellView({ cell, strong }: { cell: ScreenCell; strong?: boolean }) {
   const v = cell.status === "unavailable" ? null : fmtValue(cell.value);
+  const c = cell.citation;
   return (
     <span className="inline-flex max-w-full flex-wrap items-center gap-1" data-cell={cell.key} data-status={cell.status}>
-      {v === null || v === "" ? <span className="text-zinc-400 italic" title={cell.reason}>unavailable</span> : <span className={cx("min-w-0 break-words", strong ? "font-medium text-ink" : "text-zinc-800")}>{v}</span>}
-      <StatusChip cell={cell} />
-      {cell.citation && <Cite c={cell.citation} />}
+      {v === null || v === "" ? <span className="text-zinc-400 italic">unavailable</span> : <span className={cx("min-w-0 break-words", strong ? "font-medium text-ink" : "text-zinc-800")}>{v}</span>}
+      <Pop testid={c ? "cite" : "why"} dataRef={c?.ref} label={`${cell.label}: ${statusText(cell)}${c ? `. Source ${c.ref}: ${c.method} ${c.endpoint} ${c.path}` : ""}`}
+        trigger={<><StatusChip cell={cell} />{c && refChip(c.ref)}</>}>
+        <span className={cx("mb-1.5 block", STATUS_TONE[cell.status])} data-testid="status-text">{statusText(cell)}</span>
+        {c ? <CiteBody c={c} /> : <span className="block text-zinc-400">No Crustdata citation.</span>}
+      </Pop>
     </span>
   );
 }
@@ -69,7 +113,7 @@ export function PeopleList({ row }: { row: ScreenRow }) {
 function Person({ p }: { p: ScreenPerson }) {
   return (
     <li className="text-[12.5px]" data-testid="person">
-      <div className="flex flex-wrap items-center gap-x-1.5"><CellView cell={p.name} strong /><span className="text-zinc-300">·</span><CellView cell={p.title} />{p.linkedin?.value && typeof p.linkedin.value === "string" && <a href={p.linkedin.value} target="_blank" rel="noreferrer" className="text-[11px] text-zinc-400 hover:text-ink">in ↗</a>}</div>
+      <div className="flex flex-wrap items-center gap-x-1.5"><CellView cell={p.name} strong /><span className="text-zinc-300">·</span><CellView cell={p.title} />{p.linkedin && p.linkedin.status !== "unavailable" && typeof p.linkedin.value === "string" && /^https?:\/\//i.test(p.linkedin.value) && <a href={p.linkedin.value} target="_blank" rel="noreferrer" className="text-[11px] text-zinc-400 hover:text-ink">in ↗</a>}</div>
       {p.prior.length > 0 ? (
         <ul className="mt-1 space-y-0.5 border-l border-zinc-200 pl-2.5 text-[11.5px] text-zinc-600" data-testid="prior">
           {p.prior.map((r, j) => (
