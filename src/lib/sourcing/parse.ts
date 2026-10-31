@@ -50,6 +50,7 @@ export const MAX_COUNT = 25;
 export const DEFAULT_COUNT = 10;
 /** With a growth filter and no size given, tiny teams (2 → 4 people = +100%) swamp the results; this floor is stated as an assumption and relaxed first. */
 export const DEFAULT_GROWTH_HEADCOUNT_FLOOR = 10;
+const UPPER_BOUND = /\b(?:under|below|less than|fewer than|at most|no more than|up to|slower than|max(?:imum)?)\b|<|≤/i;
 const FAST_GROWTH_DEFAULT_PCT = 30;
 
 /* ───────────── vocabulary ───────────── */
@@ -392,6 +393,9 @@ export function parseRequest(input: unknown, now: Date = new Date()): ParseResul
   for (const rule of growthRules) {
     const m = r.find(rule.re);
     if (!m) continue;
+    // "growth under 10%" is an upper bound; the plan only has minimums, so the phrase is left unread (shown as not used)
+    // instead of being turned into "10% or more"
+    if (UPPER_BOUND.test(m[0])) break;
     const pct = rule.pct(m);
     if (pct == null || !Number.isFinite(pct) || pct <= 0 || pct > 5000) continue;
     growthPhrase = r.claim(m);
@@ -439,8 +443,8 @@ export function parseRequest(input: unknown, now: Date = new Date()): ParseResul
   const NUMK = String.raw`(\d{1,6}(?:\.\d+)?k?)`;
   const sizeRules: { re: RegExp; apply: (m: RegExpExecArray) => string | undefined }[] = [
     { re: new RegExp(String.raw`(?:between\s+)?${NUMK}\s*(?:-|to|and)\s*${NUMK}\s*${PEOPLE}`), apply: (m) => { const a = K(m[1]!), b = K(m[2]!); headcountMin = Math.min(a, b); headcountMax = Math.max(a, b); return `${headcountMin}–${headcountMax} employees`; } },
-    { re: new RegExp(String.raw`(?:under|fewer than|less than|below|up to|at most|<|no more than|max(?:imum)?(?: of)?)\s*${NUMK}\s*${PEOPLE}`), apply: (m) => { headcountMax = K(m[1]!); return `≤ ${headcountMax} employees`; } },
-    { re: new RegExp(String.raw`(?:over|more than|at least|above|>|min(?:imum)?(?: of)?|bigger than|larger than)\s*${NUMK}\s*${PEOPLE}`), apply: (m) => { headcountMin = K(m[1]!); return `≥ ${headcountMin} employees`; } },
+    { re: new RegExp(String.raw`(?:under|fewer than|less than|below|up to|at most|<|no more than|max(?:imum)?(?: of)?)\s*${NUMK}\s*${PEOPLE}`), apply: (m) => { headcountMax = K(m[1]!) - (/^(?:under|fewer than|less than|below|<)/.test(m[0]) ? 1 : 0); return `≤ ${headcountMax} employees`; } }, // "fewer than 50" excludes 50
+    { re: new RegExp(String.raw`(?:over|more than|at least|above|>|min(?:imum)?(?: of)?|bigger than|larger than)\s*${NUMK}\s*${PEOPLE}`), apply: (m) => { headcountMin = K(m[1]!) + (/^(?:over|more than|above|>|bigger than|larger than)/.test(m[0]) ? 1 : 0); return `≥ ${headcountMin} employees`; } }, // "more than 200" excludes 200
     { re: new RegExp(String.raw`${NUMK}\s*\+\s*${PEOPLE}`), apply: (m) => { headcountMin = K(m[1]!); return `≥ ${headcountMin} employees`; } },
     { re: new RegExp(String.raw`(?:with|of|having)\s+${NUMK}\s+${PEOPLE}`), apply: (m) => { headcountMin = K(m[1]!); return `≥ ${headcountMin} employees`; } },
   ];
