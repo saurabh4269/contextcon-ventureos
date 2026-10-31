@@ -102,7 +102,7 @@ export type LiveCall<T = unknown> = {
 
 export type LiveFailure =
   | { status: "not_connected"; message: string }
-  | { status: "error"; message: string; upstreamStatus?: number };
+  | { status: "error"; message: string; upstreamStatus?: number; /** an outage (5xx, timeout, rate limit): trying again later may work */ retryable?: boolean };
 
 export type IdentifyData = { id: number; name: string; confidence?: number; matchType?: string };
 

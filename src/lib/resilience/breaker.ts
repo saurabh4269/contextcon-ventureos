@@ -8,7 +8,7 @@ export class CircuitOpenError extends Error {
   /** epoch ms when the next trial call is allowed */
   readonly retryAt: number;
   constructor(key: string, retryAt: number, lastError: string | undefined) {
-    super(`${key} is unavailable (circuit open after repeated failures${lastError ? `; last error: ${lastError}` : ""}); retrying after ${new Date(retryAt).toISOString()}`);
+    super(`${key} is unavailable (circuit open after repeated failures${lastError ? `; last error: ${lastError}` : ""})`);
     this.name = "CircuitOpenError";
     this.key = key;
     this.retryAt = retryAt;
