@@ -291,7 +291,7 @@ export function toLiveDeal(r: Ok, now: Date = new Date()): DealData {
   ];
 
   const evidence: EvidenceItem[] = c.news.slice(0, 3).map((x, i) => ({
-    id: `news${i}`, kind: "doc", source: { kind: "web", label: x.publisher?.replace(/^https?:\/\//, "").replace(/\/$/, "") ?? "News" }, where: x.date ?? "", highlight: x.title, ...(x.url ? { href: x.url } : {}),
+    id: `news${i}`, kind: "doc", source: { kind: "web", label: x.publisher?.replace(/^https?:\/\//, "").replace(/\/$/, "") ?? "News" }, where: x.date ? fmtDate(x.date) : "date not reported", highlight: x.title, ...(x.url ? { href: x.url } : {}),
   }));
 
   return {
