@@ -2,6 +2,7 @@
 // Views for the screening agent (POST /api/live/screen): the live plan/tool timeline, the filter summary and the
 // ranked result (table on desktop, cards on mobile). Every value carries its status and a tappable citation to the
 // Crustdata call (ref), endpoint and JSON path it was checked against; missing data reads "unavailable", never a guess.
+import { PlaySummary } from "@/live/voice/PlaySummary";
 import { AlertTriangle, Ban, Check, CheckCheck, CircleSlash, Cpu, Database, Loader2, Pencil, Search, Sparkles, Wrench } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import type { AppliedFilter, Citation, LedgerCall, ScreenCell, ScreenPerson, ScreenResult, ScreenRow } from "@/lib/agent/contract";
@@ -258,7 +259,12 @@ export function ResultView({ result }: { result: ScreenResult }) {
         <Stats s={result.citationStats} />
         <span className="ml-auto flex items-center gap-2 font-mono text-[10.5px] text-zinc-400"><span title="Crustdata credits used / cap">{result.credits.used} / {result.credits.cap} cr</span><span>{result.steps} steps</span><span>{ms(result.timings.totalMs)}</span><span className="inline-flex items-center gap-1"><Cpu className="size-3" />{result.model.model}</span></span>
       </div>
-      {result.summary && <p className="text-[13.5px] leading-[20px] text-zinc-700">{result.summary}</p>}
+      {result.summary && (
+        <div className="space-y-2">
+          <p className="text-[13.5px] leading-[20px] text-zinc-700">{result.summary}</p>
+          <PlaySummary text={result.summary} />
+        </div>
+      )}
       <FilterSummary filters={result.filters} />
       {rows.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-300 bg-zinc-50/60 p-8 text-center" data-testid="no-results">

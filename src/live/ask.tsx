@@ -77,7 +77,12 @@ export function autorunOnce(done: { current: boolean }, q: string | undefined, a
 export function LiveAsk({ shell, initialQuery }: { shell: ShellData; initialQuery?: string }) {
   const { state, ask, stop } = useScreen();
   const autoran = useRef(false);
-  useEffect(() => autorunOnce(autoran, initialQuery, ask), [initialQuery, ask]);
+  // Deferred a tick and cancelled on cleanup: StrictMode's mount, unmount, mount (dev) would otherwise abort the run it
+  // just started (the screen showed "Stopped") or start it twice.
+  useEffect(() => {
+    const t = setTimeout(() => autorunOnce(autoran, initialQuery, ask), 0);
+    return () => clearTimeout(t);
+  }, [initialQuery, ask]);
   const lead = (
     <span className="flex min-w-0 items-baseline gap-2">
       <span className="text-[13px] font-medium text-ink">Assistant</span><span className="text-zinc-300">/</span>

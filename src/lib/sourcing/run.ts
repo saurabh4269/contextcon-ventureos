@@ -47,6 +47,8 @@ export type Founder = {
   prior: { company: string; title?: string; start?: string; end?: string }[];
   /** where `prior` was read from */
   priorSource: "person/search" | "person/enrich" | "none";
+  /** search returned no employment history at all (so /person/enrich may add some); false when search already returned it */
+  historyMissing?: boolean;
   citations: Citation[];
 };
 
@@ -424,7 +426,7 @@ export async function runAgent(input: unknown, deps: RunDeps): Promise<RunSummar
 
     // founders with no work history in search → one person enrich each (capped)
     const needEnrich: Founder[] = [];
-    for (const r of rows) if (r.founders.status === "ok") for (const f of r.founders.value) if (f.priorSource === "none" && f.linkedinUrl && needEnrich.length < MAX_PERSON_ENRICH) needEnrich.push(f);
+    for (const r of rows) if (r.founders.status === "ok") for (const f of r.founders.value) if (f.priorSource === "none" && f.historyMissing && f.linkedinUrl && needEnrich.length < MAX_PERSON_ENRICH) needEnrich.push(f);
     if (needEnrich.length && !aborted()) {
       await step("person-enrich", `Look up work history for ${needEnrich.length} founder(s)`, "POST /person/enrich", "crustdata", async (track, set) => {
         let filled = 0;
@@ -593,5 +595,5 @@ function priorOf(p: LivePerson, row: { id: number; name: string; domain?: string
 function toFounder(p: LivePerson, row: AgentRow, citation: Citation): Founder {
   const prior = priorOf(p, row);
   const title = p.current.find((e) => e.companyId === row.id || e.company.toLowerCase() === row.name.toLowerCase())?.title ?? p.title;
-  return { name: p.name, title, linkedinUrl: p.linkedinUrl, personId: p.id, prior, priorSource: prior.length ? "person/search" : "none", citations: [citation] };
+  return { name: p.name, title, linkedinUrl: p.linkedinUrl, personId: p.id, prior, priorSource: prior.length ? "person/search" : "none", historyMissing: p.past.length === 0 && p.current.length === 0, citations: [citation] };
 }

@@ -2,6 +2,7 @@
 // /agent — the Sourcing agent. A free-text request → what was understood (chips, with the phrase each came from) →
 // a live step trace (endpoint, time, credits) → verified, cited rows → memo / CSV. Everything shown comes from the
 // NDJSON stream of POST /api/sourcing/run; nothing here is sample data.
+import { PlaySummary } from "@/live/voice/PlaySummary";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -206,7 +207,7 @@ function Summary({ state }: { state: RunState }) {
           className="inline-flex h-8 items-center gap-1.5 rounded-full bg-ink px-3 text-[12.5px] font-medium text-white hover:bg-zinc-800">{copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}{copied ? "Copied" : "Copy memo (markdown)"}</button>
         <button type="button" data-testid="download-csv" onClick={() => download(`sourcing-${slug}.csv`, toCsv(state.rows), "text/csv")}
           className="inline-flex h-8 items-center gap-1.5 rounded-full bg-white px-3 text-[12.5px] font-medium text-zinc-700 ring-1 ring-zinc-200 hover:text-ink"><Download className="size-3.5" />CSV</button>
-        <button type="button" onClick={() => void speak(s.sentence)} className="inline-flex h-8 items-center gap-1.5 rounded-full bg-white px-3 text-[12.5px] font-medium text-zinc-700 ring-1 ring-zinc-200 hover:text-ink"><Volume2 className="size-3.5" />Read aloud</button>
+        <PlaySummary text={s.sentence} />
         <span className="tnum ml-auto text-[11.5px] text-zinc-400">{s.credits} credits · {s.liveCalls} live / {s.cachedCalls} cached calls · {(s.ms / 1000).toFixed(1)} s</span>
       </div>
     </section>
