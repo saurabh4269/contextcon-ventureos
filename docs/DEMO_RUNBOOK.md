@@ -6,12 +6,12 @@ All times are IST.
 ## 10 minutes before
 
 1. Run `npx tsx scripts/preflight.ts`. Every line should be ✓, apart from the expected ! lines (DATABASE_URL, and the live outbound warning if you turned live on).
-2. Open Settings › Connectors (`/settings?section=connectors`). Gmail and Calendar should read *Connected as you@example.com*.
+2. Open Settings › Connectors (`/settings?section=connectors`). Gmail and Calendar should read *Connected as you@example.com (your Google account)*.
 3. Decide on dry run or live.
    - For a real email to yourself, set `OUTBOUND_MODE=live` in `.env.local` and restart `npm run dev:demo`.
-   - The memo's **Send & schedule** badge then reads *Live · only you@example.com, saurabhgupta0342@gmail.com*.
+   - The memo's **Send & schedule** badge then reads *Live · only the addresses in `DEMO_RECIPIENT_ALLOWLIST`*.
 4. Warm the cache by running the demo request once on `/ask`. Repeats cost no Crustdata credits.
-5. Open Gmail for you@example.com and Google Calendar in a second tab, so the audience can see the email and the event arrive.
+5. Open Gmail for you@example.com (your Google account) and Google Calendar in a second tab, so the audience can see the email and the event arrive.
 
 ## Click path
 
@@ -22,7 +22,7 @@ All times are IST.
 | 3 | Click a company | `/deal?domain=<domain>` | Live headcount, growth and funding, each cited |
 | 4 | Deal › decisions | Open fit and verdict, with their criteria | Decisions and what fed them. Partial inputs go to `/review` |
 | 5 | **IC memo** | `/memo?id=<domain>` | Memo figures with reasoning and citations |
-| 6 | Memo › **Send & schedule** | To is prefilled with you@example.com. Click **Review email**, then **Approve & send to …** | Live: the email arrives in the Gmail tab. Dry run: *"DRY RUN: email … built, not sent"* |
+| 6 | Memo › **Send & schedule** | To is prefilled with you@example.com (your Google account). Click **Review email**, then **Approve & send to …** | Live: the email arrives in the Gmail tab. Dry run: *"DRY RUN: email … built, not sent"* |
 | 7 | Memo › **Find a 30-min slot** | Pick a slot, then click **Approve & book …** | Free slots from your real calendar (10:00–19:00 IST, Mon–Fri). The event appears in Calendar, with no invite emails sent |
 | 8 | Optional | Type a non-team address in To and click **Review email** | *"Blocked: … is not on the demo allowlist"*, which shows the safety rule |
 

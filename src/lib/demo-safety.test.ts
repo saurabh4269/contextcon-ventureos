@@ -15,10 +15,12 @@ vi.mock("@/lib/memory/store", () => ({ recordMemory: async () => ({ status: "una
 
 const ENV_KEYS = ["OUTBOUND_MODE", "OUTBOUND_LIVE", "DEMO_RECIPIENT_ALLOWLIST", "GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET", "GOOGLE_REFRESH_TOKEN", "GOOGLE_REDIRECT_URI", "GOOGLE_LOGIN_HINT"];
 const saved: Record<string, string | undefined> = {};
-beforeEach(() => { for (const k of ENV_KEYS) { saved[k] = process.env[k]; delete process.env[k]; } clearApprovals(); clearGoogleTokenCache(); });
+beforeEach(() => { for (const k of ENV_KEYS) { saved[k] = process.env[k]; delete process.env[k]; } process.env.DEMO_RECIPIENT_ALLOWLIST = TEAM.DEMO_RECIPIENT_ALLOWLIST; clearApprovals(); clearGoogleTokenCache(); });
 afterEach(() => { for (const k of ENV_KEYS) { if (saved[k] === undefined) delete process.env[k]; else process.env[k] = saved[k]; } vi.unstubAllGlobals(); });
 
 const ME = "you@example.com";
+const MATE = "teammate@example.com";
+const TEAM = { DEMO_RECIPIENT_ALLOWLIST: `${ME},${MATE}` };
 const post = (url: string, body: unknown) => new Request(`http://localhost:3000${url}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
 const mail = { to: [ME], subject: "Deal Desk · IC memo · e2b.dev", body: "Headcount: 42" };
 
@@ -28,13 +30,14 @@ describe("outbound mode and recipient allowlist", () => {
     expect(outboundMode({ OUTBOUND_LIVE: "1" })).toBe("live");
     expect(outboundMode({ OUTBOUND_LIVE: "0", OUTBOUND_MODE: "dry_run" })).toBe("dry_run");
   });
-  it("defaults to the two team addresses; env list is parsed and lowercased", () => {
-    expect(recipientAllowlist({})).toEqual(["you@example.com", "saurabhgupta0342@gmail.com"]);
+  it("has no built-in addresses (unset blocks everyone); env list is parsed and lowercased", () => {
+    expect(recipientAllowlist({})).toEqual([]);
+    expect(checkRecipients([ME], {}).ok).toBe(false);
     expect(recipientAllowlist({ DEMO_RECIPIENT_ALLOWLIST: " A@x.com; b@y.io  c@z.dev" })).toEqual(["a@x.com", "b@y.io", "c@z.dev"]);
   });
   it("allows team addresses (case-insensitive), blocks anyone else with a clear message", () => {
-    expect(checkRecipients(["you@example.com"], {})).toMatchObject({ ok: true });
-    const r = checkRecipients([ME, "founder@startup.com"], {});
+    expect(checkRecipients(["You@Example.com"], TEAM)).toMatchObject({ ok: true });
+    const r = checkRecipients([ME, "founder@startup.com"], TEAM);
     expect(r).toMatchObject({ ok: false, blocked: ["founder@startup.com"] });
     if (!r.ok) expect(r.message).toMatch(/founder@startup\.com is not on the demo allowlist/);
     expect(checkRecipients([], {}).ok).toBe(false);
@@ -63,7 +66,7 @@ describe("approval gate", () => {
 
 describe("POST /api/outbound/email", () => {
   it("GET reports mode and allowlist", async () => {
-    expect(await (await emailGET()).json()).toMatchObject({ mode: "dry_run", allowlist: [ME, "saurabhgupta0342@gmail.com"] });
+    expect(await (await emailGET()).json()).toMatchObject({ mode: "dry_run", allowlist: [ME, MATE] });
   });
   it("blocks a non-allowlisted recipient at preview (403) — even in live mode, Google is never called", async () => {
     process.env.OUTBOUND_MODE = "live";
@@ -165,7 +168,7 @@ describe("Google sign-in", () => {
 describe("Gmail message and free slots", () => {
   it("builds an RFC 2822 message, encoding a non-ASCII subject", () => {
     const raw = Buffer.from(buildRawMessage({ to: [ME], subject: "IC memo · E2B", body: "Hi\nthere" }), "base64url").toString("utf8");
-    expect(raw).toMatch(/^To: saurabh42690@gmail\.com\r\n/);
+    expect(raw).toMatch(/^To: you@example\.com\r\n/);
     expect(raw).toContain("Subject: =?UTF-8?B?");
     expect(raw).toContain("Content-Type: text/plain; charset=UTF-8");
   });

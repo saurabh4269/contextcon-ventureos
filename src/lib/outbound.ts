@@ -23,7 +23,8 @@ export const DRY_RUN_LABEL = "Dry run — not sent (event rules)";
 export const dryRun = <T>(channel: string, wouldSend: T) => ({ status: "ok" as const, transport: "dry_run" as const, channel, label: DRY_RUN_LABEL, wouldSend });
 
 // ---- recipient allowlist ----
-export const DEFAULT_ALLOWLIST = ["you@example.com", "saurabhgupta0342@gmail.com"] as const;
+/** No built-in recipients: the allowlist comes only from DEMO_RECIPIENT_ALLOWLIST. Unset or empty blocks every send. */
+export const DEFAULT_ALLOWLIST: readonly string[] = [];
 const EMAIL = /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/;
 export const isEmail = (s: unknown): s is string => typeof s === "string" && EMAIL.test(s.trim());
 const norm = (s: string) => s.trim().toLowerCase();

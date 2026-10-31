@@ -35,7 +35,8 @@ describe("preflight env checks", () => {
   it("OUTBOUND_MODE: unset/dry_run pass, live warns with the allowlist, anything else fails", () => {
     expect(byId(checkEnv({ ...full }), "env.outbound").status).toBe("pass");
     expect(byId(checkEnv({ ...full, OUTBOUND_MODE: "dry_run" }), "env.outbound").status).toBe("pass");
-    expect(byId(checkEnv({ ...full, OUTBOUND_MODE: "live" }), "env.outbound")).toMatchObject({ status: "warn", detail: expect.stringContaining("you@example.com") });
+    expect(byId(checkEnv({ ...full, OUTBOUND_MODE: "live" }), "env.outbound")).toMatchObject({ status: "warn", detail: expect.stringContaining("every send is blocked") });
+    expect(byId(checkEnv({ ...full, OUTBOUND_MODE: "live", DEMO_RECIPIENT_ALLOWLIST: "you@example.com" }), "env.outbound")).toMatchObject({ status: "warn", detail: expect.stringContaining("you@example.com") });
     expect(byId(checkEnv({ ...full, OUTBOUND_LIVE: "1", DEMO_RECIPIENT_ALLOWLIST: "a@x.com" }), "env.outbound")).toMatchObject({ status: "warn", detail: expect.stringMatching(/^live \(OUTBOUND_LIVE\).*only to a@x\.com/) });
     const odd = byId(checkEnv({ ...full, OUTBOUND_MODE: "sendit-now" }), "env.outbound");
     expect(odd).toMatchObject({ status: "fail", detail: expect.stringContaining("unexpected value") });

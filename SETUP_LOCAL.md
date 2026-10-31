@@ -5,13 +5,13 @@
 1. `tar xzf dealdesk-kit.tar.gz && cd dealdesk-kit/dealdesk` (the kit holds the repo plus `dealdesk.env`)
 2. Node 20 or newer: `node -v` (Ubuntu: `curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs`)
 3. `./setup.sh ../dealdesk.env` (installs, writes `.env.local`, runs the doctor, starts on http://localhost:3000)
-4. Open http://localhost:3000/settings?section=connectors. Gmail and Calendar should read *Connected as you@example.com*
+4. Open http://localhost:3000/settings?section=connectors. Gmail and Calendar should read *Connected as you@example.com (your Google account)*
 5. To send for real, set `OUTBOUND_MODE=live` in `.env.local`, then run `npm run dev:demo`. Sends go only to your two addresses, and only after an Approve click
 
 Re-check any time with `npm run doctor`.
 
 This guide takes you from a fresh laptop to the full demo, with real Crustdata data, the AI agent, and Gmail and Calendar on
-**you@example.com**. It works on Windows (PowerShell), macOS and Linux. It takes about 5 minutes; most of that is `npm ci`.
+**you@example.com (your Google account)**. It works on Windows (PowerShell), macOS and Linux. It takes about 5 minutes; most of that is `npm ci`.
 
 ## What you need
 
@@ -58,7 +58,7 @@ Later runs only need `npm run dev:demo`. Pass `-NoStart` or `--no-start` to set 
 
 Open **Settings › Connectors** (http://localhost:3000/settings?section=connectors):
 
-- **Gmail** and **Google Calendar** should read *Connected as you@example.com*. The status comes from live API calls, not from the env file.
+- **Gmail** and **Google Calendar** should read *Connected as you@example.com (your Google account)*. The status comes from live API calls, not from the env file.
 - **Crustdata** should show as connected. If the primary key runs out of credits (402 or 429 quota), the app switches to
   `CRUSTDATA_API_KEY_BACKUP` on its own. The trace then shows **Backup Crustdata key (primary out of credits)**.
 
@@ -67,7 +67,7 @@ Open **Settings › Connectors** (http://localhost:3000/settings?section=connect
 Do this only if Gmail shows an error such as `invalid_grant` (the token expired or was revoked), or if you want to use a different account:
 
 1. Settings › Connectors › Gmail › **Connect**.
-2. Google's consent screen opens, with you@example.com pre-selected. Allow Gmail send/modify and Calendar.
+2. Google's consent screen opens, with you@example.com (your Google account) pre-selected. Allow Gmail send/modify and Calendar.
 3. You return to Settings. The new token is saved to `.dealdesk/google-token.json`, which is gitignored and readable only by you, and it takes precedence over `GOOGLE_REFRESH_TOKEN`.
 4. **Disconnect** removes that saved sign-in.
 
@@ -77,7 +77,7 @@ If Google shows `redirect_uri_mismatch`, the app is not on port 3000. Use `npm r
 
 - The default is `OUTBOUND_MODE=dry_run`. Approving shows exactly what would be sent, and nothing leaves the app.
 - To send for real, set `OUTBOUND_MODE=live` (or `OUTBOUND_LIVE=1`) in `.env.local` and restart. The preflight then shows a ! warning naming the allowlist. Even in live mode:
-  - Mail and calendar attendees are limited to `DEMO_RECIPIENT_ALLOWLIST`. The default is `you@example.com,saurabhgupta0342@gmail.com`.
+  - Mail and calendar attendees are limited to `DEMO_RECIPIENT_ALLOWLIST`. The default is unset (empty), which blocks every send; set it in `.env.local` (e.g. `you@example.com,teammate@example.com`).
     Any other address is blocked with *"Blocked: x is not on the demo allowlist …"*.
   - Every send or booking needs an explicit **Approve** click. The server mints a single-use approval token for the exact message you previewed. It expires after 10 minutes, and if anything in the message changes, you have to approve again.
   - Calendar events are created with `sendUpdates=none`, so no invitation emails go out.

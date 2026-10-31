@@ -85,8 +85,8 @@ export function checkEnv(env: Env, opts: { googleStored?: boolean } = {}): Check
   if (!mode) out.push({ id: "env.outbound", label: "OUTBOUND_MODE", status: "pass", detail: "unset (dry_run)" });
   else if (mode === "dry_run") out.push({ id: "env.outbound", label: "OUTBOUND_MODE", status: "pass", detail: "dry_run" });
   else if (mode === "live") {
-    const allow = (env.DEMO_RECIPIENT_ALLOWLIST?.trim() ? env.DEMO_RECIPIENT_ALLOWLIST.split(/[,;\s]+/).filter(Boolean) : ["you@example.com", "saurabhgupta0342@gmail.com"]).map((a) => a.toLowerCase());
-    out.push({ id: "env.outbound", label: "OUTBOUND_MODE", status: "warn", detail: `live${liveFlag ? " (OUTBOUND_LIVE)" : ""} — real sends, only to ${allow.join(", ")}, each after an Approve click` });
+    const allow = (env.DEMO_RECIPIENT_ALLOWLIST?.trim() ? env.DEMO_RECIPIENT_ALLOWLIST.split(/[,;\s]+/).filter(Boolean) : []).map((a) => a.toLowerCase());
+    out.push({ id: "env.outbound", label: "OUTBOUND_MODE", status: "warn", detail: allow.length ? `live${liveFlag ? " (OUTBOUND_LIVE)" : ""} — real sends, only to ${allow.join(", ")}, each after an Approve click` : `live${liveFlag ? " (OUTBOUND_LIVE)" : ""} — DEMO_RECIPIENT_ALLOWLIST is empty, so every send is blocked` });
   } else out.push({ id: "env.outbound", label: "OUTBOUND_MODE", status: "fail", detail: `${KNOWN_OUTBOUND.includes(mode) ? mode : "unexpected value"} — must be unset, dry_run or live` });
   return out;
 }

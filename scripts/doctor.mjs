@@ -75,6 +75,6 @@ if (env("OPENAI_API_KEY")) {
 } else line(false, "OpenAI model", "OPENAI_API_KEY missing (the /agent page works without a model)", false);
 
 const mode = /^(1|true|yes|on)$/i.test(env("OUTBOUND_LIVE")) ? "live" : env("OUTBOUND_MODE") || "dry_run";
-line(true, "Outbound", mode === "live" ? `LIVE — only to ${env("DEMO_RECIPIENT_ALLOWLIST") || "you@example.com,saurabhgupta0342@gmail.com"}, each after an Approve click` : "dry_run (approving shows the email; nothing is sent)");
+line(true, "Outbound", mode === "live" ? (env("DEMO_RECIPIENT_ALLOWLIST") ? `LIVE — only to ${env("DEMO_RECIPIENT_ALLOWLIST")}, each after an Approve click` : "LIVE — DEMO_RECIPIENT_ALLOWLIST is empty, so every send is blocked") : "dry_run (approving shows the email; nothing is sent)");
 console.log(failed ? `\n${failed} required check(s) failed.` : "\nAll required checks passed.");
 process.exit(failed ? 1 : 0);

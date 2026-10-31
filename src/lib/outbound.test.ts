@@ -15,9 +15,11 @@ describe("outbound is dry-run by default", () => {
   it("book-call builds the request but never calls Google", async () => {
     const f = vi.fn();
     vi.stubGlobal("fetch", f);
+    vi.stubEnv("DEMO_RECIPIENT_ALLOWLIST", "you@example.com");
     const r = await POST(new Request("http://x/api/connectors/calendar/events", { method: "POST", body: JSON.stringify({ summary: "Call", start: "2026-11-01T10:00:00Z", end: "2026-11-01T10:15:00Z", attendees: ["you@example.com"] }) }));
     expect(r.status).toBe(200);
     expect(await r.json()).toMatchObject({ transport: "dry_run", label: expect.stringContaining("not sent"), wouldSend: { summary: "Call", attendees: ["you@example.com"], sendUpdates: "none" } });
     expect(f).not.toHaveBeenCalled();
+    vi.unstubAllEnvs();
   });
 });
