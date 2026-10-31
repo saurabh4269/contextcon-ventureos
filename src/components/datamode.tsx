@@ -40,7 +40,8 @@ function DataModeBadge() {
   const ctx = useContext(Ctx)!;
   const cov = useContext(CoverageCtx);
   const live = cov?.tone === "live";
-  const text = live ? (cov?.label ?? "Live") : ctx.mode === "demo" ? "Demo data" : cov?.label ?? "Demo data · no live source for this screen";
+  // Live mode never says "Demo data": a screen without a source shows its own unavailable state, not fixtures.
+  const text = live ? (cov?.label ?? "Live") : ctx.mode === "demo" ? "Demo data" : cov?.label ?? "Live · no data source for this screen";
   return (
     <div role="status" aria-live="polite" data-testid="data-mode-badge" data-mode={ctx.mode} data-live={live ? "1" : "0"}
       className="pointer-events-none fixed bottom-[72px] left-3 z-[60] flex max-w-[196px] items-center gap-1.5 rounded-full bg-white/95 px-2.5 py-1 text-[11px] font-medium text-zinc-600 shadow-[0_1px_2px_rgba(9,9,11,.08)] ring-1 ring-zinc-200 backdrop-blur">

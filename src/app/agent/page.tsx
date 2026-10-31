@@ -9,6 +9,7 @@ import { AgentFlowScreen } from "@port/screens/agentflow";
 import { flowFrameMs } from "@port/components/flowcanvas";
 import { shellInvest, helioAgent, helioAssistant, agentRunAt, agentFlows } from "@port/fixtures";
 import type { LoadStatus } from "@port/types";
+import { useDataMode } from "@/components/datamode";
 import { namedLiveAgent } from "@/lib/datamode";
 import { AgentScreen as LiveAgentScreen } from "@/live/agent/AgentScreen";
 
@@ -16,7 +17,9 @@ type Q = { id?: string; view?: string; frame?: string; tone?: string; dock?: str
 export default function Agent({ searchParams }: { searchParams: Promise<Q> }) {
   const q = use(searchParams);
   const router = useRouter();
-  if (namedLiveAgent(q)) return <LiveAgentScreen />;
+  const mode = useDataMode();
+  // Live mode: the request box of the Sourcing agent, never the fixture Helio flow. ?q= auto-runs it.
+  if (mode === "live" || namedLiveAgent(q)) return <LiveAgentScreen />;
   if (q.view === "flow" || q.agent === "inbound") {
     const data = agentFlows[q.agent ?? q.id ?? "inbound"] ?? agentFlows.inbound;
     const frozenMs = q.t != null ? Number(q.t) : q.frame != null ? flowFrameMs(data, Number(q.frame)) : undefined;

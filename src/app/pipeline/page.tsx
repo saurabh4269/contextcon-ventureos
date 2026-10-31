@@ -38,7 +38,7 @@ export default function Pipeline({ searchParams }: { searchParams: Promise<{ vie
   };
   const mode = useDataMode();
   // Live mode, plain table (no fixture view/board/status param): only real rows, no fixture deals mixed in.
-  if (mode === "live" && !q.view && !q.board && !q.handoff && !q.frame && !q.status) return <LivePipelineTable pipeline={live} storage={pipelineDeals.storage} filter={q.stage} query={q.q} onOpenDeal={openDeal} />;
+  if (mode === "live") return <LivePipelineTable pipeline={live} storage={pipelineDeals.storage} filter={q.stage} query={q.q} onOpenDeal={openDeal} />;
   if (q.view === "watchlist") return <WatchlistScreen shell={shellInvest} data={watchlist} />;
   if (q.board) return <PipelineBoardScreen shell={shellInvest} data={q.handoff ? pipelineHandoff(Number(q.handoff)) : pipelineBoard} onMoveStage={(id, to) => setLog((l) => [...l, id + "→" + to])} onOpenDeal={openDeal} />;
   return <PipelineTableScreen shell={shellInvest} data={data} status={q.status} filter={q.stage} query={q.q} selected={q.sel?.split(",")} onOpenDeal={openDeal} />;

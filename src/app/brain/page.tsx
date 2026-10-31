@@ -15,7 +15,7 @@ export default function Brain({ searchParams }: { searchParams: Promise<{ empty?
   const q = use(searchParams); useState(0);
   const mode = useDataMode();
   const status = q.state === "loading" || q.state === "empty" || q.state === "error" ? q.state : "ready";
-  if (mode === "live" && !q.state && !q.empty && !q.learned) return <LiveBrain />;
+  if (mode === "live") return <LiveBrain />;
   return <BrainScreen shell={shellInvest} key={q.learned} status={status} data={q.learned ? brainLearnedFrame(Number(q.learned)) : q.empty ? brainEmptyMemories : brain} />;
 }
 

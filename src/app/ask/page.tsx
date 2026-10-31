@@ -15,11 +15,11 @@ type Q = { frame?: string; from?: string; state?: string; q?: string };
 export default function Ask({ searchParams }: { searchParams: Promise<Q> }) {
   const q = use(searchParams);
   const [frame, setFrame] = useState(Number(q.frame) || 1);
-  const liveQ = namedLiveQuery(q);
   const mode = useDataMode();
+  const liveQ = mode === "live" ? q.q?.trim() || undefined : namedLiveQuery(q);
   if (liveQ) return <LiveAsk shell={mode === "live" ? liveShellFrom(shellInvest) : shellInvest} initialQuery={liveQ} />;
   // Live mode, empty page: the same first-run screen with real example questions; asking opens ?q= (the research agent).
-  if (mode === "live" && !q.frame && !q.from && !q.state) return <LiveAskHome />;
+  if (mode === "live") return <LiveAskHome />;
   const base = q.from === "deal" ? helioAskEmpty : askFull;
   const back = q.from === "deal" ? { label: "Back to Helio Sensors", href: ROUTES.deal("helio") } : { label: "Back to Today", href: ROUTES.today() };
   const status = q.state === "loading" || q.state === "error" || q.state === "empty" ? q.state : "ready";

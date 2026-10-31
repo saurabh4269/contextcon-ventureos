@@ -1,13 +1,13 @@
 // What each screen needs and why it has no data in this build. One place, so the UI, the click-through test and
 // verify_shots/REPORT.md agree. `needs` are connector ids from GET /api/integrations/connectors, or "backend" for the
-// builder's Deal Desk backend (deal store, pipeline, agents, firm config) which this repo does not include.
+// "backend" for a source that nothing in this build provides (shown as "No source in this build").
 export type ScreenId = "today" | "pipeline" | "portfolio" | "mandates" | "brain" | "agents" | "agent" | "ask" | "slack" | "memo" | "room" | "settings";
 
 export const SOURCES: Record<ScreenId, { label: string; title: string; reason: string; needs: string[] }> = {
   today: {
     label: "Today",
     title: "Inbound and meetings",
-    reason: "Today reads your Gmail inbox and Google Calendar directly. Deal triage and approvals need the Deal Desk backend, which this build does not include.",
+    reason: "Today reads your Gmail inbox and Google Calendar directly. Deals the team has worked on come from the review queue and the deal store.",
     needs: ["gmail", "calendar", "backend"],
   },
   pipeline: {
@@ -25,31 +25,31 @@ export const SOURCES: Record<ScreenId, { label: string; title: string; reason: s
   mandates: {
     label: "Mandates",
     title: "No mandates connected",
-    reason: "Sell-side mandates, buyer lists and data-room activity come from the Deal Desk backend, which this build does not include.",
+    reason: "Sell-side mandates, buyer lists and data-room activity have no source in this build.",
     needs: ["backend"],
   },
   brain: {
     label: "Firm brain",
     title: "Firm knowledge is not derived in this build",
-    reason: "The builder backend turns firm activity into memories and thesis proposals. What this build does keep is the raw organizational memory: every action, live, below.",
+    reason: "This build does not turn firm activity into thesis proposals. What it does keep is the raw organizational memory: every action, live, below.",
     needs: ["backend"],
   },
   agents: {
     label: "Agents",
     title: "No agents running",
-    reason: "Agents and their runs are executed by the Deal Desk backend's job queue, which this build does not include, so there is nothing to list.",
+    reason: "This build has no scheduler or job queue that runs agents on their own, so there is no agent list. The live agents are the Sourcing agent (/agent) and the research agent (/ask); their runs that need a person appear in Review.",
     needs: ["backend", "llm"],
   },
   agent: {
     label: "Agent",
     title: "No agent to show",
-    reason: "Agent flows and runs come from the Deal Desk backend's job queue, which this build does not include.",
+    reason: "Agent flows have no source in this build. Open the Sourcing agent (/agent) or the research agent (/ask) to run one.",
     needs: ["backend", "llm"],
   },
   ask: {
     label: "Assistant",
     title: "Assistant not connected",
-    reason: "The assistant answers from your deals and documents with an AI model through the Deal Desk backend. No AI model is wired into the assistant in this build.",
+    reason: "The assistant needs an AI model key on the server (OPENAI_API_KEY or ANTHROPIC_API_KEY); none is connected.",
     needs: ["llm", "backend"],
   },
   slack: {
@@ -73,7 +73,7 @@ export const SOURCES: Record<ScreenId, { label: string; title: string; reason: s
   settings: {
     label: "Settings",
     title: "Not available in this build",
-    reason: "Firm workflow, members, access audit and exports are stored by the Deal Desk backend, which this build does not include.",
+    reason: "Firm workflow briefs and guardrails, members, access audit and exports are not built in this build.",
     needs: ["backend"],
   },
 };

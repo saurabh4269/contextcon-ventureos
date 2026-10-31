@@ -9,6 +9,7 @@ import type { ConnectorCategoryId, LoadStatus, SettingsSection } from "@port/typ
 import type { ConnectorTab } from "@port/components/connectors";
 import { useDataMode } from "@/components/datamode";
 import { LiveSettings } from "@/live/settings";
+import { liveShellFrom } from "@/live/shell";
 const SECTIONS: SettingsSection[] = ["workflow", "connectors", "integrations", "members", "access", "export"];
 type Q = { section?: string; tab?: string; member?: string; status?: string; filter?: string; category?: string; q?: string; connect?: string; manage?: string };
 export default function Settings({ searchParams }: { searchParams: Promise<Q> }) {
@@ -18,7 +19,7 @@ export default function Settings({ searchParams }: { searchParams: Promise<Q> })
   const [s, setS] = useState<SettingsSection>(SECTIONS.includes(want) ? want : "workflow");
   const base = q.member ? settingsMember : settings;
   const view = { tab: q.filter as ConnectorTab, category: q.category as ConnectorCategoryId, q: q.q, connect: q.connect, manage: q.manage };
-  if (mode === "live") return <LiveSettings shell={shellInvest} initialSection={s} view={view} />;
+  if (mode === "live") return <LiveSettings shell={liveShellFrom(shellInvest)} initialSection={s} view={view} />;
   const status = (["loading", "error"] as LoadStatus[]).includes(q.status as LoadStatus) ? (q.status as LoadStatus) : "ready";
   const data = q.status === "empty" ? { ...base, connectors: { ...base.connectors, items: [] } } : base;
   // Demo mode: connect/sync/disconnect are simulated with short delays and labelled as demo in the connect modal.

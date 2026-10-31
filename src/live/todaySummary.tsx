@@ -4,6 +4,7 @@
 // pitch-like inbound only; no per-company Crustdata call), Gmail inbox metadata (pitch-like counts only, never a
 // sender or subject), Google Calendar (meetings whose title names a kind). See src/lib/adapters/today.ts.
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { TodaySummaryScreen } from "@port/screens/todaysummary";
 import type { ShellData, TodaySummaryData } from "@port/types";
 import type { InboxThread } from "@/lib/google/gmail";
@@ -20,6 +21,7 @@ const MEETINGS_MAX = 10;
 const DAY_MS = 86_400_000;
 
 export function LiveTodaySummary({ shell, ask, pipeline }: { shell: ShellData; ask: TodaySummaryData["ask"]; pipeline: PipelineDealRow[] }) {
+  const router = useRouter();
   const [now] = useState(() => new Date());
   const since = useMemo(() => new Date(now.getTime() - 2 * SPAN * DAY_MS).toISOString(), [now]);
   const known = useKnownDeals();
@@ -46,7 +48,7 @@ export function LiveTodaySummary({ shell, ask, pipeline }: { shell: ShellData; a
     ...(cal.state === "failed" ? { meetingsUnavailable: failureMessage(cal, "Google Calendar") } : {}),
     ask,
   });
-  return <TodaySummaryScreen shell={shell} data={data} />;
+  return <TodaySummaryScreen shell={shell} data={data} onAsk={(q) => router.push(`/ask?q=${encodeURIComponent(q)}`)} />;
 }
 
 /** Chrome-only data for the loading / error states (the screen renders the skeleton or error, not these values). */

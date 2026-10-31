@@ -11,7 +11,8 @@ import { AssistantHost } from "@port/components/askctx";
 import { AssistantDock } from "@port/components/assistant";
 import { RunPanel, CommandPalette, AskPanel } from "@port/components/overlays";
 import { askByPage, shellInvest, shellBank, shellFirstRun, todayInvest, todayBank, todayInvestHolding, todayWithInbound, agentRun, palette, paletteDenied, askAnswer, askDenied, onboarding, slackHoldApproval, todayCalm, todayAssistant, assistantAt, todaySummary, keelCall, calendarAsk, connectAsks, nextMeetings } from "@port/fixtures";
-import type { OnboardingData, WorkRow } from "@port/types";
+import type { OnboardingData, TodaySummaryData, WorkRow } from "@port/types";
+import { AGENT_EXAMPLES } from "@/lib/sourcing/examples";
 import { usePipelineDeals } from "@/live/usePipelineDeals";
 import { realPipelineDeals } from "@/lib/adapters/today";
 import { useDataMode } from "@/components/datamode";
@@ -33,6 +34,13 @@ function liveWorkRows(deals: { domain: string; name: string }[]): WorkRow[] {
   }));
 }
 
+// Live ask card: the research agent's own example requests (the chip id is the request that /ask?q= runs).
+const liveAsk: TodaySummaryData["ask"] = {
+  prompt: "Ask for companies, or open a deal from the list.",
+  chips: AGENT_EXAMPLES.slice(0, 3).map((ex) => ({ id: ex.q, label: ex.short, icon: "search" as const })),
+  placeholder: "Ask for companies, e.g. Indian B2B SaaS growing fast",
+};
+
 export default function Today({ searchParams }: { searchParams: Promise<Q> }) {
   const q = use(searchParams);
   // Pitch-like inbound and researched companies only: other inbox threads (personal mail) never become rows.
@@ -46,8 +54,8 @@ export default function Today({ searchParams }: { searchParams: Promise<Q> }) {
   const [meet, setMeet] = useState(q.meet === "1" ? undefined : q.meet);
   const [row, setRow] = useState<string | undefined>(q.wait || jitTool ? "w1" : undefined);
   const mode = useDataMode();
-  // Live mode without a fixture variant param: the same Today screen fed from real sources (src/live/todaySummary.tsx).
-  if (mode === "live" && Object.values(q).every((v) => v == null)) return <LiveTodaySummary shell={liveShellFrom(shellInvest)} ask={todaySummary.ask} pipeline={live} />;
+  // Live mode (fixture variant params are ignored): the same Today screen fed from real sources (src/live/todaySummary.tsx).
+  if (mode === "live") return <LiveTodaySummary shell={liveShellFrom(shellInvest)} ask={liveAsk} pipeline={live} />;
   if (q.first) return <OnboardingScreen shell={shellFirstRun} data={onboarding(step)} slackPreview={slackHoldApproval} onStep={setStep} onNext={() => setStep((s) => Math.min(5, s + 1) as OnboardingData["step"])} onBack={() => setStep((s) => Math.max(1, s - 1) as OnboardingData["step"])} />;
   const bank = q.mode === "bank";
   const overlay = q.run ? <RunPanel run={agentRun} /> : q.k ? <CommandPalette data={q.denied ? paletteDenied : palette} /> : q.ask ? <AskPanel data={q.ask === "denied" ? askDenied : askAnswer} /> : undefined;

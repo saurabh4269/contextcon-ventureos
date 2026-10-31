@@ -14,7 +14,7 @@ export default function Portfolio({ searchParams }: { searchParams: Promise<{ st
   const q = use(searchParams); useState(0);
   const mode = useDataMode();
   // Live mode: deals invested through the deal workflow (GET /api/portfolio); no KPI source, so ARR and runway are "—".
-  if (mode === "live" && !q.state && !q.company) return <LivePortfolio />;
+  if (mode === "live") return <LivePortfolio />;
   return <PortfolioScreen shell={shellInvest} data={q.company === "helio" ? portfolioWithHelio : portfolio} status={q.state === "loading" || q.state === "empty" || q.state === "error" ? q.state : "ready"} />;
 }
 

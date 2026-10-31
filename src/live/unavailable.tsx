@@ -23,7 +23,7 @@ export function Requirements({ needs }: { needs: string[] }) {
         if (id === "backend") return (
           <li key={id} className="flex items-start gap-3 px-4 py-2.5 text-[12.5px]" data-need="backend">
             <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-zinc-300" />
-            <span className="min-w-0"><span className="font-medium text-ink">Deal Desk backend</span><span className="block text-zinc-500">Not in this build — the deal store, pipeline and agents live in the builder backend (branch builder-main), not connected here.</span></span>
+            <span className="min-w-0"><span className="font-medium text-ink">Data source</span><span className="block text-zinc-500">No source in this build: nothing here produces this data yet.</span></span>
           </li>
         );
         const info = res.state === "ok" ? res.data.connectors.find((c) => c.id === id) : undefined;
