@@ -1,21 +1,32 @@
 "use client";
 // Citation chip for one cited value: hover (or tap) shows where the value came from — endpoint, record, JSON path,
 // URL and the fetch time in IST. Unavailable values render "not reported" with the reason in the same popover style.
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { cx } from "@port/components/ui";
 import type { Citation, ComputedField } from "@/lib/fields";
 import { fmtDateTime } from "@/lib/format";
 
 export function CitePop({ cites, reasoning, method, children, label = "Source" }: { cites: Citation[]; reasoning?: string; method?: string; children?: ReactNode; label?: string }) {
   const [pinned, setPinned] = useState(false);
+  // Anchor the popover so it stays on screen: centred, or flush to the chip near either viewport edge.
+  const [side, setSide] = useState<"center" | "left" | "right">("center");
+  const ref = useRef<HTMLSpanElement>(null);
+  const place = () => {
+    const r = ref.current?.getBoundingClientRect();
+    if (!r || typeof window === "undefined") return;
+    const half = 150;
+    setSide(r.left + r.width / 2 < half + 8 ? "left" : window.innerWidth - (r.left + r.width / 2) < half + 8 ? "right" : "center");
+  };
   return (
-    <span className="group/cite relative inline-flex align-middle" onMouseLeave={() => setPinned(false)}>
-      <button type="button" aria-label={`${label}: ${cites[0]?.endpoint ?? "source"}`} aria-expanded={pinned} onClick={(e) => { e.stopPropagation(); setPinned((p) => !p); }}
+    <span ref={ref} className="group/cite relative inline-flex align-middle" onMouseEnter={place} onFocus={place} onMouseLeave={() => setPinned(false)}>
+      <button type="button" aria-label={`${label}: ${cites[0]?.endpoint ?? "source"}`} aria-expanded={pinned} onClick={(e) => { e.stopPropagation(); place(); setPinned((p) => !p); }}
         className="ml-1 inline-grid size-[15px] shrink-0 place-items-center rounded-full bg-[#f3ede6] text-[8.5px] leading-none font-semibold text-[#8a4a1c] ring-1 ring-[#e7d8c8] transition-colors hover:bg-rust hover:text-white hover:ring-rust focus-visible:ring-2 focus-visible:ring-rust/50 focus-visible:outline-none">
         {children ?? "C"}
       </button>
-      <span role="tooltip" className={cx("absolute top-[calc(100%+6px)] left-1/2 z-40 w-[290px] -translate-x-1/2 rounded-xl bg-ink p-3 text-left text-[11.5px] leading-snug font-normal text-zinc-200 shadow-[0_16px_40px_-12px_rgba(9,9,11,.55)] transition-opacity duration-150",
-        pinned ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0 group-hover/cite:pointer-events-auto group-hover/cite:opacity-100 group-focus-within/cite:opacity-100")}>
+      <span role="tooltip" className={cx("absolute top-[calc(100%+6px)] z-40 w-[290px] max-w-[calc(100vw-24px)] rounded-xl bg-ink p-3 text-left text-[11.5px] leading-snug font-normal text-zinc-200 shadow-[0_16px_40px_-12px_rgba(9,9,11,.55)] transition-opacity duration-150",
+        side === "left" ? "-left-1" : side === "right" ? "-right-1" : "left-1/2 -translate-x-1/2",
+        // display:none while closed so hidden popovers never widen the page (horizontal scroll on phones)
+        pinned ? "block" : "hidden group-hover/cite:block group-focus-within/cite:block")}>
         {reasoning && <span className="mb-2 block text-white">{reasoning}</span>}
         {method && <span className="mb-2 block text-zinc-400">Method: {method}</span>}
         {cites.map((c, i) => (

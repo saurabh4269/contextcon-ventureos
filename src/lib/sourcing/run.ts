@@ -548,7 +548,8 @@ function buildRow(c: { id: number; name: string; domain?: string; relaxed: strin
     } else checks.push({ label: "Growth", ok: null, detail: "growth could not be recomputed (matched the search filter)" });
   }
 
-  const f = co.funding;
+  // Crustdata reports total_investment_usd = 0 for companies with no known rounds: that is "not reported", not $0.
+  const f = { ...co.funding, totalUsd: co.funding.totalUsd ? co.funding.totalUsd : undefined, lastRoundUsd: co.funding.lastRoundUsd ? co.funding.lastRoundUsd : undefined };
   const anyFunding = f.totalUsd != null || f.lastRoundType || f.lastDate || f.lastRoundUsd != null;
   const funding: AgentRow["funding"] = anyFunding
     ? ok(

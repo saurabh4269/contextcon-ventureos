@@ -92,10 +92,10 @@ export function AgentScreen() {
               : <button type="submit" disabled={!q.trim()} data-testid="agent-run" className="inline-flex h-9 items-center gap-1.5 rounded-full bg-rust px-4 text-[13px] font-medium text-white shadow-[0_1px_2px_rgba(9,9,11,.2)] transition-colors hover:bg-[#87390b] disabled:opacity-40">Run<ArrowUp className="size-3.5" /></button>}
           </div>
         </form>
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="-mx-4 mt-3 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0">
           {AGENT_EXAMPLES.map((ex, i) => (
             <button key={ex.q} type="button" disabled={running} onClick={() => go(ex.q)} title={ex.q}
-              className={cx("inline-flex h-8 items-center gap-1.5 rounded-full px-3 text-[12.5px] ring-1 transition-all hover:-translate-y-px disabled:opacity-50", i === 0 ? "bg-[#faf3ec] text-[#7a3a10] ring-[#ecd9c6]" : "bg-white text-zinc-600 ring-zinc-200 hover:text-ink")}>
+              className={cx("inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3 text-[12.5px] whitespace-nowrap ring-1 transition-all hover:-translate-y-px disabled:opacity-50", i === 0 ? "bg-[#faf3ec] text-[#7a3a10] ring-[#ecd9c6]" : "bg-white text-zinc-600 ring-zinc-200 hover:text-ink")}>
               {ex.short}
             </button>
           ))}
@@ -113,8 +113,8 @@ export function AgentScreen() {
 
             {(plan || state.steps.length > 1) && (
               <div className="mt-5 grid gap-5 lg:grid-cols-[264px_minmax(0,1fr)]">
-                <Trace steps={state.steps} running={running} />
-                <div className="min-w-0">
+                <div className="order-2 lg:order-1"><Trace steps={state.steps} running={running} /></div>
+                <div className="order-1 min-w-0 lg:order-2">
                   {state.summary && <Summary state={state} />}
                   {state.rows.length > 0 ? <Results rows={state.rows} running={running} /> : running ? <Skeleton /> : state.status === "done" ? <Notice tone="warn" mood="sorry" title="No companies matched" body={state.summary?.sentence ?? ""} /> : null}
                   {state.dropped.length > 0 && <DroppedList items={state.dropped} />}
@@ -228,13 +228,15 @@ function Spark({ series, then }: { series: AgentRow["series"]; then?: string }) 
     </svg>
   );
 }
+/** Crustdata's headquarters is often a full street address: show region + country, keep the full text in the title. */
+const shortHq = (v: string) => { const p = v.split(",").map((x) => x.trim()).filter(Boolean); return p.length > 2 ? p.slice(-2).join(", ") : v; };
 const pct = (v: number) => `${v > 0 ? "+" : ""}${Math.round(v)}%`;
 
 function Growth({ r }: { r: AgentRow }) {
   return (
-    <span className="flex items-center gap-2">
-      <Spark series={r.series} then={r.headcountThen.status === "ok" ? r.headcountThen.value.date : undefined} />
+    <span className="flex flex-col items-start gap-1">
       <Cited f={r.growth} render={(v) => <span className={cx("tnum text-[13px] font-semibold", v >= 0 ? "text-[#2f7a4c]" : "text-[#b03a2e]")}>{pct(v)}</span>} />
+      <Spark series={r.series} then={r.headcountThen.status === "ok" ? r.headcountThen.value.date : undefined} />
     </span>
   );
 }
@@ -293,11 +295,11 @@ function Results({ rows, running }: { rows: AgentRow[]; running: boolean }) {
           <thead>
             <tr className="border-b border-zinc-100 text-[11px] tracking-[0.04em] text-zinc-400 uppercase">
               <th className="w-8 py-2.5 pl-3 font-medium">#</th>
-              <th className="w-[24%] py-2.5 font-medium">Company</th>
-              <th className="w-[13%] py-2.5 font-medium">Founded · HQ</th>
-              <th className="w-[10%] py-2.5 font-medium">Team</th>
-              <th className="w-[14%] py-2.5 font-medium">Growth · {win} mo</th>
-              <th className="w-[12%] py-2.5 font-medium">Funding</th>
+              <th className="w-[23%] py-2.5 font-medium">Company</th>
+              <th className="w-[14%] py-2.5 font-medium">Founded · HQ</th>
+              <th className="w-[11%] py-2.5 font-medium">Team</th>
+              <th className="w-[12%] py-2.5 font-medium">Growth · {win} mo</th>
+              <th className="w-[13%] py-2.5 font-medium">Funding</th>
               <th className="py-2.5 pr-3 font-medium">Founders · before</th>
             </tr>
           </thead>
@@ -308,7 +310,7 @@ function Results({ rows, running }: { rows: AgentRow[]; running: boolean }) {
                 <td className="py-3 pr-3"><CompanyCell r={r} /></td>
                 <td className="py-3 pr-2 text-[12.5px]">
                   <Cited f={r.founded} render={(v) => <span className="tnum">{v}</span>} />
-                  <div className="truncate text-[11.5px] text-zinc-500"><Cited f={r.hq} render={(v) => <span className="truncate" title={v}>{v.split(",")[0]}</span>} /></div>
+                  <div className="truncate text-[11.5px] text-zinc-500"><Cited f={r.hq} render={(v) => <span className="truncate" title={v}>{shortHq(v)}</span>} /></div>
                 </td>
                 <td className="py-3 pr-2"><Headcount r={r} /></td>
                 <td className="py-3 pr-2"><Growth r={r} /></td>
@@ -332,7 +334,7 @@ function Results({ rows, running }: { rows: AgentRow[]; running: boolean }) {
               <Field k={`Growth · ${win} mo`}><Growth r={r} /></Field>
               <Field k="Team"><Headcount r={r} /></Field>
               <Field k="Founded"><Cited f={r.founded} render={(v) => <span className="tnum text-[12.5px]">{v}</span>} /></Field>
-              <Field k="HQ"><Cited f={r.hq} render={(v) => <span className="text-[12px]">{v.split(",")[0]}</span>} /></Field>
+              <Field k="HQ"><Cited f={r.hq} render={(v) => <span className="text-[12px]" title={v}>{shortHq(v)}</span>} /></Field>
               <Field k="Funding" wide><Funding r={r} /></Field>
               <Field k="Founders · before" wide><Founders r={r} /></Field>
             </div>
