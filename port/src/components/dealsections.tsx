@@ -5,7 +5,7 @@
  * hairline border and soft shadow, 12px labels over Geist tabular numbers, Creliq-like tables, soft bar charts.
  */
 import Link from "next/link";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { ArrowUpRight, Check, Sparkles, X } from "lucide-react";
 import { CompanyLogo, Avatar, HL, Src, cx } from "./ui";
 import { SparkArea, RangeChart } from "./charts";
@@ -20,8 +20,8 @@ const pct = (n: number, d = 0) => `${n.toFixed(d)}%`;
 
 function Card({ title, right, children, className, i = 1 }: { title?: ReactNode; right?: ReactNode; children: ReactNode; className?: string; i?: number }) {
   return (
-    <Rise i={i} className={cx(CARD, "mt-4 p-5", className)}>
-      {title && <div className="mb-4 flex items-center gap-2"><span className="text-[14px] font-medium">{title}</span>{right && <span className="ml-auto flex items-center gap-2">{right}</span>}</div>}
+    <Rise i={i} className={cx(CARD, "mt-4 p-5 @max-[720px]/main:p-4", className)}>
+      {title && <div className="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1"><span className="text-[14px] font-medium">{title}</span>{right && <span className="ml-auto flex flex-wrap items-center gap-x-2 gap-y-1">{right}</span>}</div>}
       {children}
     </Rise>
   );
@@ -32,8 +32,9 @@ function Stat({ label, value, sub, tone }: { label: string; value: string; sub?:
 function StatRow({ stats }: { stats: { id: string; label: string; value: string; sub?: string; hint?: string }[] }) {
   return (
     <Card i={1}>
-      <div className="grid gap-5" style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0,1fr))` }}>
-        {stats.map((s, i) => <div key={s.id} title={s.hint} className={cx(i > 0 && "border-l border-zinc-100 pl-5")}><Stat label={s.label} value={s.value} sub={s.sub} /></div>)}
+      {/* Phone: two per row, no dividers. */}
+      <div className="grid grid-cols-2 gap-5 @min-[720px]/main:grid-cols-(--n)" style={{ "--n": `repeat(${stats.length}, minmax(0,1fr))` } as CSSProperties}>
+        {stats.map((s, i) => <div key={s.id} title={s.hint} className={cx(i > 0 && "@min-[720px]/main:border-l @min-[720px]/main:border-zinc-100 @min-[720px]/main:pl-5")}><Stat label={s.label} value={s.value} sub={s.sub} /></div>)}
       </div>
     </Card>
   );
@@ -60,8 +61,8 @@ function Bars({ labels, values, h = 120, fmt = String }: { labels: string[]; val
 export function SectionHead({ eyebrow, headline, source }: { eyebrow: string; headline: DealSection["headline"]; source?: DealSection["source"] }) {
   return (
     <Rise>
-      <div className="flex items-center gap-2"><span className="eyebrow">{eyebrow}</span>{source && <span className="ml-auto"><Src k={source.kind}>{source.label}</Src></span>}</div>
-      <h2 className="serif mt-2 text-[34px] leading-tight text-pretty @max-[1180px]/main:text-[30px]"><HL h={headline} /></h2>
+      <div className="flex flex-wrap items-center gap-2"><span className="eyebrow">{eyebrow}</span>{source && <span className="ml-auto min-w-0"><Src k={source.kind}>{source.label}</Src></span>}</div>
+      <h2 className="serif mt-2 text-[34px] leading-tight text-pretty @max-[1180px]/main:text-[30px] @max-[720px]/main:text-[26px]"><HL h={headline} /></h2>
     </Rise>
   );
 }
@@ -96,11 +97,11 @@ export function DealSectionView({ s }: { s: DealSection }) {
     case "overview": return (
       <>
         {head}
-        <Rise i={1} className="mt-5 grid grid-cols-4 gap-3 @max-[1040px]/main:grid-cols-2">
+        <Rise i={1} className="mt-5 grid grid-cols-4 gap-3 @max-[1040px]/main:grid-cols-2 @max-[720px]/main:gap-2">
           {s.kpis.map((k) => (
             <div key={k.id} title={k.hint} className={cx(CARD, "p-4")}>
               <div className="flex items-center gap-1.5 text-[12px] text-zinc-500"><span className="truncate">{k.label}</span>{k.verified && <span title="Verified against source" className="ml-auto grid size-4 shrink-0 place-items-center rounded-full bg-ok-50 text-ok"><Check className="size-2.5" strokeWidth={3} /></span>}</div>
-              <div className="numeral mt-2 text-[30px] leading-none">{k.value}</div>
+              <div className="numeral mt-2 truncate text-[30px] leading-none @max-[720px]/main:text-[24px]">{k.value}</div>
               <div className="mt-1.5 truncate text-[12px] text-zinc-500">{k.sub}</div>
               {k.trend && <div className="mt-3"><SparkArea d={k.trend} w={120} h={28} color="#9c440f" /></div>}
             </div>
@@ -133,6 +134,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
           {head}
           <StatRow stats={s.stats} />
           <Card title="Key people" right={<span className="text-[12px] text-zinc-500">{s.people.filter((p) => p.check.ok).length} of {s.people.length} verified</span>} i={2} className="p-0 pt-5">
+<div className="overflow-x-auto"><div className="@max-[720px]/main:min-w-[540px]">
             <div className="px-5"><div className={cx("grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_164px] items-center gap-x-4", TH)}><span>Name</span><span>Before</span><span>Check</span></div></div>
             {s.people.map((p) => {
               const name = <><Avatar i={p.initials} size={32} tone={p.founder ? "ink" : "sand"} /><span className="min-w-0"><span className="flex items-center gap-1 truncate font-medium">{p.name}{p.href && <ArrowUpRight className="size-3.5 shrink-0 text-zinc-300 transition-colors group-hover/p:text-ink" />}</span><span className="block truncate text-[12px] text-zinc-500">{p.role}</span></span></>;
@@ -144,6 +146,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
                 </div>
               );
             })}
+            </div></div>
           </Card>
           {months.length > 0 && <Card title="Headcount by function" right={<>{s.hiring.series.map((x, i) => <span key={x.id} className="inline-flex items-center gap-1.5 text-[12px] text-zinc-500"><span className={cx("size-2 rounded-[3px]", shade[i])} />{x.label}</span>)}</>} i={3}>
             <div className="flex items-end gap-4" style={{ height: 172 }}>
@@ -171,6 +174,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
           <Card title="Paying plants" right={<span className="text-[12px] text-zinc-500">by month</span>} i={1}><Bars labels={s.plants.months} values={s.plants.values} h={128} /></Card>
         </div>
         <Card title="Top plants by revenue" right={<span className="text-[12px] text-zinc-500">{s.note}</span>} i={2} className="p-0 pt-5">
+<div className="overflow-x-auto"><div className="@max-[720px]/main:min-w-[520px]">
           <div className="px-5"><div className={cx("grid grid-cols-[minmax(0,1fr)_60px_100px_96px] items-center gap-x-4", TH)}><span>Customer</span><span className="text-right">MRR</span><span>Share</span><span>Status</span></div></div>
           {s.rows.map((r) => (
             <div key={r.id} title={r.source.label} className="row-hover grid h-[60px] grid-cols-[minmax(0,1fr)_60px_100px_96px] items-center gap-x-4 border-t border-zinc-100 px-5 text-[13px] first-of-type:border-0">
@@ -180,6 +184,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
               <span><StagePill tone={r.status.tone}>{r.status.label}</StagePill></span>
             </div>
           ))}
+          </div></div>
         </Card>
       </>
     );
@@ -191,7 +196,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
           {s.sizes.length > 0 && <Card title="Market size" i={1}>
             <div className="space-y-3.5">
               {s.sizes.map((x, i) => (
-                <div key={x.id} className="grid grid-cols-[44px_minmax(0,1fr)_64px] items-center gap-3">
+                <div key={x.id} className="grid grid-cols-[44px_minmax(0,1fr)_64px] items-center gap-3 @max-[420px]/main:grid-cols-[36px_minmax(0,1fr)_56px] @max-[420px]/main:gap-2">
                   <span className="text-[12px] font-medium text-zinc-500">{x.label}</span>
                   <div className="min-w-0">
                     <div className="h-8 rounded-full bg-zinc-50 ring-1 ring-zinc-100"><Grow delay={0.1 + i * 0.1} w={`${Math.max(6, (Math.sqrt(x.value) / max) * 100)}%`} className={cx("h-full rounded-full", i === s.sizes.length - 1 ? "bg-rust" : i === 1 ? "bg-[#c9a27e]" : "bg-[#ece4da]")} /></div>
@@ -203,6 +208,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
             </div>
           </Card>}
           <Card title="Comparables" right={<span className="text-[12px] text-zinc-500">Run-rate multiple at last round</span>} i={2} className="p-0 pt-5">
+<div className="overflow-x-auto"><div className="@max-[720px]/main:min-w-[520px]">
             <div className="px-5"><div className={cx("grid grid-cols-[minmax(0,1.6fr)_92px_88px_64px] items-center gap-x-3", TH)}><span>Company</span><span>Stage</span><span className="text-right">Raised</span><span className="text-right">Multiple</span></div></div>
             {s.comps.map((c) => (
               <div key={c.id} className={cx("row-hover grid h-[60px] grid-cols-[minmax(0,1.6fr)_92px_88px_64px] items-center gap-x-3 border-t border-zinc-100 px-5 text-[13px] first-of-type:border-0", c.us && "bg-[#fdf8f3]")}>
@@ -212,6 +218,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
                 <span className={cx("tnum text-right font-semibold", c.us && "text-rust")}>{c.multiple}</span>
               </div>
             ))}
+            </div></div>
           </Card>
         </>
       );
@@ -231,6 +238,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
           ))}
         </Card>
         <Card title="Holders" right={<span className="text-[12px] text-zinc-500">Fully diluted</span>} i={2} className="p-0 pt-5">
+<div className="overflow-x-auto"><div className="@max-[720px]/main:min-w-[400px]">
           <div className="px-5"><div className={cx("grid grid-cols-[minmax(0,1.6fr)_80px_80px] items-center gap-x-3", TH)}><span>Holder</span><span className="text-right">Before</span><span className="text-right">After</span></div></div>
           {s.rows.map((r) => (
             <div key={r.id} className={cx("row-hover grid h-[52px] grid-cols-[minmax(0,1.6fr)_80px_80px] items-center gap-x-3 border-t border-zinc-100 px-5 text-[13px] first-of-type:border-0", r.us && "bg-[#fdf8f3]")}>
@@ -239,6 +247,7 @@ export function DealSectionView({ s }: { s: DealSection }) {
               <span className="tnum text-right font-semibold">{pct(r.post, 1)}</span>
             </div>
           ))}
+          </div></div>
         </Card>
         {s.note && <Rise i={3} className="mt-4 flex items-start gap-2.5 rounded-[16px] bg-warn-50/70 px-4 py-3 text-[13px] text-warn ring-1 ring-[#ecd9b4]"><Sparkles className="mt-0.5 size-3.5 shrink-0" />{s.note}</Rise>}
       </>
@@ -249,7 +258,8 @@ export function DealSectionView({ s }: { s: DealSection }) {
         <StatRow stats={s.stats} />
         {s.valuation ? (
           <Card title="Football field" right={<span className="text-[12px] text-zinc-500">Pre-money, {s.valuation.currency} {s.valuation.unit}</span>} i={2}>
-            <RangeChart v={s.valuation} w={540} />
+            <div className="@max-[720px]/main:hidden"><RangeChart v={s.valuation} w={540} /></div>
+            <div className="hidden @max-[720px]/main:block"><RangeChart v={s.valuation} w={320} stacked /></div>
           </Card>
         ) : (
           <Card title="Football field" right={<span className="text-[12px] text-zinc-500">Unavailable</span>} i={2}>

@@ -10,10 +10,10 @@ export function Skeleton({ className }: { className?: string }) {
 /** Generic three-block skeleton that roughly matches every screen's layout. */
 export function ScreenSkeleton({ cols = "grid-cols-[220px_1fr_360px]" }: { cols?: string }) {
   return (
-    <div className={cx("grid min-h-[600px]", cols)} aria-busy="true" aria-live="polite">
-      <div className="space-y-2 border-r border-zinc-200/70 px-3 pt-5">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-7" />)}</div>
-      <div className="space-y-4 px-10 pt-7"><Skeleton className="h-9 w-1/2" /><Skeleton className="h-40" /><Skeleton className="h-64" /></div>
-      <div className="space-y-3 border-l border-zinc-200/70 px-6 pt-6"><Skeleton className="h-5 w-1/3" /><Skeleton className="h-24" /><Skeleton className="h-24" /></div>
+    <div className={cx("grid min-h-[600px] @max-[1100px]/main:grid-cols-[200px_minmax(0,1fr)] @max-[720px]/main:grid-cols-1", cols)} aria-busy="true" aria-live="polite">
+      <div className="space-y-2 border-r border-zinc-200/70 px-3 pt-5 @max-[720px]/main:hidden">{Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="h-7" />)}</div>
+      <div className="space-y-4 px-10 pt-7 @max-[720px]/main:px-4"><Skeleton className="h-9 w-1/2" /><Skeleton className="h-40" /><Skeleton className="h-64" /></div>
+      <div className="space-y-3 border-l border-zinc-200/70 px-6 pt-6 @max-[1100px]/main:hidden"><Skeleton className="h-5 w-1/3" /><Skeleton className="h-24" /><Skeleton className="h-24" /></div>
     </div>
   );
 }
