@@ -29,7 +29,7 @@ export interface CompanyRef { id: ID; name: string; initial: string; line?: stri
 /** Anything with a name that can show a company mark. */
 export interface LogoLike { name: string; initial?: string; dark?: boolean; logoUrl?: string; domain?: string }
 export interface PersonRef { id?: ID; initials: string; name: string; title?: string }
-export interface User { id: ID; name: string; firstName: string; initials: string }
+export interface User { id: ID; name: string; firstName: string; initials: string; /** v5 · photo URL (initials are the fallback). */ avatarUrl?: string; /** v5 · GitHub handle, linked from the account menu. */ github?: string; /** v5 · e.g. "Partner". */ role?: string }
 
 /** Exact text behind a source chip (opens in SrcPop). */
 export interface Excerpt { where: string; quote: string; highlight: string; href?: string }

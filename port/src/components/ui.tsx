@@ -99,7 +99,11 @@ export function Undo({ className, onClick, label = "Undo" }: { className?: strin
   return <button type="button" onClick={onClick} className={cx("cursor-pointer text-[11.5px] font-medium text-zinc-500 underline decoration-zinc-300 underline-offset-[3px] hover:text-ink", className)}>{label}</button>;
 }
 
-export function Avatar({ i, size = 20, tone = "zinc" }: { i: string; size?: number; tone?: "zinc" | "ink" | "sand" }) {
+export function Avatar({ i, size = 20, tone = "zinc", src, alt = "" }: { i: string; size?: number; tone?: "zinc" | "ink" | "sand"; /** v5 · photo; falls back to the initials if it fails to load. */ src?: string; alt?: string }) {
+  const [broken, setBroken] = useState(false);
+  if (src && !broken) {
+    return <img src={src} alt={alt} width={size} height={size} onError={() => setBroken(true)} style={{ width: size, height: size }} className="inline-block shrink-0 rounded-full object-cover ring-2 ring-white" />;
+  }
   return (
     <span
       style={{ width: size, height: size, fontSize: Math.max(8, size * 0.4) }}

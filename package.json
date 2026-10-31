@@ -15,6 +15,7 @@
     "crustdata:test:live": "CRUSTDATA_LIVE=1 vitest run src/lib/crustdata/live.contract.test.ts"
   },
   "dependencies": {
+    "@elevenlabs/react": "^1.20.2",
     "@fontsource-variable/newsreader": "^5.2.5",
     "clsx": "^2.1.1",
     "framer-motion": "^12.43.0",

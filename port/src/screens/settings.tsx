@@ -77,15 +77,16 @@ export function SettingsScreen(props: Omit<SettingsScreenProps, "data"> & { data
   return (
     <Page active="settings" shell={p.shell} top={<TopBar crumbs={[{ label: "Settings" }, { label }]} ctx="Settings" />}>
       {status === "loading" ? <ScreenSkeleton cols="grid-cols-[220px_1fr_340px]" /> : status === "error" ? <ErrorState message={p.error} onRetry={p.onRetry} /> : (
-      <div className={cx("grid flex-1", wide ? "grid-cols-[220px_minmax(0,1fr)]" : "grid-cols-[220px_1fr_340px]")}>
-        <nav className="border-r border-zinc-200/70 px-3 pt-5">
-          <div className="eyebrow px-2">Firm settings</div>
-          <div className="mt-2 space-y-px">{visible.map((s) => { const I = s.icon, on = s.id === section; return (
-            <button type="button" key={s.id} aria-current={on ? "page" : undefined} onClick={() => p.onSection?.(s.id)} className={cx("flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-[13px]", on ? "bg-white font-medium ring-1 ring-zinc-200" : "text-zinc-600 hover:bg-zinc-100/70")}>
+      <div className={cx("grid flex-1 grid-cols-1 content-start @min-[720px]/main:content-stretch @min-[720px]/main:grid-cols-[200px_minmax(0,1fr)]", !wide && "@min-[1180px]/main:grid-cols-[220px_minmax(0,1fr)_340px]")}>
+        {/* Phone: the section list becomes a scrolling chip row above the content. */}
+        <nav className="border-b border-zinc-200/70 px-3 py-2 @min-[720px]/main:row-span-2 @min-[720px]/main:border-r @min-[720px]/main:border-b-0 @min-[720px]/main:pt-5 @min-[720px]/main:pb-0">
+          <div className="eyebrow px-2 @max-[720px]/main:hidden">Firm settings</div>
+          <div className="mt-2 space-y-px @max-[720px]/main:-mx-3 @max-[720px]/main:mt-0 @max-[720px]/main:flex @max-[720px]/main:gap-1 @max-[720px]/main:space-y-0 @max-[720px]/main:overflow-x-auto @max-[720px]/main:px-3 @max-[720px]/main:[scrollbar-width:none]">{visible.map((s) => { const I = s.icon, on = s.id === section; return (
+            <button type="button" key={s.id} aria-current={on ? "page" : undefined} onClick={() => p.onSection?.(s.id)} className={cx("flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-left text-[13px] @max-[720px]/main:h-10 @max-[720px]/main:w-auto @max-[720px]/main:shrink-0 @max-[720px]/main:rounded-full @max-[720px]/main:px-3 @max-[720px]/main:whitespace-nowrap", on ? "bg-white font-medium ring-1 ring-zinc-200" : "text-zinc-600 hover:bg-zinc-100/70")}>
               <I className="size-[15px] text-zinc-500" strokeWidth={1.75} />{s.label}{s.admin && <span className="ml-auto text-[10.5px] text-zinc-400">Admin</span>}{s.id === "connectors" && d.connectors.items.some((x) => x.status === "attention") && <span className="ml-auto size-1.5 rounded-full bg-[#c98a1b]" />}
             </button>); })}</div>
         </nav>
-        <section className={cx("min-w-0 pt-7 pb-12", wide ? "px-9" : "px-10")}>
+        <section className={cx("min-w-0 pt-7 pb-12 @max-[720px]/main:px-4 @max-[720px]/main:pt-5", wide ? "px-9" : "px-10")}>
           {blocked ? (props.unavailable?.(section) ?? <EmptyState title="Not available" body="This section has no data source in this build." />) : <>
           {section === "workflow" && <WorkflowSection {...p} />}
           {section === "connectors" && <ConnectorsPage data={d.connectors} initial={p.connectorsView} onConnect={p.onConnect} onManage={p.onManageConnector} onSync={p.onSyncConnector} onScope={p.onConnectorScope} onDisconnect={p.onDisconnect} demo={p.connectorsDemo} />}
@@ -94,7 +95,7 @@ export function SettingsScreen(props: Omit<SettingsScreenProps, "data"> & { data
           {section === "export" && <ExportSection {...p} />}
           </>}
         </section>
-        {!wide && isFull(d) && <aside className="border-l border-zinc-200/70 bg-white px-6 pt-6">
+        {!wide && isFull(d) && <aside className="border-t border-zinc-200/70 bg-white px-6 pt-6 pb-8 @max-[720px]/main:px-4 @min-[720px]/main:col-start-2 @min-[1180px]/main:col-start-auto @min-[1180px]/main:border-t-0 @min-[1180px]/main:border-l">
           {section === "members" ? <RolesAside d={d} /> : section === "access" ? <AccessAside /> : section === "export" ? <ExportAside d={d} /> : <BriefsAside {...p} />}
         </aside>}
       </div>
@@ -132,7 +133,7 @@ function WorkflowSection(p: SettingsScreenProps) {
         <Card i={2} title="Agent autonomy" sub="What Deal Desk may do without asking. Everything that leaves the firm waits for the hold.">
           <AutonomyControl value={cfg.autonomy} holdMinutes={cfg.holdMinutes} onChange={(a) => patch({ autonomy: a })} onHold={(m) => patch({ holdMinutes: m })} />
         </Card>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 @max-[720px]/main:grid-cols-1">
           <Card i={3} title="New deal owner" sub="When nobody has claimed a deal">
             <Segmented label="Owner rule" value={cfg.ownerRule} onChange={(v) => patch({ ownerRule: v })} options={[{ id: "assign_directly", label: "Assign directly", sub: "Best match becomes lead" }, { id: "ask_first", label: "Ask first", sub: "Suggest, they accept" }]} />
           </Card>
