@@ -79,9 +79,9 @@ export function fmtAgo(iso: string | null | undefined, now: Date = new Date()): 
   if (!iso || Number.isNaN(Date.parse(iso))) return "never";
   const ms = Math.max(0, now.getTime() - Date.parse(iso));
   if (ms < MINUTE) return "just now";
-  if (ms < HOUR) return `${Math.round(ms / MINUTE)}m ago`;
-  if (ms < DAY) return `${Math.round(ms / HOUR)}h ago`;
-  return `${Math.round(ms / DAY)}d ago`;
+  if (ms < HOUR) return `${Math.floor(ms / MINUTE)}m ago`;
+  if (ms < DAY) return `${Math.floor(ms / HOUR)}h ago`;
+  return `${Math.floor(ms / DAY)}d ago`;
 }
 
 /* ── numbers ── */

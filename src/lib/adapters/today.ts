@@ -11,7 +11,7 @@
 // Nothing here is a fixture; empty sources give the screen's own empty states.
 import type { FitSignal, MeetingItem, TodaySummaryData, WaitingItem, WorkRow } from "@port/types";
 import { isOk, type ComputedField } from "@/lib/fields";
-import { fmtDate, fmtTime, fmtWeekdayDate, fmtWeekdayShort, istDay, istDayStart } from "@/lib/format";
+import { DISPLAY_TZ, fmtDate, fmtTime, fmtWeekdayDate, fmtWeekdayShort, istDay, istDayStart } from "@/lib/format";
 import type { ExceptionsResponse } from "@/lib/exceptions/types";
 import type { InboxThread } from "@/lib/google/gmail";
 import type { Meeting } from "@/lib/google/calendar";
@@ -29,6 +29,8 @@ export type KnownDeal = {
   domain: string;
   /** latest activity on this server (exception item or run), UTC ISO */
   lastAt: string;
+  /** first activity on this server (when the deal first appeared), UTC ISO */
+  firstAt?: string;
   /** open review-queue items for this deal */
   open: number;
   research?: ResearchOk | null;
@@ -40,16 +42,17 @@ const DEAL_RUN = /^deal:([^:]+):/;
 /** Domains of deals worked on this server, newest activity first (item subjects and deal runs). */
 export function knownDeals(ex: Pick<ExceptionsResponse, "items" | "runs">, max = 12): KnownDeal[] {
   const by = new Map<string, KnownDeal>();
-  const touch = (domain: string | undefined, at: string, open: boolean) => {
+  const touch = (domain: string | undefined, at: string, open: boolean, created: string = at) => {
     const d = domain?.trim().toLowerCase();
     if (!d) return;
-    const k = by.get(d) ?? { domain: d, lastAt: at, open: 0 };
+    const k = by.get(d) ?? { domain: d, lastAt: at, firstAt: created, open: 0 };
     if (Date.parse(at) > Date.parse(k.lastAt)) k.lastAt = at;
+    if (Date.parse(created) < Date.parse(k.firstAt ?? created)) k.firstAt = created;
     if (open) k.open++;
     by.set(d, k);
   };
-  for (const x of ex.items) touch(x.subject?.domain, x.resolution?.at ?? x.createdAt, x.status === "open");
-  for (const r of ex.runs) touch(DEAL_RUN.exec(r.id)?.[1], r.finishedAt ?? r.createdAt, false);
+  for (const x of ex.items) touch(x.subject?.domain, x.resolution?.at ?? x.createdAt, x.status === "open", x.createdAt);
+  for (const r of ex.runs) touch(DEAL_RUN.exec(r.id)?.[1], r.finishedAt ?? r.createdAt, false, r.createdAt);
   return [...by.values()].sort((a, b) => Date.parse(b.lastAt) - Date.parse(a.lastAt)).slice(0, max);
 }
 
@@ -127,15 +130,17 @@ export function pipelineWorkRow(d: PipelineDealRow, now: Date = new Date()): Wor
   };
 }
 
-export type LiveRow = { row: WorkRow; at: string; source: "worked" | PipelineDealRow["source"]; deal?: KnownDeal; stage: DealStage; owner: string | null };
+export type LiveRow = { row: WorkRow; at: string; /** first time this deal appeared (falls back to `at`) */ firstAt?: string; source: "worked" | PipelineDealRow["source"]; deal?: KnownDeal; stage: DealStage; owner: string | null };
+const earliest = (a?: string, b?: string) => (a && b ? (Date.parse(a) <= Date.parse(b) ? a : b) : a ?? b);
 /** Known deals first (newest activity first), then pipeline companies not already known. Each carries its stored
  *  stage (Sourced when nobody moved it) and owner (null = Unassigned). */
 export function liveRows(deals: KnownDeal[], pipeline: PipelineDealRow[], now: Date): LiveRow[] {
   const known = new Set(deals.map((k) => k.domain));
   const stages = stagesFrom(pipeline);
+  const firstSeen = new Map(pipeline.filter((d) => d.firstAt).map((d) => [d.domain, d.firstAt!]));
   return [
-    ...deals.map((k) => { const st = stages.get(k.domain) ?? {}; return { row: toWorkRow(k, now, st), at: k.lastAt, source: "worked" as const, deal: k, stage: st.stage ?? "sourced", owner: st.owner ?? null }; }),
-    ...pipeline.filter((d) => !known.has(d.domain)).map((d) => ({ row: pipelineWorkRow(d, now), at: d.at, source: d.source, stage: d.stage ?? "sourced", owner: d.owner ?? null })),
+    ...deals.map((k) => { const st = stages.get(k.domain) ?? {}; return { row: toWorkRow(k, now, st), at: k.lastAt, firstAt: earliest(k.firstAt, firstSeen.get(k.domain)), source: "worked" as const, deal: k, stage: st.stage ?? "sourced", owner: st.owner ?? null }; }),
+    ...pipeline.filter((d) => !known.has(d.domain)).map((d) => ({ row: pipelineWorkRow(d, now), at: d.at, firstAt: d.firstAt, source: d.source, stage: d.stage ?? "sourced", owner: d.owner ?? null })),
   ];
 }
 
@@ -239,8 +244,10 @@ const WAITING: WaitingItem[] = [
 
 export function toTodaySummary(x: TodayInputs): TodaySummaryData {
   // closed deals (Portfolio, Passed) are not work for today
-  const rows = liveRows(x.deals, x.pipeline ?? [], x.now).filter((r) => !isClosed(r.stage)).map((r) => r.row);
-  const unscored = x.deals.filter((k) => !decisionFit(k.decisions)).length;
+  const open = liveRows(x.deals, x.pipeline ?? [], x.now).filter((r) => !isClosed(r.stage));
+  const rows = open.map((r) => r.row);
+  // only deals still on the page: a Portfolio or Passed deal is not "waiting for a fit score"
+  const unscored = open.filter((r) => r.deal && !decisionFit(r.deal.decisions)).length;
   const parts = [
     x.open ? `${x.open} decision${x.open === 1 ? "" : "s"} wait for you in Review.` : "Nothing waits for you in Review.",
     unscored ? `${unscored} researched deal${unscored === 1 ? " has" : "s have"} no fit score yet.` : "",
@@ -261,3 +268,15 @@ export function toTodaySummary(x: TodayInputs): TodaySummaryData {
 
 /** Same bands as src/lib/voice/greeting.ts `salutation` (that module is server-side), from the viewer's own clock. */
 export const salutation = (hour: number) => (hour >= 5 && hour < 12 ? "Good morning" : hour >= 12 && hour < 17 ? "Good afternoon" : hour >= 17 && hour < 22 ? "Good evening" : "Working late");
+
+/** The salutation for `now` in the viewer's IANA time zone; no zone, or one the runtime does not know, means IST
+ *  (the app's display zone). The server runs in UTC on Vercel, so never read the process clock's hour. */
+export function salutationAt(now: Date, timeZone?: string | null): string {
+  let hour: number;
+  try {
+    hour = Number(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hourCycle: "h23", timeZone: timeZone || DISPLAY_TZ }).format(now));
+  } catch {
+    hour = Number(new Intl.DateTimeFormat("en-GB", { hour: "2-digit", hourCycle: "h23", timeZone: DISPLAY_TZ }).format(now));
+  }
+  return salutation(hour);
+}

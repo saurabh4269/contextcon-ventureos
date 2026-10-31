@@ -5,7 +5,7 @@
 //   · GET /api/settings/mandate → the thesis lines and priors (what every memo and score is checked against).
 // Not in this build, so empty: anti-portfolio, thesis proposals, agent reads, access log. No events → empty state.
 import type { BrainData, Memory, Outcome, ThesisLine } from "@port/types";
-import { fmtDate, fmtDateTime, fmtMoney, fmtMonth, money } from "@/lib/format";
+import { fmtDate, fmtDateTime, fmtMoney, fmtMonth, istDay, money } from "@/lib/format";
 import type { MemoryEvent } from "@/lib/memory/types";
 import type { Mandate } from "@/lib/settings/mandate";
 import type { StorageInfo } from "@/lib/store/docs";
@@ -27,14 +27,16 @@ const noteOf = (e: MemoryEvent) => {
   return typeof n === "string" && n.trim() ? n.trim() : null;
 };
 const kindOf = (e: MemoryEvent) => KIND.find((k) => k.id !== "pass" && k.match(e)) ?? null;
-const monthKey = (iso: string) => iso.slice(0, 7);
+/** Month of an instant in IST (the app shows IST; the server clock is UTC). */
+const monthKey = (iso: string) => istDay(iso).slice(0, 7);
 
 /** Cumulative memories per month, from the month before the first event (0) to `now`'s month. */
 export function growth(events: MemoryEvent[], now: Date): { trend: number[]; labels: string[] } {
   if (!events.length) return { trend: [], labels: [] };
   const first = new Date(`${monthKey(events[0]!.at)}-01T00:00:00Z`);
   const months: string[] = [];
-  for (let d = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() - 1, 1)); d <= now; d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))) months.push(d.toISOString().slice(0, 7));
+  const last = monthKey(now.toISOString());
+  for (let d = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() - 1, 1)); d.toISOString().slice(0, 7) <= last; d = new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1))) months.push(d.toISOString().slice(0, 7));
   const trend = months.map((m) => events.filter((e) => monthKey(e.at) <= m).length);
   return { trend, labels: months.map((m) => fmtMonth(`${m}-01`)) };
 }

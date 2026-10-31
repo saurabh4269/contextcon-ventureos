@@ -10,11 +10,13 @@ import type { ShellData, TodaySummaryData } from "@port/types";
 import type { InboxThread } from "@/lib/google/gmail";
 import type { Meeting } from "@/lib/google/calendar";
 import type { PipelineDealRow } from "@/lib/inbox/pipeline";
-import { inboundWindow, realPipelineDeals, salutation, toTodaySummary } from "@/lib/adapters/today";
+import { inboundWindow, realPipelineDeals, salutationAt, toTodaySummary } from "@/lib/adapters/today";
 import { useLiveCoverage } from "@/components/datamode";
 import { failureMessage, useLiveJson } from "./useLiveJson";
 import { useKnownDeals } from "./known";
 
+/** The browser's IANA zone (the greeting follows the viewer); undefined falls back to IST. */
+const viewerTimeZone = () => { try { return Intl.DateTimeFormat().resolvedOptions().timeZone || undefined; } catch { return undefined; } };
 const SPAN = 7; // days in the inbound chart (one week, like the fixture card)
 const GMAIL_MAX = 25; // the threads route's own maximum
 const MEETINGS_MAX = 10;
@@ -36,7 +38,7 @@ export function LiveTodaySummary({ shell, ask, pipeline }: { shell: ShellData; a
 
   const data = toTodaySummary({
     now,
-    greeting: `${salutation(now.getHours())}, ${shell.user.firstName}`, // ist-ok: the salutation follows the viewer's own clock
+    greeting: `${salutationAt(now, viewerTimeZone())}, ${shell.user.firstName}`,
     deals: known.data.deals,
     pipeline: realPipelineDeals(pipeline),
     open: known.data.exceptions.open,

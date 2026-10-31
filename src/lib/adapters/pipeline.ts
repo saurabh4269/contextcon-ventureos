@@ -5,6 +5,7 @@
 // leave the table (Passed counts in the header). Values with no source (next date, conversion) are "—" or absent.
 import type { PipelineDeal, PipelineStat, PipelineTableData, Stage, StageId, WorkRow } from "@port/types";
 import { isClosed, type DealStage } from "@/lib/deals/stage";
+import { istDay } from "@/lib/format";
 import type { LiveRow } from "./today";
 
 const DAY_MS = 86_400_000;
@@ -20,6 +21,8 @@ const STAGES: Omit<Stage, "count">[] = [
   { id: "ts", label: "Term sheet", tone: "ok" },
 ];
 
+/** Calendar year in IST (the app shows IST everywhere; the server clock is UTC). */
+const istYear = (iso: string) => istDay(iso).slice(0, 4);
 const daysSince = (iso: string, now: Date) => Math.max(0, Math.floor((now.getTime() - Date.parse(iso)) / DAY_MS));
 const touchLabel = (days: number) => (days === 0 ? "Today" : days === 1 ? "Yesterday" : `${days} d`);
 const VIA: Record<LiveRow["source"], string> = { worked: "Deal Desk", inbound: "Inbox", opened: "Deal Desk", researched: "Research", tracked: "Deal workflow" };
@@ -50,22 +53,23 @@ const nextStep = (r: WorkRow) => (r.action.kind === "review" && r.href === "/rev
 
 export function toLivePipeline(all: LiveRow[], now: Date, opts: { storageNote?: string } = {}): PipelineTableData {
   const rows = all.filter((r) => !isClosed(r.stage));
-  const passed = all.filter((r) => r.stage === "passed" && new Date(r.at).getUTCFullYear() === now.getUTCFullYear()).length;
+  const passed = all.filter((r) => r.stage === "passed" && istYear(r.at) === istYear(now.toISOString())).length;
   const deals = rows.map((r) => toPipelineDeal(r, now));
-  const recent = rows.filter((r) => daysSince(r.at, now) < WEEK);
+  const recent = rows.filter((r) => daysSince(r.at, now) < WEEK); // touched this week (inbound pitches, "Active in the last 7 days")
+  const fresh = rows.filter((r) => daysSince(r.firstAt ?? r.at, now) < WEEK); // first seen this week
   const count = (id: StageId) => deals.filter((d) => d.stage === id).length;
   const inbound = recent.filter((r) => r.source === "inbound").length;
   const scored = deals.filter((d) => Number.isFinite(d.thesisFit)).length;
   const sectors = new Map<string, number>();
   for (const d of deals) sectors.set(d.sector ?? "Not researched", (sectors.get(d.sector ?? "Not researched") ?? 0) + 1);
   const stats: PipelineStat[] = [
-    { id: "active", label: "Active deals", value: String(deals.length), delta: `+${recent.length}`, dir: "up", good: true, foot: `Active in the last ${WEEK} days`, icon: "deals" },
+    { id: "active", label: "Active deals", value: String(deals.length), delta: `+${fresh.length}`, dir: "up", good: true, foot: `Active in the last ${WEEK} days`, icon: "deals" },
     { id: "inbound", label: "New inbound", value: String(inbound), delta: "—", dir: "up", good: true, foot: `Pitch-like email, last ${WEEK} days`, icon: "inbound" },
     { id: "dd", label: "In diligence", value: String(count("dd")), delta: "—", dir: "up", good: true, foot: "Deals at the Diligence stage", icon: "diligence" },
     { id: "ttd", label: "Avg time to decision", value: "—", delta: "—", dir: "down", good: true, foot: "Not computed in this build", icon: "clock" },
   ];
   return {
-    header: { active: deals.length, newThisWeek: recent.length, scope: "All deals", view: "Newest first", passedThisYear: passed },
+    header: { active: deals.length, newThisWeek: fresh.length, scope: "All deals", view: "Newest first", passedThisYear: passed },
     stages: STAGES.map((s) => ({ ...s, count: count(s.id) })),
     deals,
     savedViews: [{ id: "all", label: "Newest first" }],
