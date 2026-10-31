@@ -2,7 +2,7 @@
 // Every number shown comes from a ComputedField in `research.fields` (value + reasoning + citations, hover via
 // explain()) or is a raw Crustdata series value drawn as a chart under a cited card. Nothing is invented: sections the
 // API cannot back (claims, cap table, valuation, customers) are not shown, and the fit tile is explicitly unscored.
-import type { DealData, DealEvent, DealKpi, DealMetric, DealSection, EvidenceItem, OutlineItem, SignalCall, SignalChip, SignalEvent, SignalGraphData, SignalSpark, SourceRef, TeamPerson } from "@port/types";
+import type { DealData, DealEvent, DealKpi, DealMetric, DealSection, EvidenceItem, OutlineItem, SignalCall, SignalChip, SignalContribution, SignalEvent, SignalGraphData, SignalSpark, SourceRef, TeamPerson } from "@port/types";
 import { explain, isOk, show, type ComputedField } from "@/lib/fields";
 import type { LiveCall, LivePerson, Point, ResearchResult } from "@/lib/live/types";
 import { CRUSTDATA_API_VERSION } from "@/lib/crustdata/http";
@@ -390,26 +390,68 @@ export function toValuationSection(x: Explainable): DealSection {
   };
 }
 
+type FitInputs = Partial<Record<CriterionKey, F>> & { fitScore?: F; screenerVerdict?: F };
+const criterionVerdict = (f: F | undefined) => (isOk(f) && (f.value === "met" || f.value === "not met") ? (f.value as "met" | "not met") : null);
+
 /**
- * Fit tile + header pill from the decision engine's fitScore / screenerVerdict. An ok numeric fitScore becomes the
- * tile's base score (and the header pill); otherwise the tile stays unscored with the decision's own reason.
+ * Per-criterion contributions to an ok fitScore ("share of scored mandate criteria met × 100", src/lib/numbers/local.ts):
+ * the score is split over the met criteria (largest remainder, so the weights sum to the score exactly); not met and
+ * not-scored criteria contribute 0 and carry their reason. Returns null when the criteria do not reproduce the score
+ * (e.g. a builder-supplied score with its own model): then no split is shown rather than a made-up one.
  */
-export function withDecisionFit(d: DealData, decisions: { fitScore?: F; screenerVerdict?: F }): DealData {
+export function fitContributions(x: FitInputs, score: number): SignalContribution[] | null {
+  const rows = CRITERIA.map(([k, name]) => ({ k, name, f: x[k], v: criterionVerdict(x[k]) }));
+  const scored = rows.filter((r) => r.v), met = scored.filter((r) => r.v === "met");
+  if (!scored.length || Math.round((100 * met.length) / scored.length) !== score) return null;
+  const each = met.length ? Math.floor(score / met.length) : 0;
+  let extra = met.length ? score - each * met.length : 0;
+  const chipOf: Partial<Record<CriterionKey, string>> = { criterionStage: "round" };
+  return rows.map(({ k, name, f, v }) => {
+    const weight = v === "met" ? each + (extra-- > 0 ? 1 : 0) : 0;
+    const state = v ?? (isOk(f) ? `${String(f.value)} · not scored` : "not scored");
+    const why = isOk(f) ? f.reasoning || f.method : f ? f.reason : "Not provided by the API.";
+    const cite = isOk(f) ? f.citations[0] : undefined;
+    return { id: k, label: `${name} · ${state}`, call: cite?.endpoint === "POST /company/enrich" ? "enrich" : "", chip: chipOf[k] ?? "", weight, source: why };
+  });
+}
+
+/** Score events after the last call result (so each contribution lands on the tile), then the decision. */
+function scoreTimeline(g: SignalGraphData, contributions: SignalContribution[]): Pick<SignalGraphData, "timeline" | "frames"> {
+  const rest = g.timeline.filter((e) => e.type !== "decide" && e.type !== "score");
+  const after = Math.max(0, ...rest.map((e) => e.at)) + 250;
+  const scores: SignalEvent[] = contributions.map((k, i) => ({ at: after + i * 250, type: "score", contribution: k.id }));
+  const decide = after + Math.max(0, contributions.length - 1) * 250 + 1000;
+  const frames = [...g.frames.slice(0, 4), after + Math.floor(contributions.length / 2) * 250, decide + 700];
+  const done: SignalEvent = { at: decide, type: "decide" };
+  return { timeline: [...rest, ...scores, done].sort((a, b) => a.at - b.at), frames };
+}
+
+/**
+ * Fit tile + header pill from the decision engine's fitScore / screenerVerdict (pass the decisions response `fields`,
+ * which also carry the mandate criteria). An ok numeric fitScore becomes the header pill and the tile's score: split
+ * into per-criterion contributions when the criteria reproduce it (base 0), else as the tile's base score. Otherwise
+ * the tile stays unscored with the decision's own reason.
+ */
+export function withDecisionFit(d: DealData, decisions: FitInputs): DealData {
   const fit = decisions.fitScore;
   if (!d.signals || !fit) return d;
   const verdict = decisions.screenerVerdict;
   if (isOk(fit) && Number.isFinite(n(fit.value))) {
     const score = Math.round(n(fit.value));
+    const contributions = fitContributions(decisions, score);
+    const met = contributions?.filter((k) => k.weight > 0).length ?? 0, scored = CRITERIA.filter(([k]) => criterionVerdict(decisions[k])).length;
     return {
       ...d,
       header: { ...d.header, fit: { score } },
       signals: {
         ...d.signals,
+        ...(contributions ? scoreTimeline(d.signals, contributions) : {}),
         fit: {
           ...d.signals.fit,
           label: "Fit score",
           unscored: undefined,
-          base: { label: fit.method, value: score },
+          base: contributions ? { label: `Mandate criteria · ${met} of ${scored} scored met`, value: 0 } : { label: fit.method, value: score },
+          contributions: contributions ?? [],
           recommendation: { ...d.signals.fit.recommendation, ...(isOk(verdict) ? { label: String(verdict.value), why: verdict.reasoning || fit.reasoning } : { why: fit.reasoning }) },
         },
       },

@@ -2,7 +2,7 @@
 // Data mode on the client: provided by the root layout from DEALDESK_DATA_MODE (server env, per request).
 // Live-wired screens call useLiveCoverage(...) so the badge says what is live on that page; every other page in live
 // mode is badged as demo data, so fixtures are never passed off as live.
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { DataMode } from "@/lib/datamode";
 
 type Coverage = { label: string; tone: "live" | "demo" } | null;
@@ -11,8 +11,10 @@ const CoverageCtx = createContext<Coverage>(null);
 
 export function DataModeProvider({ mode, children }: { mode: DataMode; children: ReactNode }) {
   const [coverage, setCoverage] = useState<Coverage>(null);
+  // stable value: a fresh object per render would re-run every useLiveCoverage effect after each setCoverage (update loop)
+  const value = useMemo(() => ({ mode, setCoverage }), [mode]);
   return (
-    <Ctx.Provider value={{ mode, setCoverage }}>
+    <Ctx.Provider value={value}>
       <CoverageCtx.Provider value={coverage}>{children}<DataModeBadge /></CoverageCtx.Provider>
     </Ctx.Provider>
   );

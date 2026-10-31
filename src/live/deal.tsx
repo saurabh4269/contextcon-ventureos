@@ -16,6 +16,7 @@ import type { DecisionsResponse } from "@/lib/numbers/decisions";
 import type { DealSection } from "@port/types";
 import { useLiveCoverage } from "@/components/datamode";
 import { failureMessage, useLiveJson } from "./useLiveJson";
+import { useLiveCoverage } from "@/components/datamode";
 import { recordEvent } from "./memory";
 
 /** Unavailable decisions wait in the review queue; say so where the "—" is shown. */
@@ -26,6 +27,7 @@ type Ok = Extract<ResearchResult, { status: "ok" }>;
 type NoMatch = Extract<ResearchResult, { status: "no_match" }>;
 
 export function LiveDeal({ shell, domain, tab }: { shell: ShellData; domain: string | undefined; tab?: string }) {
+  useLiveCoverage("Live · Crustdata");
   if (!domain) return <DomainPrompt shell={shell} />;
   return <LiveDealFor key={domain} shell={shell} domain={domain} tab={tab} />;
 }
@@ -45,7 +47,7 @@ function LiveDealFor({ shell, domain, tab }: { shell: ShellData; domain: string;
   }, [ok]);
 
   const research = ok ? toLiveDeal(ok) : null;
-  const base = research ? (val.state === "ok" ? withDecisionFit(research, val.data.decisions) : research) : noMatch ? { ...placeholderDeal(domain), signals: noMatchSignals(domain, noMatch.calls.identify, noMatch.requestedAt) } : placeholderDeal(domain);
+  const base = research ? (val.state === "ok" ? withDecisionFit(research, val.data.fields) : research) : noMatch ? { ...placeholderDeal(domain), signals: noMatchSignals(domain, noMatch.calls.identify, noMatch.requestedAt) } : placeholderDeal(domain);
   const data = ok && val.state === "ok"
     ? { ...base, sections: { ...base.sections, valuation: withReviewNote(toValuationSection(val.data.fields), val.data.review?.open.length ?? 0) }, outline: [...base.outline, { id: "valuation", label: "Valuation", state: "warn" as const }] }
     : base;
