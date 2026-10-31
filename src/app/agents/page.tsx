@@ -1,7 +1,10 @@
 "use client";
 // Agents: the agents that really exist in this build, each with the routes, Crustdata endpoints and tools it uses.
 // Nothing here is a run count or a status claim; the live status of each connector is on Settings › Connectors.
+import { Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { MemoryPanel } from "@/live/memory";
 import { ArrowUpRight } from "lucide-react";
 import { Page, TopBar } from "@port/components/shell";
 import { Mascot } from "@port/components/brand/mascot";
@@ -60,7 +63,30 @@ const AGENTS: AgentInfo[] = [
   },
 ];
 
-export default function Agents() {
+const isRun = (e: { kind: string }) => e.kind === "agent.run" || e.kind === "research.run";
+
+/** /agents?tab=runs: the runs that were really recorded (Sourcing agent and company research), straight from firm memory. */
+function Runs() {
+  return (
+    <Page active="runs" shell={liveShell} top={<TopBar crumbs={[{ label: "Agents" }, { label: "Runs" }]} ctx="Agents" />}>
+      <div className="mx-auto w-full max-w-[980px] px-4 pt-7 pb-24 sm:px-6">
+        <h1 className="serif text-[28px] leading-tight tracking-[-0.01em] sm:text-[32px]">Runs</h1>
+        <p className="mt-1.5 max-w-[640px] text-[13.5px] text-zinc-500">
+          Every Sourcing agent run and company research that was recorded to firm memory, newest first. Research agent runs on <Link href="/ask" className="text-rust underline-offset-2 hover:underline">/ask</Link> are not logged here. <Link href="/agents" className="text-rust underline-offset-2 hover:underline">Back to agents</Link>.
+        </p>
+        <MemoryPanel className="mt-5" title="Agent runs" sub="From organizational memory (agent.run and research.run events)." match={isRun} note={false} />
+      </div>
+    </Page>
+  );
+}
+
+export default function AgentsPage() {
+  return <Suspense fallback={null}><Agents /></Suspense>;
+}
+
+function Agents() {
+  const tab = useSearchParams().get("tab");
+  if (tab === "runs") return <Runs />;
   return (
     <Page active="agents" shell={liveShell} top={<TopBar crumbs={[{ label: "Agents" }]} ctx="Agents" />}>
       <div className="mx-auto w-full max-w-[980px] px-4 pt-7 pb-24 sm:px-6">
