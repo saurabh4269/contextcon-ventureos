@@ -19,6 +19,6 @@ describe("enrich-hints against the live E2B enrich capture", () => {
   });
 
   it("returns no hints for an unknown domain (matches: [])", () => {
-    expect(screenerHintsFromEnrich(loadFixture("company-enrich-unknown-domain.json")).headcountLatest).toBeUndefined();
+    expect(screenerHintsFromEnrich(loadFixture("company-enrich-zz9-no-such-startup-qx7.json")).headcountLatest).toBeUndefined();
   });
 });
