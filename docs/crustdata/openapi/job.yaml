@@ -1,0 +1,1163 @@
+openapi: 3.0.3
+info:
+  title: Job API
+  version: 2025-11-01
+  description: |
+    The Crustdata Job API provides access to job listings from the web, enriched with the hiring
+    company's firmographics (headcount, funding, revenue, industries) and the job's location.
+
+    Use `/job/search` to query the indexed job dataset with filters, cursor-based pagination,
+    sorting, field selection, and aggregations. Use `/job/search/autocomplete` to get
+    type-ahead suggestions for a filter field's values before searching. Use
+    `/job/professional_network/search/live` to fetch job listings in real time for a given
+    company when you need the freshest view of what a single company is hiring for.
+
+    All requests require a valid API key passed via the `Authorization` header as a Bearer token
+    and an `x-api-version` header set to the API version (e.g., "2025-11-01").
+servers:
+  - url: https://api.crustdata.com
+    description: Production API server
+security:
+  - bearerAuth: []
+paths:
+  /job/search:
+    post:
+      tags:
+        - Job APIs
+        - Search APIs
+      summary: Search the indexed job dataset
+      description: |
+        Search the Crustdata job dataset using filter conditions. Each result includes
+        the job's details (title, category, URL, openings), the hiring company's core
+        firmographics (basic info, headcount, followers, revenue, funding, competitors),
+        the job location, full job description text, and metadata timestamps.
+
+        <Note>
+            Default `rate-limit` is 30 requests per minute. Send an email to [gtm@crustdata.co](mailto:gtm@crustdata.co) to discuss higher limits if needed for your use case.
+        </Note>
+
+        Supports complex AND/OR filter logic, cursor-based pagination, sorting, field
+        selection, aggregations (count and group_by), and geographic radius filtering
+        on `location` with the `geo_distance` and `geo_exclude` operators. Only indexed
+        fields are filterable and sortable — see the `field` description on
+        `SearchCondition` for the full list.
+      operationId: searchJobDataset
+      parameters:
+        - $ref: "#/components/parameters/ApiVersion"
+      requestBody:
+        description: Search filters, pagination, sorting, field selection, and aggregations
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/JobSearchRequest"
+            examples:
+              engineering_jobs_at_company:
+                summary: Engineering jobs at a specific company posted this year
+                value:
+                  filters:
+                    op: and
+                    conditions:
+                      - field: company.basic_info.company_id
+                        type: =
+                        value: 631394
+                      - field: job_details.category
+                        type: =
+                        value: Engineering
+                      - field: metadata.date_added
+                        type: =>
+                        value: 2025-01-01
+                  fields:
+                    - job_details.title
+                    - job_details.url
+                    - metadata.date_added
+                    - location.country
+                  sorts:
+                    - field: metadata.date_added
+                      order: desc
+                  limit: 2
+              sdr_roles_multi_company:
+                summary: SDR/BDR roles across multiple companies
+                value:
+                  filters:
+                    op: and
+                    conditions:
+                      - field: company.basic_info.company_id
+                        type: in
+                        value:
+                          - 631394
+                          - 631811
+                          - 673947
+                      - field: metadata.date_added
+                        type: =>
+                        value: 2025-01-01
+                      - op: or
+                        conditions:
+                          - field: job_details.title
+                            type: (.)
+                            value: Sales Development Representative
+                          - field: job_details.title
+                            type: (.)
+                            value: SDR
+                          - field: job_details.title
+                            type: (.)
+                            value: Business Development Representative
+                  fields:
+                    - job_details.title
+                    - company.basic_info.name
+                    - location.raw
+                    - metadata.date_added
+                  sorts:
+                    - field: metadata.date_added
+                      order: desc
+                  limit: 2
+              jobs_within_radius:
+                summary: Jobs within 25 km of San Francisco (geo_distance)
+                value:
+                  filters:
+                    field: location
+                    type: geo_distance
+                    value:
+                      location: San Francisco
+                      distance: 25
+                      unit: km
+                  fields:
+                    - job_details.title
+                    - location
+                  limit: 2
+              us_jobs_excluding_radius:
+                summary: US jobs outside a 50-mile radius of New York (geo_exclude)
+                value:
+                  filters:
+                    op: and
+                    conditions:
+                      - field: location.country
+                        type: =
+                        value: United States
+                      - field: location
+                        type: geo_exclude
+                        value:
+                          location: New York
+                          distance: 50
+                          unit: mi
+                  fields:
+                    - job_details.title
+                    - location.city
+                    - location.state
+                  limit: 2
+              count_jobs_in_category:
+                summary: Count all Engineering jobs (no rows, only aggregation)
+                value:
+                  filters:
+                    field: job_details.category
+                    type: =
+                    value: Engineering
+                  limit: 0
+                  aggregations:
+                    - type: count
+              top_companies_hiring_engineers:
+                summary: Top companies hiring Software Engineers this year
+                value:
+                  filters:
+                    op: and
+                    conditions:
+                      - field: job_details.title
+                        type: =
+                        value: Software Engineer
+                      - field: metadata.date_added
+                        type: =>
+                        value: 2025-01-01
+                  limit: 0
+                  aggregations:
+                    - type: group_by
+                      field: company.basic_info.company_id
+                      agg: count
+                      size: 5
+              paginate_next_page:
+                summary: Fetch next page using a cursor from a previous response
+                value:
+                  filters:
+                    field: company.basic_info.company_id
+                    type: =
+                    value: 631394
+                  fields:
+                    - job_details.title
+                  limit: 1
+                  cursor: H4sIANBG1mkC_xXMOQ4CMQxA0auMUk9hx3YScxWERs6CpkBEzFIgxN0J1W-e_se9zra9l9X21V0mx0kjMgvdq4dYPZGgclOTlLEZl2bJG_lcdVSqFa-okDlwo1qbmye39-0YryvGKBIwsQLAPDGCkAS6DXL0wx5L6efzL2MC_P4A250zQYoAAAA=
+      responses:
+        "200":
+          headers:
+            X-Credits-Used:
+              $ref: "#/components/headers/XCreditsUsed"
+          description: Jobs matching the search criteria with pagination cursor and total count
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JobSearchResponse"
+              examples:
+                engineering_jobs_response:
+                  summary: Engineering jobs at a specific company
+                  value:
+                    job_listings:
+                      - job_details:
+                          title: Full Stack Engineer, Money as a Service
+                          url: https://www.linkedin.com/jobs/view/4436109032
+                        location:
+                          country: United States
+                        metadata:
+                          date_added: 2026-07-01T20:23:42
+                      - job_details:
+                          title: Staff Software Engineer, Datalake Platform
+                          url: https://www.linkedin.com/jobs/view/4435532382
+                        location:
+                          country: Ireland
+                        metadata:
+                          date_added: 2026-07-01T08:24:08
+                    next_cursor: H4sIAFUrRmoC_xXMwQ7CIAwA0F8hnHcopYXirxiz1DKyg5G4sYMx_rvz_vI-_nUs23tedV_9xfnakKAIh8wpVmvFIgc24JKQVBdhAAbLrEnuwlqZOFkAxKhNDPzk_N63cV7XkAWlEJIAwOSoQAgR4-0kow99zNaP518iInx_0g51uooAAAA=
+                    total_count: 2220
+                geo_distance_response:
+                  summary: Jobs within 25 km of San Francisco with geocoded location fields
+                  value:
+                    job_listings:
+                      - job_details:
+                          title: Staff Product Manager, Enterprise
+                        location:
+                          raw: San Francisco, California, United States
+                          city: San Francisco
+                          district: null
+                          state: California
+                          country: United States
+                          pincode: null
+                      - job_details:
+                          title: Machine Learning Infrastructure Engineer- Model Inference
+                        location:
+                          raw: San Francisco Bay Area
+                          city: ""
+                          district: null
+                          state: California
+                          country: United States
+                          pincode: null
+                    next_cursor: H4sIAPUqRmoC_xWMyw4CIQwAf4Vw3kNpoRR_xZgNdUv2YCTu42CM_y7OeWY-_nXa9p7Xuq_-4jyLtZJBSTKbSIgRmQoqCxZelhJCMiYDEDS11FRFK1OGSLnGxn5yfu_bMV7XkEeURBAGk4sFUmLG21COftTHfO_n828SE7B8f4eBHq2MAAAA
+                    total_count: 363068
+                count_response:
+                  summary: Count aggregation returns no rows, just a total
+                  value:
+                    job_listings: []
+                    next_cursor: null
+                    total_count: 4448237
+                    aggregations:
+                      - type: count
+                        field: null
+                        value: 4448237
+                group_by_response:
+                  summary: Top companies hiring Software Engineers
+                  value:
+                    job_listings: []
+                    next_cursor: null
+                    total_count: 31809
+                    aggregations:
+                      - type: group_by
+                        field: company.basic_info.company_id
+                        buckets:
+                          - key: 821755
+                            count: 1136
+                            metadata:
+                              company_name: Jobs via Dice
+                              company_website_domain: dice.com
+                              linkedin_id: "104085107"
+                          - key: 3674630
+                            count: 878
+                            metadata:
+                              company_name: Bending Spoons
+                              company_website_domain: bndspn.com
+                              linkedin_id: "3175130"
+                          - key: 691389
+                            count: 638
+                            metadata:
+                              company_name: Haystack
+                              company_website_domain: haystackapp.io
+                              linkedin_id: "28483663"
+        "400":
+          headers:
+            X-Credits-Used:
+              $ref: "#/components/headers/XCreditsUsed"
+          description: Invalid search request - the request body failed validation (bad limit, missing or malformed fields, or an unrecognized parameter).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                limit_out_of_range:
+                  summary: limit exceeds maximum (1000)
+                  value:
+                    error:
+                      type: invalid_request
+                      message: "'limit' must be at most 1000. Got 5000."
+                      metadata:
+                        - field: limit
+                          type: less_than_equal
+                          message: "'limit' must be at most 1000. Got 5000."
+                missing_sort_field:
+                  summary: sorts entry missing the required `field` key
+                  value:
+                    error:
+                      type: invalid_request
+                      message: "Missing required field: 'sorts.0.field'."
+                      metadata:
+                        - field: sorts.0.field
+                          type: missing
+                          message: "Missing required field: 'sorts.0.field'."
+                unknown_aggregation_parameter:
+                  summary: Aggregation uses `column` instead of `field`
+                  value:
+                    error:
+                      type: invalid_request
+                      message: "'aggregations.0.column' is not a valid parameter."
+                      metadata:
+                        - field: aggregations.0.column
+                          type: extra_forbidden
+                          message: "'aggregations.0.column' is not a valid parameter."
+        "401":
+          description: Unauthorized - invalid or missing API key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error:
+                  type: unauthorized
+                  message: Invalid API key in request.
+                  metadata: []
+        "403":
+          headers:
+            X-Credits-Used:
+              $ref: "#/components/headers/XCreditsUsed"
+          description: Forbidden. Your account is not entitled to this endpoint, or a requested field is not enabled on it.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                endpoint_not_enabled:
+                  summary: The account is not entitled to this endpoint
+                  value:
+                    error:
+                      type: permission_error
+                      message: You do not have permission to access /job/search.
+                      metadata: []
+                fields_denied:
+                  summary: A requested field is not enabled on the account
+                  value:
+                    error:
+                      type: permission_error
+                      message: "Access denied to fields: company.funding. To enable access, please book a call with us at https://meetings-na2.hubspot.com/chris-pisarski/web-demo-request"
+                      metadata:
+                        - denied_fields:
+                            - company.funding
+                          permitted_fields:
+                            - job_details.title
+                            - job_details.url
+                            - location.raw
+        "500":
+          headers:
+            X-Credits-Used:
+              $ref: "#/components/headers/XCreditsUsed"
+          description: Internal server error - returned when the query cannot be executed, including when a filter or aggregation references an unsupported field, when a `geo_distance`/`geo_exclude` value is malformed or targets a non-geo field, or when a `location` string cannot be geocoded.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                unsupported_filter_field:
+                  summary: Filter references a non-indexed field
+                  value:
+                    error:
+                      type: internal_error
+                      message: "Unsupported columns in conditions: ['invalid_field']"
+                      metadata: []
+                geo_filter_missing_distance:
+                  summary: geo_distance value is missing the required `distance` key
+                  value:
+                    error:
+                      type: internal_error
+                      message: geo_distance filter requires 'distance' field
+                      metadata: []
+                geo_filter_invalid_unit:
+                  summary: geo_distance `unit` is not a supported unit
+                  value:
+                    error:
+                      type: internal_error
+                      message: "geo_distance 'unit' must be one of: km, mi, miles, m, meters, ft, feet"
+                      metadata: []
+                geo_filter_unsupported_field:
+                  summary: geo_distance applied to a field without a geo point
+                  value:
+                    error:
+                      type: internal_error
+                      message: Column 'job_details.title' does not support geo_distance queries
+                      metadata: []
+                geo_location_not_geocodable:
+                  summary: The `location` string could not be resolved to coordinates
+                  value:
+                    error:
+                      type: internal_error
+                      message: Location 'xzqjw9834nonsense' has no valid coordinates
+                      metadata: []
+                unsupported_aggregation_field:
+                  summary: group_by references an unsupported field
+                  value:
+                    error:
+                      type: internal_error
+                      message: "Unsupported aggregation field: 'company.basic_info.name'. Supported: company.basic_info.company_id, company.basic_info.crustdata_company_id, company.basic_info.industries, company.basic_info.primary_domain, company.funding.last_round_type, company.headcount.range, company.locations.country, job_details.category, job_details.title, job_details.workplace_type, location.country"
+                      metadata: []
+components:
+  parameters:
+    ApiVersion:
+      name: x-api-version
+      in: header
+      required: true
+      schema:
+        type: string
+        enum:
+          - 2025-11-01
+        default: 2025-11-01
+        example: 2025-11-01
+      description: API version to use. This endpoint currently requires `2025-11-01`.
+  schemas:
+    JobSearchRequest:
+      type: object
+      description: Request body for searching the indexed job dataset with filters, pagination, sorting, field selection, and aggregations.
+      additionalProperties: false
+      properties:
+        filters:
+          description: |
+            Search filter conditions. Can be a single condition or a nested group
+            combined with AND/OR logic. Only indexed fields are filterable — see
+            `SearchCondition.field` for the full list.
+          example:
+            field: company.basic_info.company_id
+            type: =
+            value: 631394
+          oneOf:
+            - $ref: "#/components/schemas/SearchCondition"
+            - $ref: "#/components/schemas/SearchConditionGroup"
+        cursor:
+          type: string
+          description: Opaque pagination cursor returned in a prior response's `next_cursor` field. Pass this to fetch the next page of results with the same filter, sort, and field selection.
+          example: H4sIAJJG1mkC_xXMPQ7CMAwG0KtEmTvYiR0nXAWhyvlBHRARbTogxN0J01s-vY99nW1_r5sem70YSzEJErG_VwdSnfeMiVpSjhmbUmkanXqXa5rlqsUlTJApUPO1NrsYe_R9zNcVRZgDRhIAWAwhsA_Ct0lGH_pYSz-ffykR8PsDw2G2zooAAAA=
+        limit:
+          type: integer
+          minimum: 0
+          maximum: 1000
+          default: 20
+          description: Maximum number of job listings to return per page. Set to 0 when you only want aggregations.
+          example: 20
+        sorts:
+          type: array
+          description: Sort specifications for ordering results. Sorts are applied in order.
+          example:
+            - field: metadata.date_added
+              order: desc
+          items:
+            $ref: "#/components/schemas/SearchSort"
+        fields:
+          type: array
+          description: |
+            Fields to return in each job listing. Use dot-notation for nested fields
+            (e.g., "job_details.title", "company.basic_info.name"). If omitted, all
+            available fields are returned.
+
+            Valid top-level groups: `crustdata_job_id`, `job_details`, `company`,
+            `location`, `content`, `metadata`. Nested fields are supported
+            (e.g., `company.basic_info`, `company.headcount`, `company.funding`).
+          example:
+            - job_details.title
+            - job_details.url
+            - company.basic_info.name
+            - location.raw
+            - metadata.date_added
+          items:
+            type: string
+        aggregations:
+          type: array
+          description: "Aggregation queries to run alongside the search. Set `limit: 0` if you want only aggregation results and no job rows."
+          example:
+            - type: group_by
+              field: company.basic_info.company_id
+              agg: count
+              size: 5
+          items:
+            $ref: "#/components/schemas/AggregationRequest"
+    JobSearchResponse:
+      type: object
+      description: Paginated response from the indexed job search endpoint.
+      required:
+        - job_listings
+      properties:
+        job_listings:
+          type: array
+          description: Job listings matching the search criteria for the current page. Empty when `limit` is 0 or when an aggregation-only query is made.
+          example: []
+          items:
+            $ref: "#/components/schemas/Job"
+        next_cursor:
+          type: string
+          nullable: true
+          description: Opaque cursor for fetching the next page of results. Pass this value as `cursor` in the next request. `null` when there are no more pages.
+          example: H4sIAJJG1mkC_xXMPQ7CMAwG0KtEmTvYiR0nXAWhyvlBHRARbTogxN0J01s-vY99nW1_r5sem70YSzEJErG_VwdSnfeMiVpSjhmbUmkanXqXa5rlqsUlTJApUPO1NrsYe_R9zNcVRZgDRhIAWAwhsA_Ct0lGH_pYSz-ffykR8PsDw2G2zooAAAA=
+        total_count:
+          type: integer
+          nullable: true
+          description: Total number of job listings matching the query across all pages.
+          example: 1676
+        aggregations:
+          type: array
+          nullable: true
+          description: Aggregation results, present only when the request included an `aggregations` array.
+          example:
+            - type: count
+              field: null
+              value: 4448237
+          items:
+            $ref: "#/components/schemas/AggregationResponseItem"
+    ErrorResponse:
+      type: object
+      description: "Standard error response returned by job endpoints for all 4xx and 5xx errors, including authentication failures (`type: unauthorized`)."
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          description: Error details.
+          required:
+            - type
+            - message
+          properties:
+            type:
+              type: string
+              description: Category of the error.
+              enum:
+                - invalid_request
+                - unauthorized
+                - permission_error
+                - not_found
+                - insufficient_credits
+                - rate_limit_error
+                - internal_error
+              example: invalid_request
+            message:
+              type: string
+              description: Human-readable error message.
+              example: Company with id=999999999 not found.
+            metadata:
+              type: array
+              description: Additional structured context (e.g., list of available fields). Often empty.
+              default: []
+              items:
+                type: object
+                additionalProperties: true
+    SearchCondition:
+      type: object
+      description: A single filter condition used to narrow job search results.
+      required:
+        - field
+        - type
+        - value
+      properties:
+        field:
+          type: string
+          description: |
+            Field name to filter on. Use the exact dot-path below. Only indexed fields
+            are filterable.
+
+            Job details: `job_details.title`, `job_details.category`, `job_details.workplace_type`, `job_details.employment_type`, `job_details.reposted_job`, `job_details.url`
+
+            Company basic info: `company.basic_info.company_id`, `company.basic_info.name`, `company.basic_info.primary_domain`, `company.basic_info.professional_network_id`, `company.basic_info.industries`
+
+            Company firmographics: `company.headcount.total`, `company.headcount.range`, `company.followers.count`, `company.revenue.estimated.lower_bound_usd`
+
+            Location: `location.raw`, `location.country`, `location.state`, `location.district`, `location.city`. For radius filtering with `geo_distance`/`geo_exclude`, use `location` (or `location.raw` — both target the same geo point).
+
+            Technographics (filter-only, posting-scoped, never returned in responses): `technographics.technologies.name`, `technographics.technologies.category`, `technographics.technologies.super_category`. A job matches only a technology detected in that exact posting, never one inferred from the hiring company. Two AND conditions on `technographics.technologies.name` match a posting naming both technologies. Values are case-sensitive; discover them with `/job/search/autocomplete`. Only listings with `job_details.source` = `professional_network` carry technographics.
+
+            Content: `content.description`
+
+            Identifiers: `crustdata_job_id`
+
+            Metadata: `metadata.date_added`, `metadata.date_updated`
+          example: company.basic_info.company_id
+        type:
+          type: string
+          description: |
+            Filter operator.
+            - `=`, `!=`: exact match or negation
+            - `<`, `=<`, `>`, `=>`: numeric or date comparison
+            - `in`, `not_in`: set membership (value must be an array)
+            - `is_null`, `is_not_null`: field is null/missing, or has a non-null value (value must be a literal null; the `value` key is required)
+            - `(.)`: case-insensitive substring match (useful for keywords in title or description)
+            - `[.]`: case-insensitive exact word/phrase match
+            - `geo_distance`: match jobs within a radius of a point (value must be a geo object; only on `location` and `location.raw`)
+            - `geo_exclude`: exclude jobs within a radius of a point (value must be a geo object; only on `location` and `location.raw`)
+          enum:
+            - =
+            - "!="
+            - <
+            - =<
+            - ">"
+            - =>
+            - in
+            - not_in
+            - is_null
+            - is_not_null
+            - (.)
+            - "[.]"
+            - geo_distance
+            - geo_exclude
+          example: =
+        value:
+          description: "Filter value. Type depends on `type`: a scalar for comparison operators, an array for `in`/`not_in`, a literal null for `is_null`/`is_not_null` (the `value` key is still required), or a geo object for `geo_distance`/`geo_exclude`. `job_details.employment_type` takes one of `full_time`, `part_time`, `contract`, `temporary`, `intern`, `volunteer`."
+          anyOf:
+            - type: string
+              nullable: true
+            - type: number
+            - type: integer
+            - type: boolean
+            - type: array
+              items:
+                anyOf:
+                  - type: string
+                  - type: number
+                  - type: integer
+            - type: object
+              description: |
+                Geo radius value for `geo_distance`/`geo_exclude`. Provide a center point as
+                either a `location` string (geocoded server-side) or an explicit `lat_lng`
+                pair, plus a `distance` radius. If both `location` and `lat_lng` are supplied,
+                `lat_lng` is used and geocoding is skipped.
+              required:
+                - distance
+              properties:
+                location:
+                  type: string
+                  description: Free-form place name to geocode into the center point (e.g. a city). Required unless `lat_lng` is provided.
+                  example: San Francisco
+                lat_lng:
+                  type: array
+                  description: Explicit center point as a `[latitude, longitude]` pair of numbers (latitude -90 to 90, longitude -180 to 180). Takes precedence over `location`.
+                  minItems: 2
+                  maxItems: 2
+                  example:
+                    - 37.7749
+                    - -122.4194
+                  items:
+                    type: number
+                    description: Latitude or longitude in decimal degrees.
+                    example: 37.7749
+                distance:
+                  type: number
+                  description: Radius around the center point. Must be a positive number, in the unit given by `unit`.
+                  example: 25
+                unit:
+                  type: string
+                  description: Distance unit for `distance`. Defaults to `km`.
+                  default: km
+                  enum:
+                    - km
+                    - mi
+                    - miles
+                    - m
+                    - meters
+                    - ft
+                    - feet
+                  example: km
+    SearchConditionGroup:
+      type: object
+      description: A group of filter conditions combined with AND or OR logic. Supports nesting for complex queries.
+      required:
+        - op
+        - conditions
+      properties:
+        op:
+          type: string
+          description: Logical operator to combine the child conditions.
+          enum:
+            - and
+            - or
+          example: and
+        conditions:
+          type: array
+          description: Array of conditions or nested condition groups.
+          minItems: 1
+          example:
+            - field: company.basic_info.company_id
+              type: =
+              value: 631394
+            - field: job_details.category
+              type: =
+              value: Engineering
+          items:
+            oneOf:
+              - $ref: "#/components/schemas/SearchCondition"
+              - type: object
+                description: Nested filter group (recursive AND/OR of conditions or further groups).
+                required:
+                  - op
+                  - conditions
+                properties:
+                  op:
+                    type: string
+                    description: Logical operator to combine the child conditions.
+                    enum:
+                      - and
+                      - or
+                    example: and
+                  conditions:
+                    type: array
+                    description: Array of conditions or further nested groups.
+                    minItems: 1
+                    items:
+                      type: object
+                      description: A filter condition or a further nested filter group.
+                      additionalProperties: true
+    SearchSort:
+      type: object
+      description: Sort specification for ordering job search results.
+      required:
+        - field
+        - order
+      properties:
+        field:
+          type: string
+          description: |
+            Field name to sort on. Supports the same dot-path names used for filters,
+            e.g., `metadata.date_added`, `metadata.date_updated`, `company.headcount.total`,
+            `company.followers.count`.
+          example: metadata.date_added
+        order:
+          type: string
+          description: Sort direction.
+          enum:
+            - asc
+            - desc
+          example: desc
+    AggregationRequest:
+      type: object
+      description: |
+        Aggregation query to run alongside the search. Use `count` for a simple total or
+        `group_by` to bucket results by a field. Use `limit: 0` on the request if you
+        want only aggregation output and no job rows.
+      additionalProperties: false
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          description: Aggregation type.
+          enum:
+            - count
+            - group_by
+          example: group_by
+        field:
+          type: string
+          nullable: true
+          description: |
+            Field (dot-path) to group results by. Required when `type` is `group_by`;
+            omitted for `count`. Supported fields: `company.basic_info.company_id`,
+            `company.basic_info.crustdata_company_id`, `company.basic_info.industries`,
+            `company.basic_info.primary_domain`, `company.funding.last_round_type`,
+            `company.headcount.range`, `company.locations.country`,
+            `job_details.category`, `job_details.title`, `job_details.workplace_type`,
+            `location.country`.
+          example: company.basic_info.company_id
+        agg:
+          type: string
+          nullable: true
+          description: Sub-aggregation to compute inside each bucket. Required for `group_by`. Currently only `count` is supported.
+          example: count
+        size:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 100
+          description: Maximum number of buckets to return for a `group_by` aggregation.
+          example: 5
+    Job:
+      type: object
+      description: Complete job listing with the hiring company's firmographics, job location, description, and metadata.
+      additionalProperties: false
+      properties:
+        crustdata_job_id:
+          type: integer
+          description: Unique Crustdata internal job identifier.
+          example: 41053563
+        job_details:
+          type: object
+          description: Core information about the job posting itself.
+          properties:
+            job_id:
+              type: integer
+              nullable: true
+              description: Job identifier (currently mirrors `crustdata_job_id`).
+              example: 41053563
+            title:
+              type: string
+              nullable: true
+              description: Job title as posted.
+              example: Integration Engineer (AUNZ)
+            category:
+              type: string
+              nullable: true
+              description: High-level job category (e.g., Engineering, Sales, Operations, Consultancy, Others).
+              example: Engineering
+            workplace_type:
+              type: string
+              nullable: true
+              description: Workplace type if provided (e.g., Remote, Hybrid, On-site). May be empty.
+              example: ""
+            url:
+              type: string
+              nullable: true
+              description: Canonical URL for the job posting.
+              example: https://www.linkedin.com/jobs/view/4398377738
+            reposted_job:
+              type: boolean
+              nullable: true
+              description: Whether the posting was detected as a repost of a prior listing.
+              example: false
+            number_of_openings:
+              type: integer
+              nullable: true
+              description: Number of openings the posting is hiring for.
+              example: 1
+        company:
+          type: object
+          description: Hiring company's firmographics at the time of indexing.
+          properties:
+            basic_info:
+              type: object
+              description: Core identifiers, domain, industries.
+              properties:
+                crustdata_company_id:
+                  type: integer
+                  nullable: true
+                  description: Unique Crustdata internal company identifier.
+                  example: 631394
+                name:
+                  type: string
+                  nullable: true
+                  description: Official company name.
+                  example: Stripe
+                primary_domain:
+                  type: string
+                  nullable: true
+                  description: Primary web domain for the company.
+                  example: stripe.com
+                website:
+                  type: string
+                  nullable: true
+                  description: Company website URL.
+                  example: https://stripe.com
+                professional_network_id:
+                  type: string
+                  nullable: true
+                  description: Identifier for the company on the professional network profile source.
+                  example: "2135371"
+                industries:
+                  type: array
+                  nullable: true
+                  description: Industry classifications assigned to the company.
+                  example:
+                    - Technology, Information and Internet
+                    - Technology, Information and Media
+                  items:
+                    type: string
+            locations:
+              type: object
+              description: Company's registered or primary office location.
+              properties:
+                country:
+                  type: string
+                  nullable: true
+                  description: |
+                    Full country name for the primary office. Filter with the name or an
+                    ISO 3166-1 alpha-3 code, such as `USA`. Both forms return the same jobs.
+                  example: United States
+                state:
+                  type: string
+                  nullable: true
+                  description: State or region for the primary office.
+                  example: California
+                city:
+                  type: string
+                  nullable: true
+                  description: City for the primary office.
+                  example: South San Francisco
+                street_address:
+                  type: string
+                  nullable: true
+                  description: Full street address for the primary office.
+                  example: 354 Oyster Point Blvd, South San Francisco, California, United States
+            headcount:
+              type: object
+              description: Company headcount at the time of indexing.
+              properties:
+                total:
+                  type: integer
+                  nullable: true
+                  description: Total current headcount across all offices.
+                  example: 14522
+                range:
+                  type: string
+                  nullable: true
+                  description: Headcount bracket (e.g., "51-200", "5001-10000").
+                  example: 5001-10000
+                largest_headcount_country:
+                  type: string
+                  nullable: true
+                  description: ISO country code where the company has the most employees.
+                  example: USA
+            followers:
+              type: object
+              description: Public profile follower counts.
+              properties:
+                count:
+                  type: integer
+                  nullable: true
+                  description: Total followers of the company's public profile.
+                  example: 1335688
+            revenue:
+              type: object
+              description: Estimated revenue and public market signals.
+              properties:
+                estimated:
+                  type: object
+                  description: Estimated annual revenue range in USD.
+                  properties:
+                    lower_bound_usd:
+                      type: integer
+                      nullable: true
+                      description: Lower bound of the estimated annual revenue range, in USD.
+                      example: 500000000
+                    upper_bound_usd:
+                      type: integer
+                      nullable: true
+                      description: Upper bound of the estimated annual revenue range, in USD.
+                      example: 1000000000
+                public_markets:
+                  type: object
+                  nullable: true
+                  description: Public market information when the company is listed.
+                  properties:
+                    stock_symbols:
+                      type: array
+                      nullable: true
+                      description: Stock ticker symbols associated with the company.
+                      example:
+                        - STRIPE
+                      items:
+                        type: string
+                    fiscal_year_end:
+                      type: string
+                      nullable: true
+                      description: Fiscal year end if reported.
+                      example: ""
+                acquisition_status:
+                  type: string
+                  nullable: true
+                  description: Acquisition status if known (e.g., acquired, merged).
+                  example: ""
+            funding:
+              type: object
+              description: Venture funding details.
+              properties:
+                total_investment_usd:
+                  type: number
+                  nullable: true
+                  description: Total capital raised to date, in USD.
+                  example: 9440247725
+                valuation_usd:
+                  type: number
+                  nullable: true
+                  description: Most recent valuation in USD.
+                  example: 50000000000
+                last_fundraise_date:
+                  type: string
+                  nullable: true
+                  description: Date of the most recent funding event (ISO 8601).
+                  example: 2026-03-09T00:00:00
+                last_round_type:
+                  type: string
+                  nullable: true
+                  description: Type of the most recent funding round (e.g., seed, series_a, series_b, secondary_market).
+                  example: secondary_market
+                num_funding_rounds:
+                  type: integer
+                  nullable: true
+                  description: Total number of funding rounds recorded.
+                  example: 23
+                investors:
+                  type: array
+                  nullable: true
+                  description: Known investors across all rounds.
+                  example:
+                    - Sequoia Capital
+                    - Andreessen Horowitz
+                    - Founders Fund
+                  items:
+                    type: string
+            competitors:
+              type: object
+              description: Known competitor companies.
+              properties:
+                websites:
+                  type: array
+                  nullable: true
+                  description: List of competitor website URLs.
+                  example:
+                    - https://plaid.com
+                    - https://paystack.com
+                  items:
+                    type: string
+        location:
+          type: object
+          description: |
+            Job's advertised location. The `city`, `state`, and `country` fields are derived
+            by geocoding the raw location string, so their values are normalized place names
+            (e.g. `United States` rather than the raw text's country wording).
+          properties:
+            raw:
+              type: string
+              nullable: true
+              description: Raw location string as advertised on the job posting.
+              example: San Francisco, California, United States
+            city:
+              type: string
+              nullable: true
+              description: City from geocoding the raw location. Empty string when the raw location resolves to a broader area than a city (e.g. a metro area).
+              example: San Francisco
+            district:
+              type: string
+              nullable: true
+              description: District or borough from geocoding, when the location resolves to that granularity.
+              example: null
+            state:
+              type: string
+              nullable: true
+              description: State or province from geocoding the raw location.
+              example: California
+            country:
+              type: string
+              nullable: true
+              description: Normalized country name from geocoding the raw location.
+              example: United States
+            pincode:
+              type: string
+              nullable: true
+              description: Postal or zip code if available.
+              example: null
+        content:
+          type: object
+          description: Text content of the job posting.
+          properties:
+            description:
+              type: string
+              nullable: true
+              description: Full job description as published.
+              example: Stripe is a financial infrastructure platform for businesses...
+        metadata:
+          type: object
+          description: Job timing metadata.
+          properties:
+            date_added:
+              type: string
+              nullable: true
+              description: "The job-posted date: when the listing was posted on the source portal, in ISO 8601."
+              example: 2026-04-07T11:37:29
+            date_updated:
+              type: string
+              nullable: true
+              description: When the job listing was last refreshed (ISO 8601).
+              example: 2026-04-08T00:00:00
+    AggregationResponseItem:
+      type: object
+      description: A single aggregation result. Shape depends on the aggregation `type`.
+      properties:
+        type:
+          type: string
+          description: Echoed aggregation type.
+          enum:
+            - count
+            - group_by
+          example: group_by
+        field:
+          type: string
+          nullable: true
+          description: Echoed field name (`null` for `count`).
+          example: company.basic_info.company_id
+        value:
+          type: integer
+          nullable: true
+          description: Total count matching the filter. Present only for `count` aggregations.
+          example: 4354217
+        buckets:
+          type: array
+          nullable: true
+          description: Group buckets. Present only for `group_by` aggregations. Ordered by descending count.
+          items:
+            $ref: "#/components/schemas/AggregationBucket"
+    AggregationBucket:
+      type: object
+      description: A single bucket produced by a `group_by` aggregation.
+      properties:
+        key:
+          description: Bucket key value (the grouped field's value — integer, string, or array element).
+          example: 821755
+          anyOf:
+            - type: string
+            - type: integer
+            - type: number
+        count:
+          type: integer
+          description: Number of job listings in this bucket.
+          example: 1037
+        metadata:
+          type: object
+          nullable: true
+          description: |
+            Additional context for the bucket key. Only returned for fields that have metadata configured (e.g. `company.basic_info.company_id`, `company.basic_info.crustdata_company_id`, `company.basic_info.primary_domain`).
+          properties:
+            company_name:
+              type: string
+              nullable: true
+              description: Company name for the grouped company.
+              example: Jobs via Dice
+            crustdata_company_id:
+              type: integer
+              nullable: true
+              description: Crustdata internal company identifier, when applicable to the grouped field.
+              example: 821755
+            company_website_domain:
+              type: string
+              nullable: true
+              description: Primary web domain for the grouped company.
+              example: dice.com
+            linkedin_id:
+              type: string
+              nullable: true
+              description: Professional-network identifier for the grouped company.
+              example: "104085107"
+          example:
+            company_name: Jobs via Dice
+            company_website_domain: dice.com
+            linkedin_id: "104085107"
+  headers:
+    XCreditsUsed:
+      description: Exact credits this request deducted, as a decimal string (for example `3` or `0.03`). Present on success and error responses alike; `0` when the request deducted nothing (free endpoints, error responses, and asynchronous job submissions billed when the job runs). Responses generated before a request reaches the API, such as rate-limit `429`s, do not carry it.
+      schema:
+        type: string
+        example: "0.03"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: API key passed as a Bearer token in the Authorization header.

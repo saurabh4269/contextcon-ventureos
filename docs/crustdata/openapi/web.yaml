@@ -1,0 +1,760 @@
+openapi: 3.0.3
+info:
+  title: Web API - All Endpoints
+  version: 2025-11-01
+  description: API for performing web searches and fetching webpage content. Includes endpoints for searching the web across multiple sources (news, web, academic, deep research, social) and fetching HTML content from URLs.
+servers:
+  - url: https://api.crustdata.com
+security:
+  - bearerAuth: []
+paths:
+  /web/search/live:
+    post:
+      tags:
+        - Web APIs
+      summary: Web Search
+      description: |
+        Perform a web search query and return results from multiple sources
+        including web, news, academic articles, academic author profiles,
+        deep research results, and social media. Use this endpoint for competitive
+        intelligence, market research, lead generation, and content discovery.
+
+        <Note>
+            Default `rate-limit` is 10 requests per minute. Send an email to [gtm@crustdata.co](mailto:gtm@crustdata.co) to discuss higher limits if needed for your use case.
+        </Note>
+      operationId: datasetWebSearch
+      parameters:
+        - $ref: "#/components/parameters/ApiVersionHeader"
+      requestBody:
+        required: true
+        description: Search query and optional filters.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebSearchRequest"
+            examples:
+              basic_search:
+                summary: Basic web search
+                description: Simple search query with location targeting.
+                value:
+                  query: crustdata
+                  location: US
+              company_search:
+                summary: Search for a specific company
+                description: Find information about a specific company using a targeted query.
+                value:
+                  query: OpenAI company profile
+                  location: US
+              find_company_domain:
+                summary: Find company domain from name
+                description: Use a company name followed by "website" to find its domain. The first result URL is typically the company website.
+                value:
+                  query: ADAMSBROWN, LLC website
+                  sources:
+                    - web
+              find_company_linkedin:
+                summary: Find company LinkedIn URL
+                description: Use the site parameter restricted to linkedin.com/company to find a company's LinkedIn profile.
+                value:
+                  query: ADAMSBROWN, LLC
+                  sources:
+                    - web
+                  site: linkedin.com/company
+              news_only_search:
+                summary: Search news sources only
+                description: Restrict results to news articles.
+                value:
+                  query: artificial intelligence developments
+                  location: US
+                  sources:
+                    - news
+              multi_source_search:
+                summary: Search multiple sources
+                description: Search across both news and web sources simultaneously.
+                value:
+                  query: crustdata platform
+                  location: US
+                  sources:
+                    - news
+                    - web
+              date_filtered_search:
+                summary: Search with date range and site restriction
+                description: Filter results by date range and restrict to a specific domain.
+                value:
+                  query: distributed systems
+                  location: US
+                  sources:
+                    - web
+                    - news
+                  site: example.com
+                  start_date: 1728259200
+                  end_date: 1730937600
+              scholar_articles_search:
+                summary: Search academic articles
+                description: Search academic articles with date filtering.
+                value:
+                  query: deep learning
+                  location: US
+                  sources:
+                    - scholar-articles
+                  start_date: 1672531200
+                  end_date: 1704067200
+              scholar_author_search:
+                summary: Search academic author profiles
+                description: Find academic author profiles.
+                value:
+                  query: jeff dean
+                  location: US
+                  sources:
+                    - scholar-author
+              deep_research_search:
+                summary: Search generated overview results
+                description: Use the `ai` source to return a generated overview with references and images.
+                value:
+                  query: uv vs pip
+                  location: US
+                  sources:
+                    - ai
+              social_media_search:
+                summary: Search social media posts
+                description: Search recent social media posts.
+                value:
+                  query: neymar
+                  location: US
+                  sources:
+                    - social
+              github_profile_search:
+                summary: Search developer profiles using site restriction
+                description: Restrict results to github.com to find developer profiles. Useful for finding developers, open source contributors, or technical hires.
+                value:
+                  site: github.com
+                  query: Tyler Lambe Github
+                  location: US
+              multi_page_search:
+                summary: Multi-page search results
+                description: Request multiple pages of search results.
+                value:
+                  query: artificial intelligence startups
+                  location: US
+                  page: 3
+              human_mode_search:
+                summary: Search with human mode enabled
+                description: Attempt a browser-like retrieval path when standard search access is blocked.
+                value:
+                  query: crustdata
+                  sources:
+                    - web
+                  human_mode: true
+      responses:
+        "200":
+          headers:
+            X-Credits-Used:
+              $ref: "#/components/headers/XCreditsUsed"
+          description: Successful search response with results.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebSearchResponse"
+              examples:
+                basic_search_response:
+                  summary: Basic web search results
+                  description: Response from a basic search for "crustdata" with US location targeting.
+                  value:
+                    success: true
+                    query: crustdata
+                    timestamp: 1775195367446
+                    results:
+                      - source: web
+                        title: "Crustdata: Real-Time B2B Data Broker via API or Data Feed"
+                        url: https://crustdata.com/
+                        snippet: Crustdata is a B2B data provider offering real-time company & people datasets. Access APIs and live signals to power sales and investment workflows.
+                        position: 1
+                      - source: web
+                        title: "Crustdata: Real-time B2B data via simple APIs"
+                        url: https://www.ycombinator.com/companies/crustdata
+                        snippet: Crustdata provides live company and people data via APIs and full dataset delivery.
+                        position: 2
+                      - source: web
+                        title: Crustdata (YC F24)
+                        url: https://www.linkedin.com/company/crustdata
+                        snippet: AI agents only grow revenue when they can act on the right data at the right time.
+                        position: 3
+                    metadata:
+                      total_results: 7
+                      failed_pages: []
+                      empty_pages: []
+                linkedin_search_response:
+                  summary: Find company LinkedIn URL
+                  description: Response from searching for a company's LinkedIn page using the site parameter.
+                  value:
+                    success: true
+                    query: site:linkedin.com/company ADAMSBROWN, LLC
+                    timestamp: 1775195371211
+                    results:
+                      - source: web
+                        title: Adams Brown
+                        url: https://www.linkedin.com/company/adams-brown-cpa
+                        snippet: Adams Brown, LLC, a leading CPA and advisory firm, has delivered value-added accounting and advisory services to businesses and their owners since 1945.
+                        position: 1
+                    metadata:
+                      total_results: 10
+                      failed_pages: []
+                      empty_pages: []
+                news_search_response:
+                  summary: News-only search results
+                  description: Response from searching news sources for AI developments.
+                  value:
+                    success: true
+                    query: artificial intelligence developments
+                    timestamp: 1775195375651
+                    results:
+                      - source: news
+                        title: UVA researchers use AI to speed up drug development
+                        url: https://www.29news.com/2026/04/01/uva-researchers-use-ai-speed-up-drug-development/
+                        snippet: Researchers at the University of Virginia say artificial intelligence technology could reshape how new...
+                        position: 1
+                    metadata:
+                      total_results: 10
+                      failed_pages: []
+                      empty_pages: []
+                scholar_articles_response:
+                  summary: Academic article results
+                  description: Response from searching academic articles. Includes author, citation, and PDF URL fields.
+                  value:
+                    success: true
+                    query: deep learning
+                    timestamp: 1775195398144
+                    results:
+                      - source: scholar-articles
+                        title: Understanding deep learning
+                        url: https://books.google.com/books?hl=en&lr=lang_en&id=rvyxEAAAQBAJ
+                        snippet: ...to this field understand the principles behind deep learning.
+                        metadata: SJD Prince - 2023 - books.google.com
+                        pdf_url: null
+                        position: 1
+                        authors:
+                          - name: SJD Prince
+                            profile_url: https://scholar.google.com/citations?user=fjm67xYAAAAJ&hl=en&oi=sra
+                            profile_id: fjm67xYAAAAJ
+                        citations: 618
+                    metadata:
+                      total_results: 10
+                      failed_pages: []
+                      empty_pages: []
+                scholar_author_response:
+                  summary: Academic author profile
+                  description: Response from searching for an academic author. Includes profile info, interests, citation metrics, and top publications.
+                  value:
+                    success: true
+                    query: jeff dean
+                    timestamp: 1775195567878
+                    results:
+                      - source: scholar-author
+                        url: https://scholar.google.com/citations?user=NMS69lQAAAAJ&hl=en&oi=ao
+                        name: Jeff Dean
+                        affiliation: Google Chief Scientist, Google Research and Google DeepMind
+                        website: http://research.google.com/people/jeff
+                        interests:
+                          - title: Distributed systems
+                            link: https://scholar.google.com/citations?view_op=search_authors&hl=en&mauthors=label:distributed_systems
+                          - title: Artificial Intelligence
+                            link: https://scholar.google.com/citations?view_op=search_authors&hl=en&mauthors=label:artificial_intelligence
+                        citations:
+                          all: 401624
+                          since_2020: 231008
+                        h_index:
+                          all: 114
+                          since_2020: 78
+                        i10_index:
+                          all: 319
+                          since_2020: 203
+                        articles:
+                          - title: "MapReduce: simplified data processing on large clusters"
+                            url: https://scholar.google.com/citations?view_op=view_citation&hl=en&user=NMS69lQAAAAJ
+                            year: "2008"
+                            citations: "37255"
+                            authors: J Dean, S Ghemawat
+                            publication: Communications of the ACM 51 (1), 107-113, 2008
+                    metadata:
+                      total_results: 1
+                      failed_pages: []
+                      empty_pages: []
+                deep_research_response:
+                  summary: Generated overview response
+                  description: Response from the `ai` source. Returns a generated overview with references and images instead of traditional search results.
+                  value:
+                    success: true
+                    query: uv vs pip
+                    timestamp: 1775195563283
+                    results:
+                      - source: ai
+                        title: AI Overview
+                        content: "The primary difference between uv and pip is speed and scope: uv is a modern, high-performance replacement for pip that prioritizes speed and a unified workflow."
+                        references:
+                          - title: "uv vs pip: Managing Python Packages and Dependencies"
+                            url: https://realpython.com/uv-vs-pip/
+                            snippet: When it comes to Python package managers, the choice often comes down to...
+                        images: []
+                    metadata:
+                      total_results: 1
+                      failed_pages: []
+                      empty_pages: []
+        "400":
+          headers:
+            X-Credits-Used:
+              $ref: "#/components/headers/XCreditsUsed"
+          description: Invalid request — missing or invalid parameters.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+              examples:
+                missing_query:
+                  summary: Missing required query field
+                  description: Returned when the query field is not provided in the request body.
+                  value:
+                    error:
+                      type: invalid_request
+                      message: "query: This field is required."
+                      metadata: []
+                empty_query:
+                  summary: Empty query string
+                  description: Returned when the query field is an empty string.
+                  value:
+                    error:
+                      type: invalid_request
+                      message: "query: This field may not be blank."
+                      metadata: []
+                invalid_sources:
+                  summary: Invalid source value
+                  description: Returned when an invalid source type is provided.
+                  value:
+                    error:
+                      type: invalid_request
+                      message: "sources: {0: [ErrorDetail(string='\"invalid_source\" is not a valid choice.', code='invalid_choice')]}"
+                      metadata: []
+                insufficient_credits:
+                  summary: Insufficient credits
+                  description: Returned when the account does not have enough credits.
+                  value:
+                    error:
+                      type: invalid_request
+                      message: Insufficient credits for the requested number of pages.
+                      metadata: []
+        "401":
+          description: Missing or invalid API key.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthErrorResponse"
+              examples:
+                missing_api_key:
+                  summary: Missing API key
+                  description: Returned when the Authorization header is not provided.
+                  value:
+                    message: Missing API key in request
+                invalid_api_key:
+                  summary: Invalid API key
+                  description: Returned when the provided API key is not valid.
+                  value:
+                    message: Invalid API key in request
+components:
+  parameters:
+    ApiVersionHeader:
+      name: x-api-version
+      in: header
+      required: true
+      schema:
+        type: string
+        enum:
+          - 2025-11-01
+        default: 2025-11-01
+        example: 2025-11-01
+      description: API version to use. This endpoint currently requires `2025-11-01`.
+  schemas:
+    WebSearchRequest:
+      type: object
+      description: Request body for performing a web search.
+      properties:
+        query:
+          type: string
+          minLength: 1
+          maxLength: 5000
+          description: The search query text. Keep queries concise and specific for better results. Supports standard search operators (e.g., site:, filetype:).
+          example: crustdata
+        location:
+          type: string
+          description: ISO 3166-1 alpha-2 country code for location targeting. Use this to get region-specific search results. Valid values include US, CA, MX, BR, AR, CL, CO, PE, VE, GB, DE, FR, IT, ES, PT, NL, BE, CH, AT, PL, SE, NO, DK, FI, IE, RU, UA, CZ, GR, TR, RO, HU, JP, CN, KR, IN, ID, TH, VN, MY, SG, PH, TW, HK, SA, AE, IL, EG, AU, NZ, ZA, NG, KE.
+          example: US
+          nullable: true
+        sources:
+          type: array
+          description: List of search sources to query. If omitted, all sources are searched. Use specific sources to narrow results.
+          items:
+            type: string
+            description: A search source type.
+            enum:
+              - news
+              - web
+              - scholar-articles
+              - scholar-articles-enriched
+              - scholar-author
+              - ai
+              - social
+          example:
+            - news
+            - web
+          nullable: true
+        site:
+          type: string
+          maxLength: 500
+          description: Restrict search results to a specific site domain. For example, use "linkedin.com/company" to find company LinkedIn pages, or "site:github.com" for developer profiles.
+          example: example.com
+          nullable: true
+        start_date:
+          type: integer
+          description: Unix timestamp (seconds since epoch) for the start date filter. Must be less than end_date if both are provided.
+          example: 1728259200
+          nullable: true
+        end_date:
+          type: integer
+          description: Unix timestamp (seconds since epoch) for the end date filter. Must be greater than start_date if both are provided.
+          example: 1730937600
+          nullable: true
+        human_mode:
+          type: boolean
+          description: Whether to use a browser-like retrieval path when standard access is blocked.
+          default: false
+          example: false
+        page:
+          type: integer
+          minimum: 1
+          maximum: 15
+          default: 1
+          description: Number of search result pages to aggregate into a single response. Values above 15 are rejected with a 400. When greater than 1, `sources` must contain exactly one source.
+          example: 1
+      required:
+        - query
+      additionalProperties: false
+    WebSearchResponse:
+      type: object
+      description: Response object for a web search request.
+      properties:
+        success:
+          type: boolean
+          description: Whether the search was executed successfully.
+          example: true
+        query:
+          type: string
+          description: The original search query that was submitted.
+          example: crustdata
+        timestamp:
+          type: integer
+          description: Unix timestamp in milliseconds when the search was performed.
+          example: 1762908151599
+        results:
+          type: array
+          description: Array of search result entries.
+          items:
+            $ref: "#/components/schemas/WebSearchResult"
+          example:
+            - source: web
+              title: "Crustdata: Real-Time B2B Data Broker via API or Data Feed"
+              url: https://crustdata.com/
+              snippet: Crustdata is a B2B data provider offering real-time company & people datasets.
+              position: 1
+        metadata:
+          $ref: "#/components/schemas/WebSearchMetadata"
+      required:
+        - success
+        - query
+        - timestamp
+        - results
+        - metadata
+    ValidationErrorResponse:
+      type: object
+      description: Error response returned for validation failures and invalid requests.
+      properties:
+        error:
+          type: object
+          description: Error details object.
+          properties:
+            type:
+              type: string
+              description: The error type identifier.
+              example: invalid_request
+            message:
+              type: string
+              description: Human-readable error message describing what went wrong.
+              example: "query: This field is required."
+            metadata:
+              type: array
+              description: Additional metadata about the error (typically empty).
+              items:
+                type: string
+              example: []
+          required:
+            - type
+            - message
+            - metadata
+      required:
+        - error
+    AuthErrorResponse:
+      type: object
+      description: Error response returned for authentication failures (401).
+      properties:
+        message:
+          type: string
+          description: Human-readable message describing the authentication error.
+          example: Invalid API key in request
+      required:
+        - message
+    WebSearchResult:
+      type: object
+      description: A single search result entry. The fields present vary by source type. Web/news results have title, url, snippet, position. Academic article results add authors, citations, pdf_url, and a metadata string. Academic author results have name, affiliation, interests, articles, and citation metrics. Deep research results have content, references, and images instead of snippet.
+      properties:
+        source:
+          type: string
+          description: The source type that returned this result.
+          example: web
+        title:
+          type: string
+          description: The title of the search result page. For the `ai` source, this is typically the generated overview title (for example, "AI Overview").
+          example: "Crustdata: Real-Time B2B Data Broker via API or Data Feed"
+        url:
+          type: string
+          description: The URL of the search result page or academic author profile.
+          example: https://crustdata.com/
+        snippet:
+          type: string
+          description: A brief text snippet or description from the search result. Present for the `web`, `news`, and `scholar-articles` sources.
+          example: Crustdata is a B2B data provider offering real-time company & people datasets.
+        position:
+          type: integer
+          description: The 1-based position of this result in the search results list. Present for the `web`, `news`, and `scholar-articles` sources.
+          minimum: 1
+          example: 1
+        metadata:
+          type: string
+          description: Citation metadata string for `scholar-articles` results (e.g., author, year, publisher).
+          example: SJD Prince - 2023 - books.google.com
+          nullable: true
+        pdf_url:
+          type: string
+          description: URL to the PDF version of the article. Present for the `scholar-articles` source.
+          example: https://papers.ssrn.com/sol3/Delivery.cfm?abstractid=4458723
+          nullable: true
+        authors:
+          type: array
+          description: List of authors. Present for the `scholar-articles` source.
+          nullable: true
+          items:
+            type: object
+            description: An author entry for an academic article result.
+            properties:
+              name:
+                type: string
+                description: The author's name.
+                example: SJD Prince
+              profile_url:
+                type: string
+                description: URL to the author's academic profile page. Null if not available.
+                example: https://scholar.google.com/citations?user=fjm67xYAAAAJ&hl=en&oi=sra
+                nullable: true
+              profile_id:
+                type: string
+                description: Academic profile ID. Null if not available.
+                example: fjm67xYAAAAJ
+                nullable: true
+        citations:
+          oneOf:
+            - type: integer
+              description: Total citation count for the article (`scholar-articles` source).
+              example: 618
+            - type: object
+              description: Citation metrics with all-time and recent counts (`scholar-author` source).
+              properties:
+                all:
+                  type: integer
+                  description: All-time citation count.
+                  example: 401624
+                since_2020:
+                  type: integer
+                  description: Citation count since 2020.
+                  example: 231008
+          description: Citation count. For `scholar-articles`, an integer. For `scholar-author`, an object with "all" and "since_2020" counts.
+          nullable: true
+        name:
+          type: string
+          description: The author's full name. Present for the `scholar-author` source.
+          example: Jeff Dean
+        affiliation:
+          type: string
+          description: The author's institutional affiliation. Present for the `scholar-author` source.
+          example: Google Chief Scientist, Google Research and Google DeepMind
+        website:
+          type: string
+          description: The author's personal or institutional website URL. Present for the `scholar-author` source.
+          example: http://research.google.com/people/jeff
+          nullable: true
+        interests:
+          type: array
+          description: List of research interest areas. Present for the `scholar-author` source.
+          nullable: true
+          items:
+            type: object
+            description: A research interest topic.
+            properties:
+              title:
+                type: string
+                description: The interest topic name.
+                example: Distributed systems
+              link:
+                type: string
+                description: Link to search for authors with this interest on the academic search source.
+                example: https://scholar.google.com/citations?view_op=search_authors&hl=en&mauthors=label:distributed_systems
+        thumbnail:
+          type: string
+          description: URL to the author's profile photo. Present for the `scholar-author` source.
+          example: https://scholar.googleusercontent.com/citations?view_op=view_photo&user=NMS69lQAAAAJ&citpid=4
+          nullable: true
+        h_index:
+          type: object
+          description: H-index metrics. Present for the `scholar-author` source.
+          nullable: true
+          properties:
+            all:
+              type: integer
+              description: All-time h-index.
+              example: 114
+            since_2020:
+              type: integer
+              description: H-index since 2020.
+              example: 78
+        i10_index:
+          type: object
+          description: i10-index metrics. Present for the `scholar-author` source.
+          nullable: true
+          properties:
+            all:
+              type: integer
+              description: All-time i10-index.
+              example: 319
+            since_2020:
+              type: integer
+              description: i10-index since 2020.
+              example: 203
+        articles:
+          type: array
+          description: List of the author's top publications. Present for the `scholar-author` source.
+          nullable: true
+          items:
+            type: object
+            description: A published article by the author.
+            properties:
+              title:
+                type: string
+                description: The article title.
+                example: "MapReduce: simplified data processing on large clusters"
+              url:
+                type: string
+                description: URL to the academic article detail page.
+                example: https://scholar.google.com/citations?view_op=view_citation&hl=en&user=NMS69lQAAAAJ
+              year:
+                type: string
+                description: Publication year.
+                example: "2008"
+              citations:
+                type: string
+                description: Number of citations as a string.
+                example: "37255"
+              authors:
+                type: string
+                description: Comma-separated list of author names.
+                example: J Dean, S Ghemawat
+              publication:
+                type: string
+                description: Publication venue and details.
+                example: Communications of the ACM 51 (1), 107-113, 2008
+        content:
+          type: string
+          description: Generated overview content. Present for the `ai` source instead of snippet.
+          example: The primary difference between uv and pip is speed and scope...
+          nullable: true
+        references:
+          type: array
+          description: Source references cited in the generated overview. Present for the `ai` source.
+          nullable: true
+          items:
+            type: object
+            description: A reference source cited in the generated overview.
+            properties:
+              title:
+                type: string
+                description: The reference article title.
+                example: "uv vs pip: Managing Python Packages and Dependencies"
+              url:
+                type: string
+                description: URL to the reference source.
+                example: https://realpython.com/uv-vs-pip/
+              snippet:
+                type: string
+                description: A snippet from the reference source.
+                example: "uv vs pip: Managing Python Packages and Dependencies..."
+        images:
+          type: array
+          description: Images included in the generated overview response. Present for the `ai` source.
+          nullable: true
+          items:
+            type: object
+            description: An image from the generated overview.
+            properties:
+              url:
+                type: string
+                description: URL or base64-encoded data URL of the image.
+                example: data:image/png;base64,...
+              alt:
+                type: string
+                description: Alt text for the image.
+                example: Medium
+              width:
+                type: integer
+                description: Image width in pixels (0 if unknown).
+                example: 0
+              height:
+                type: integer
+                description: Image height in pixels (0 if unknown).
+                example: 0
+    WebSearchMetadata:
+      type: object
+      description: Metadata about the search results.
+      additionalProperties: false
+      properties:
+        total_results:
+          type: integer
+          description: Total number of results returned across all pages.
+          minimum: 0
+          example: 7
+        failed_pages:
+          type: array
+          description: List of page numbers that failed to return results.
+          items:
+            type: integer
+          example: []
+        empty_pages:
+          type: array
+          description: List of page numbers that returned no results.
+          items:
+            type: integer
+          example: []
+  headers:
+    XCreditsUsed:
+      description: Exact credits this request deducted, as a decimal string (for example `3` or `0.03`). Present on success and error responses alike; `0` when the request deducted nothing (free endpoints, error responses, and asynchronous job submissions billed when the job runs). Responses generated before a request reaches the API, such as rate-limit `429`s, do not carry it.
+      schema:
+        type: string
+        example: "0.03"
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      description: "Bearer token authentication. Pass your API key as `Authorization: Bearer <your_api_key>`."

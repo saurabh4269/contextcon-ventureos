@@ -1,0 +1,3545 @@
+[
+  {
+    "matched_on": "e2b.dev",
+    "match_type": "domain",
+    "matches": [
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 1083252,
+          "basic_info": {
+            "status": "active",
+            "name": "E2B",
+            "primary_domain": "e2b.dev",
+            "all_domains": [
+              "e2b.dev"
+            ],
+            "website": "https://e2b.dev",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/44911e15e7fc39ef81b1510e902c3c2038fac060a6d5620fb8d5820c15b16c9b.jpg",
+            "description": "Machines for AI agents",
+            "company_type": "Privately Held",
+            "year_founded": 2023,
+            "employee_count_range": "51-200",
+            "markets": [
+              "PRIVATE"
+            ],
+            "crustdata_company_id": 1083252,
+            "professional_network_id": "96484695",
+            "professional_network_url": "https://www.linkedin.com/company/e2b-dev",
+            "profile_name": "E2B"
+          },
+          "headcount": {
+            "by_function_timeseries": {
+              "CURRENT_FUNCTION": {
+                "Customer Success and Support": [
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-10-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-11-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-12-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-01-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-02-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-03-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-04-01 00:00:00",
+                    "employee_count": 2
+                  }
+                ],
+                "Entrepreneurship": [
+                  {
+                    "date": "2024-12-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2025-01-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2025-02-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2025-03-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2025-04-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2025-06-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 3
+                  }
+                ],
+                "Marketing": [
+                  {
+                    "date": "2025-02-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-03-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-04-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-06-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-10-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-11-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Arts and Design": [
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-10-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-11-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-12-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-01-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-02-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-03-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-04-01 00:00:00",
+                    "employee_count": 2
+                  }
+                ],
+                "Engineering": [
+                  {
+                    "date": "2024-12-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2025-01-01 00:00:00",
+                    "employee_count": 5
+                  },
+                  {
+                    "date": "2025-02-01 00:00:00",
+                    "employee_count": 5
+                  },
+                  {
+                    "date": "2025-03-01 00:00:00",
+                    "employee_count": 7
+                  },
+                  {
+                    "date": "2025-04-01 00:00:00",
+                    "employee_count": 6
+                  },
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 5
+                  },
+                  {
+                    "date": "2025-06-01 00:00:00",
+                    "employee_count": 5
+                  },
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 5
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 7
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 7
+                  }
+                ],
+                "Business Development": [
+                  {
+                    "date": "2024-12-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2025-01-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2025-02-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2025-03-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2025-04-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2025-06-01 00:00:00",
+                    "employee_count": 5
+                  },
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 5
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 3
+                  }
+                ],
+                "Operations": [
+                  {
+                    "date": "2024-12-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-01-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-02-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-03-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-04-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-06-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 2
+                  }
+                ],
+                "Education": [
+                  {
+                    "date": "2025-02-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-03-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-04-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-06-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-10-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-11-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Information Technology": [
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-10-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-11-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-12-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-01-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-02-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-03-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-04-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-05-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Human Resources": [
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-10-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-11-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-12-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-01-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-02-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-03-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-04-01 00:00:00",
+                    "employee_count": 2
+                  }
+                ]
+              },
+              "GEO_REGION": {
+                "Pays de la Loire, France": [
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Catalonia, Spain": [
+                  {
+                    "date": "2026-02-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-03-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-04-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-05-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-06-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-07-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-09-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "New York, United States": [
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "New York, NY": [
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Prague, Czechia": [
+                  {
+                    "date": "2024-02-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-03-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-04-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-05-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-06-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-07-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-08-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-09-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-10-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-11-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Germany": [
+                  {
+                    "date": "2024-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-09-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-10-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-11-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-12-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-01-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-02-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-03-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-04-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 2
+                  }
+                ],
+                "United States": [
+                  {
+                    "date": "2024-02-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-03-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-04-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-05-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-06-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-07-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-08-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-09-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-10-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-11-01 00:00:00",
+                    "employee_count": 3
+                  }
+                ],
+                "Prague Metropolitan Area": [
+                  {
+                    "date": "2024-02-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-03-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-04-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-05-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-06-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-07-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-08-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-09-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-10-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-11-01 00:00:00",
+                    "employee_count": 2
+                  }
+                ],
+                "San Francisco, CA": [
+                  {
+                    "date": "2024-02-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-03-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-04-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-05-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-06-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-07-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-08-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-09-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-10-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-11-01 00:00:00",
+                    "employee_count": 3
+                  }
+                ],
+                "Painesville, OH": [
+                  {
+                    "date": "2026-06-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Berlin, Germany": [
+                  {
+                    "date": "2024-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-09-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-10-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-11-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-12-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-01-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-02-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-03-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-04-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 2
+                  }
+                ],
+                "Bratislava, Slovakia": [
+                  {
+                    "date": "2026-07-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-09-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Czechia": [
+                  {
+                    "date": "2024-02-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2024-03-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2024-04-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2024-05-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2024-06-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2024-07-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2024-08-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2024-09-01 00:00:00",
+                    "employee_count": 4
+                  },
+                  {
+                    "date": "2024-10-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-11-01 00:00:00",
+                    "employee_count": 3
+                  }
+                ],
+                "Berlin Metropolitan Area": [
+                  {
+                    "date": "2024-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-09-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-10-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-11-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-12-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-01-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-02-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-03-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-04-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 2
+                  }
+                ],
+                "Canary Islands, Spain": [
+                  {
+                    "date": "2025-11-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Prague": [
+                  {
+                    "date": "2024-02-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-03-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-04-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-05-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-06-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-07-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-08-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-09-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-10-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2024-11-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Mountain View, CA": [
+                  {
+                    "date": "2025-01-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-02-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-03-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-04-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-06-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-10-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Berkeley, CA": [
+                  {
+                    "date": "2026-07-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-08-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-09-01 00:00:00",
+                    "employee_count": 2
+                  }
+                ],
+                "San Anselmo, CA": [
+                  {
+                    "date": "2025-11-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "France": [
+                  {
+                    "date": "2025-11-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2025-12-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-01-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-02-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-03-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-04-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-05-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-06-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-07-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2026-08-01 00:00:00",
+                    "employee_count": 2
+                  }
+                ],
+                "United Kingdom": [
+                  {
+                    "date": "2026-05-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-06-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-07-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-09-01 00:00:00",
+                    "employee_count": 2
+                  }
+                ],
+                "Burlingame, CA": [
+                  {
+                    "date": "2026-06-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Georgia, United States": [
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "San Francisco Bay Area": [
+                  {
+                    "date": "2024-02-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-03-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-04-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-05-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-06-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-07-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-08-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-09-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-10-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-11-01 00:00:00",
+                    "employee_count": 3
+                  }
+                ],
+                "Morocco": [
+                  {
+                    "date": "2026-02-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-03-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-04-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-05-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "Santa Clara, CA": [
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-06-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-10-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-11-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-12-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-01-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2026-02-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "United Arab Emirates": [
+                  {
+                    "date": "2025-06-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-09-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "California, United States": [
+                  {
+                    "date": "2024-02-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-03-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-04-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-05-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-06-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-07-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-08-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-09-01 00:00:00",
+                    "employee_count": 2
+                  },
+                  {
+                    "date": "2024-10-01 00:00:00",
+                    "employee_count": 3
+                  },
+                  {
+                    "date": "2024-11-01 00:00:00",
+                    "employee_count": 3
+                  }
+                ],
+                "Dubai, United Arab Emirates": [
+                  {
+                    "date": "2025-06-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-07-01 00:00:00",
+                    "employee_count": 1
+                  },
+                  {
+                    "date": "2025-08-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ],
+                "New York City Metropolitan Area": [
+                  {
+                    "date": "2025-05-01 00:00:00",
+                    "employee_count": 1
+                  }
+                ]
+              }
+            },
+            "largest_headcount_country": "USA",
+            "total": 52,
+            "growth_percent": {
+              "mom": 15.555555555555555,
+              "qoq": 26.82926829268293,
+              "six_months": 73.33333333333333,
+              "yoy": 136.36363636363635,
+              "two_years": 300.0
+            },
+            "growth_absolute": {
+              "mom": 7,
+              "qoq": 11,
+              "six_months": 22,
+              "yoy": 30,
+              "two_years": 39
+            },
+            "by_role_absolute": {
+              "Information Technology": 2,
+              "Human Resources": 1,
+              "Finance": 1,
+              "Support": 2,
+              "Education": 1,
+              "Engineering": 16,
+              "Arts and Design": 2,
+              "Business Development": 2,
+              "Operations": 4,
+              "Community and Social Services": 2,
+              "Marketing": 1,
+              "Entrepreneurship": 3
+            },
+            "by_role_percent": {
+              "Information Technology": 3.8461538461538463,
+              "Human Resources": 1.9230769230769231,
+              "Finance": 1.9230769230769231,
+              "Support": 3.8461538461538463,
+              "Education": 1.9230769230769231,
+              "Engineering": 30.76923076923077,
+              "Arts and Design": 3.8461538461538463,
+              "Business Development": 3.8461538461538463,
+              "Operations": 7.6923076923076925,
+              "Community and Social Services": 3.8461538461538463,
+              "Marketing": 1.9230769230769231,
+              "Entrepreneurship": 5.769230769230769
+            },
+            "by_role_growth_6m_pct": {
+              "Education": 0.0,
+              "Engineering": 45.45454545454545,
+              "Marketing": 0.0,
+              "Business Development": -50.0,
+              "Support": 100.0,
+              "Entrepreneurship": 0.0,
+              "Information Technology": 100.0,
+              "Military and Protective Services": -50.0,
+              "Human Resources": 0.0,
+              "Operations": 100.0,
+              "Arts and Design": 0.0,
+              "Customer Success and Support": 0.0,
+              "Finance": 0.0
+            },
+            "by_role_growth_yoy_pct": {
+              "Education": 0.0,
+              "Engineering": 220.00000000000003,
+              "Marketing": 0.0,
+              "Business Development": -50.0,
+              "Entrepreneurship": 0.0,
+              "Information Technology": 100.0,
+              "Military and Protective Services": -50.0,
+              "Human Resources": 0.0,
+              "Operations": 100.0,
+              "Arts and Design": 0.0,
+              "Customer Success and Support": 100.0,
+              "Finance": 0.0
+            },
+            "by_region_absolute": {
+              "France": 2,
+              "United Kingdom": 2,
+              "Bratislava, Slovakia": 1,
+              "San Francisco Bay Area": 24,
+              "Czechia": 13,
+              "Germany": 3,
+              "Prague": 2,
+              "United States": 28,
+              "California, United States": 24,
+              "Berlin, Germany": 2,
+              "Berkeley, CA": 2,
+              "Berlin Metropolitan Area": 2,
+              "Prague, Czechia": 10,
+              "San Francisco, CA": 16,
+              "Prague Metropolitan Area": 12
+            },
+            "by_region_percent": {
+              "France": 3.8461538461538463,
+              "United Kingdom": 3.8461538461538463,
+              "Bratislava, Slovakia": 1.9230769230769231,
+              "San Francisco Bay Area": 46.15384615384615,
+              "Czechia": 25.0,
+              "Germany": 5.769230769230769,
+              "Prague": 3.8461538461538463,
+              "United States": 53.84615384615385,
+              "California, United States": 46.15384615384615,
+              "Berlin, Germany": 3.8461538461538463,
+              "Berkeley, CA": 3.8461538461538463,
+              "Berlin Metropolitan Area": 3.8461538461538463,
+              "Prague, Czechia": 19.230769230769234,
+              "San Francisco, CA": 30.76923076923077,
+              "Prague Metropolitan Area": 23.076923076923077
+            },
+            "by_skill_absolute": {
+              "Project Management": 2,
+              "Git": 10,
+              "C (Programming Language)": 7,
+              "Kubernetes": 9,
+              "Nginx": 4,
+              "Management": 13,
+              "Open-Source Software": 4,
+              "Communication": 1,
+              "Topology": 1,
+              "Mathematics": 3,
+              "Microsoft Excel": 8,
+              "Teamwork": 10,
+              "Leadership": 10,
+              "Linux": 10,
+              "Financial Modeling": 1,
+              "PostgreSQL": 5,
+              "Mathematics Education": 1,
+              "Docker Products": 9,
+              "Customer Service": 6,
+              "Google Cloud Platform (GCP)": 2,
+              "Strategy": 3,
+              "Next.js": 3,
+              "Microsoft Office": 10,
+              "Python (Programming Language)": 24,
+              "Management Consulting": 2,
+              "React.js": 8,
+              "Data Analysis": 3,
+              "Cloud Computing": 4,
+              "Node.js": 2,
+              "Programming": 5,
+              "Databases": 6,
+              "English": 4,
+              "Startups": 2,
+              "Social Media": 7,
+              "Entrepreneurship": 2,
+              "TypeScript": 3,
+              "Business Strategy": 6,
+              "SQL": 14,
+              "Go (Programming Language)": 12,
+              "JavaScript": 3,
+              "Software Development": 10,
+              "Team Management": 4,
+              "GraphQL": 2,
+              "Terraform": 7,
+              "Critical Thinking": 2
+            },
+            "by_skill_percent": {
+              "Project Management": 3.8461538461538463,
+              "Git": 19.230769230769234,
+              "C (Programming Language)": 13.461538461538462,
+              "Kubernetes": 17.307692307692307,
+              "Nginx": 7.6923076923076925,
+              "Management": 25.0,
+              "Open-Source Software": 7.6923076923076925,
+              "Communication": 1.9230769230769231,
+              "Topology": 1.9230769230769231,
+              "Mathematics": 5.769230769230769,
+              "Microsoft Excel": 15.384615384615385,
+              "Teamwork": 19.230769230769234,
+              "Leadership": 19.230769230769234,
+              "Linux": 19.230769230769234,
+              "Financial Modeling": 1.9230769230769231,
+              "PostgreSQL": 9.615384615384617,
+              "Mathematics Education": 1.9230769230769231,
+              "Docker Products": 17.307692307692307,
+              "Customer Service": 11.538461538461538,
+              "Google Cloud Platform (GCP)": 3.8461538461538463,
+              "Strategy": 5.769230769230769,
+              "Next.js": 5.769230769230769,
+              "Microsoft Office": 19.230769230769234,
+              "Python (Programming Language)": 46.15384615384615,
+              "Management Consulting": 3.8461538461538463,
+              "React.js": 15.384615384615385,
+              "Data Analysis": 5.769230769230769,
+              "Cloud Computing": 7.6923076923076925,
+              "Node.js": 3.8461538461538463,
+              "Programming": 9.615384615384617,
+              "Databases": 11.538461538461538,
+              "English": 7.6923076923076925,
+              "Startups": 3.8461538461538463,
+              "Social Media": 13.461538461538462,
+              "Entrepreneurship": 3.8461538461538463,
+              "TypeScript": 5.769230769230769,
+              "Business Strategy": 11.538461538461538,
+              "SQL": 26.923076923076923,
+              "Go (Programming Language)": 23.076923076923077,
+              "JavaScript": 5.769230769230769,
+              "Software Development": 19.230769230769234,
+              "Team Management": 7.6923076923076925,
+              "GraphQL": 3.8461538461538463,
+              "Terraform": 13.461538461538462,
+              "Critical Thinking": 3.8461538461538463
+            },
+            "timeseries": [
+              {
+                "date": "2022-12-26",
+                "employee_count": 1
+              },
+              {
+                "date": "2023-01-02",
+                "employee_count": 1
+              },
+              {
+                "date": "2023-01-09",
+                "employee_count": 1
+              },
+              {
+                "date": "2023-01-16",
+                "employee_count": 1
+              },
+              {
+                "date": "2023-01-23",
+                "employee_count": 1
+              },
+              {
+                "date": "2023-01-30",
+                "employee_count": 1
+              },
+              {
+                "date": "2023-02-06",
+                "employee_count": 1
+              },
+              {
+                "date": "2023-02-13",
+                "employee_count": 1
+              },
+              {
+                "date": "2023-02-20",
+                "employee_count": 1
+              },
+              {
+                "date": "2023-02-27",
+                "employee_count": 1
+              }
+            ]
+          },
+          "funding": {
+            "acquired_by": [],
+            "acquisitions": [],
+            "investors_detailed": [
+              {
+                "crunchbase_profile_url": "https://www.crunchbase.com/organization/decibel-vc",
+                "permalink": "decibel-vc",
+                "name": "Decibel Partners",
+                "uuid": "fd49b014-98f7-4b34-84fa-851e409863fa",
+                "type": "organization",
+                "categories": [
+                  "venture_capital"
+                ]
+              },
+              {
+                "crunchbase_profile_url": "https://www.crunchbase.com/person/edward-lando",
+                "permalink": "edward-lando",
+                "name": "Edward Lando",
+                "uuid": "16496cb3-1c18-98f1-0eff-3819930827a8",
+                "type": "person",
+                "categories": [
+                  "angel",
+                  "investment_partner"
+                ]
+              },
+              {
+                "crunchbase_profile_url": "https://www.crunchbase.com/organization/insight-partners",
+                "permalink": "insight-partners",
+                "name": "Insight Partners",
+                "uuid": "6efb9171-a87b-212d-f399-b0613da7b1c9",
+                "type": "organization",
+                "categories": [
+                  "private_equity_firm",
+                  "venture_capital"
+                ]
+              },
+              {
+                "crunchbase_profile_url": "https://www.crunchbase.com/person/jakub-jurovych",
+                "permalink": "jakub-jurovych",
+                "name": "Jakub Jurovych",
+                "uuid": "7816831f-a3b3-e131-fb29-388750484506",
+                "type": "person",
+                "categories": [
+                  ""
+                ]
+              },
+              {
+                "crunchbase_profile_url": "https://www.crunchbase.com/person/juraj-masar",
+                "permalink": "juraj-masar",
+                "name": "Juraj Masar",
+                "uuid": "994b20d5-f150-4db8-baa5-b61fbabf7c12",
+                "type": "person",
+                "categories": [
+                  ""
+                ]
+              },
+              {
+                "crunchbase_profile_url": "https://www.crunchbase.com/organization/kaya-8ed9",
+                "permalink": "kaya-8ed9",
+                "name": "KAYA",
+                "uuid": "a3bf9288-72e3-4faf-a42b-ff6c2fa18ed9",
+                "type": "organization",
+                "categories": [
+                  "venture_capital"
+                ]
+              },
+              {
+                "crunchbase_profile_url": "https://www.crunchbase.com/person/liu-jiang",
+                "permalink": "liu-jiang",
+                "name": "Liu Jiang",
+                "uuid": "14598f43-f680-9af6-698e-8426a60249c9",
+                "type": "person",
+                "categories": [
+                  "angel",
+                  "investment_partner"
+                ]
+              },
+              {
+                "crunchbase_profile_url": "https://www.crunchbase.com/person/matej-turek",
+                "permalink": "matej-turek",
+                "name": "Matej Turek",
+                "uuid": "00a88cfb-929f-4d2b-b1e3-67af36227e8b",
+                "type": "person",
+                "categories": [
+                  ""
+                ]
+              },
+              {
+                "crunchbase_profile_url": "https://www.crunchbase.com/organization/pareto-holdings",
+                "permalink": "pareto-holdings",
+                "name": "Pareto Holdings",
+                "uuid": "a4af56b9-4f9c-4f0e-ae9e-4d1dffe72d44",
+                "type": "organization",
+                "categories": [
+                  "venture_capital"
+                ]
+              },
+              {
+                "crunchbase_profile_url": "https://www.crunchbase.com/person/scott-johnston",
+                "permalink": "scott-johnston",
+                "name": "Scott Johnston",
+                "uuid": "5317b300-6d9c-fd12-b0eb-b842fe6c3dc4",
+                "type": "person",
+                "categories": [
+                  ""
+                ]
+              }
+            ],
+            "milestones": [
+              {
+                "round_type": "series_a",
+                "is_fund": false,
+                "investors_detailed": [
+                  {
+                    "categories": [
+                      "private_equity_firm",
+                      "venture_capital"
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/organization/insight-partners",
+                    "name": "Insight Partners",
+                    "permalink": "insight-partners",
+                    "type": "organization",
+                    "uuid": "6efb9171-a87b-212d-f399-b0613da7b1c9"
+                  },
+                  {
+                    "categories": [
+                      ""
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/organization/sunflower-capital-47fd",
+                    "name": "Sunflower Capital",
+                    "permalink": "sunflower-capital-47fd",
+                    "type": "organization",
+                    "uuid": "24c5dfa1-b6a2-4381-ac97-a49b90d647fd"
+                  },
+                  {
+                    "categories": [
+                      ""
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/person/scott-johnston",
+                    "name": "Scott Johnston",
+                    "permalink": "scott-johnston",
+                    "type": "person",
+                    "uuid": "5317b300-6d9c-fd12-b0eb-b842fe6c3dc4"
+                  },
+                  {
+                    "categories": [
+                      "venture_capital"
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/organization/kaya-8ed9",
+                    "name": "KAYA",
+                    "permalink": "kaya-8ed9",
+                    "type": "organization",
+                    "uuid": "a3bf9288-72e3-4faf-a42b-ff6c2fa18ed9"
+                  },
+                  {
+                    "categories": [
+                      "venture_capital"
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/organization/decibel-vc",
+                    "name": "Decibel Partners",
+                    "permalink": "decibel-vc",
+                    "type": "organization",
+                    "uuid": "fd49b014-98f7-4b34-84fa-851e409863fa"
+                  }
+                ],
+                "permalink": "e2b-1c91-series-a--5d886af8",
+                "date": "2025-07-28",
+                "funding_date": "2025-07-28",
+                "amount_usd": 21000000.0,
+                "investors": "Insight Partners, Sunflower Capital, Scott Johnston, KAYA, Decibel Partners",
+                "lead_investors": "Insight Partners"
+              },
+              {
+                "round_type": "seed",
+                "is_fund": false,
+                "investors_detailed": [
+                  {
+                    "categories": [
+                      "venture_capital"
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/organization/decibel-vc",
+                    "name": "Decibel Partners",
+                    "permalink": "decibel-vc",
+                    "type": "organization",
+                    "uuid": "fd49b014-98f7-4b34-84fa-851e409863fa"
+                  },
+                  {
+                    "categories": [
+                      "venture_capital"
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/organization/sunflower-capital",
+                    "name": "Sunflower Capital Partners",
+                    "permalink": "sunflower-capital",
+                    "type": "organization",
+                    "uuid": "08ca1506-157b-cb6d-d0f3-12cd40ec7403"
+                  },
+                  {
+                    "categories": [
+                      "venture_capital"
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/organization/kaya-8ed9",
+                    "name": "KAYA",
+                    "permalink": "kaya-8ed9",
+                    "type": "organization",
+                    "uuid": "a3bf9288-72e3-4faf-a42b-ff6c2fa18ed9"
+                  }
+                ],
+                "permalink": "e2b-1c91-seed--6b20b90e",
+                "date": "2024-10-18",
+                "funding_date": "2024-10-18",
+                "amount_usd": 11500000.0,
+                "investors": "Decibel Partners, Sunflower Capital Partners, KAYA",
+                "lead_investors": "Decibel Partners"
+              },
+              {
+                "round_type": "pre_seed",
+                "is_fund": false,
+                "investors_detailed": [
+                  {
+                    "categories": [
+                      "venture_capital"
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/organization/kaya-8ed9",
+                    "name": "KAYA",
+                    "permalink": "kaya-8ed9",
+                    "type": "organization",
+                    "uuid": "a3bf9288-72e3-4faf-a42b-ff6c2fa18ed9"
+                  },
+                  {
+                    "categories": [
+                      "venture_capital"
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/organization/untapped-capital",
+                    "name": "Untapped Capital",
+                    "permalink": "untapped-capital",
+                    "type": "organization",
+                    "uuid": "04e05053-f490-4329-85c4-be92203ede68"
+                  },
+                  {
+                    "categories": [
+                      "venture_capital"
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/organization/pareto-holdings",
+                    "name": "Pareto Holdings",
+                    "permalink": "pareto-holdings",
+                    "type": "organization",
+                    "uuid": "a4af56b9-4f9c-4f0e-ae9e-4d1dffe72d44"
+                  },
+                  {
+                    "categories": [
+                      ""
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/person/matej-turek",
+                    "name": "Matej Turek",
+                    "permalink": "matej-turek",
+                    "type": "person",
+                    "uuid": "00a88cfb-929f-4d2b-b1e3-67af36227e8b"
+                  },
+                  {
+                    "categories": [
+                      "angel",
+                      "investment_partner"
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/person/liu-jiang",
+                    "name": "Liu Jiang",
+                    "permalink": "liu-jiang",
+                    "type": "person",
+                    "uuid": "14598f43-f680-9af6-698e-8426a60249c9"
+                  },
+                  {
+                    "categories": [
+                      ""
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/person/juraj-masar",
+                    "name": "Juraj Masar",
+                    "permalink": "juraj-masar",
+                    "type": "person",
+                    "uuid": "994b20d5-f150-4db8-baa5-b61fbabf7c12"
+                  },
+                  {
+                    "categories": [
+                      ""
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/person/jakub-jurovych",
+                    "name": "Jakub Jurovych",
+                    "permalink": "jakub-jurovych",
+                    "type": "person",
+                    "uuid": "7816831f-a3b3-e131-fb29-388750484506"
+                  },
+                  {
+                    "categories": [
+                      "angel",
+                      "investment_partner"
+                    ],
+                    "crunchbase_profile_url": "https://www.crunchbase.com/person/edward-lando",
+                    "name": "Edward Lando",
+                    "permalink": "edward-lando",
+                    "type": "person",
+                    "uuid": "16496cb3-1c18-98f1-0eff-3819930827a8"
+                  }
+                ],
+                "permalink": "e2b-1c91-pre-seed--e8f323e9",
+                "date": "2023-09-06",
+                "funding_date": "2023-09-06",
+                "amount_usd": 2500000.0,
+                "investors": "KAYA, Untapped Capital, Pareto Holdings, Matej Turek, Liu Jiang, Juraj Masar, Jakub Jurovych, Edward Lando",
+                "lead_investors": "KAYA"
+              }
+            ],
+            "is_investor": false,
+            "funds_total_usd": null,
+            "last_fund_date": null,
+            "num_funding_rounds": 3,
+            "num_funds": 0,
+            "total_investment_usd": 35000000.0,
+            "last_round_amount_usd": 21000000.0,
+            "last_round_type": "series_a",
+            "investors": [
+              "Decibel Partners",
+              "Edward Lando",
+              "Insight Partners",
+              "Jakub Jurovych",
+              "Juraj Masar",
+              "KAYA",
+              "Liu Jiang",
+              "Matej Turek",
+              "Pareto Holdings",
+              "Scott Johnston"
+            ],
+            "last_fundraise_date": "2025-07-28"
+          },
+          "web_traffic": {
+            "domain_traffic": {
+              "e2b.dev": {
+                "domain": "e2b.dev",
+                "monthly_visitors": 186562.0,
+                "mom_pct": -4.89,
+                "qoq_pct": -7.8,
+                "source_search_pct": 29.28870021406241,
+                "source_direct_pct": 54.681150387183465,
+                "source_social_pct": 4.057312481980385,
+                "source_paid_referral_pct": 0.0,
+                "source_referral_pct": 9.80924753976323,
+                "monthly_visitors_timeseries": [
+                  {
+                    "date": "2024-04-01T00:00:00+00:00",
+                    "monthly_visitors": 67313
+                  },
+                  {
+                    "date": "2024-05-01T00:00:00+00:00",
+                    "monthly_visitors": 70585
+                  },
+                  {
+                    "date": "2024-09-01T00:00:00+00:00",
+                    "monthly_visitors": 175484
+                  },
+                  {
+                    "date": "2024-10-01T00:00:00+00:00",
+                    "monthly_visitors": 224811
+                  },
+                  {
+                    "date": "2024-11-01T00:00:00+00:00",
+                    "monthly_visitors": 137865
+                  },
+                  {
+                    "date": "2024-12-01T00:00:00+00:00",
+                    "monthly_visitors": 113466
+                  },
+                  {
+                    "date": "2025-02-01T00:00:00+00:00",
+                    "monthly_visitors": 71136
+                  },
+                  {
+                    "date": "2025-03-01T00:00:00+00:00",
+                    "monthly_visitors": 138287
+                  },
+                  {
+                    "date": "2025-04-01T00:00:00+00:00",
+                    "monthly_visitors": 145296
+                  },
+                  {
+                    "date": "2025-06-01T00:00:00+00:00",
+                    "monthly_visitors": 152682
+                  }
+                ],
+                "source_search_pct_timeseries": [
+                  {
+                    "date": "2024-05-01T00:00:00+00:00",
+                    "traffic_source_search_pct": 30.777747821581947
+                  },
+                  {
+                    "date": "2024-11-01T00:00:00+00:00",
+                    "traffic_source_search_pct": 40.150451111449556
+                  },
+                  {
+                    "date": "2024-12-01T00:00:00+00:00",
+                    "traffic_source_search_pct": 37.5189855549561
+                  },
+                  {
+                    "date": "2025-02-01T00:00:00+00:00",
+                    "traffic_source_search_pct": 43.08267741935607
+                  },
+                  {
+                    "date": "2025-03-01T00:00:00+00:00",
+                    "traffic_source_search_pct": 41.68419849891282
+                  },
+                  {
+                    "date": "2025-04-01T00:00:00+00:00",
+                    "traffic_source_search_pct": 35.50222110152667
+                  },
+                  {
+                    "date": "2025-06-01T00:00:00+00:00",
+                    "traffic_source_search_pct": 32.193351189254074
+                  },
+                  {
+                    "date": "2025-07-01T00:00:00+00:00",
+                    "traffic_source_search_pct": 36.707913077165834
+                  },
+                  {
+                    "date": "2025-08-01T00:00:00+00:00",
+                    "traffic_source_search_pct": 39.23940997854387
+                  },
+                  {
+                    "date": "2025-11-01T00:00:00+00:00",
+                    "traffic_source_search_pct": 37.088186775284726
+                  }
+                ],
+                "source_direct_pct_timeseries": [
+                  {
+                    "date": "2024-05-01T00:00:00+00:00",
+                    "traffic_source_direct_pct": 39.415626971948974
+                  },
+                  {
+                    "date": "2024-11-01T00:00:00+00:00",
+                    "traffic_source_direct_pct": 42.56923014848929
+                  },
+                  {
+                    "date": "2024-12-01T00:00:00+00:00",
+                    "traffic_source_direct_pct": 45.25386198338777
+                  },
+                  {
+                    "date": "2025-02-01T00:00:00+00:00",
+                    "traffic_source_direct_pct": 41.633841369594585
+                  },
+                  {
+                    "date": "2025-03-01T00:00:00+00:00",
+                    "traffic_source_direct_pct": 43.39850750580601
+                  },
+                  {
+                    "date": "2025-04-01T00:00:00+00:00",
+                    "traffic_source_direct_pct": 47.85717575602783
+                  },
+                  {
+                    "date": "2025-06-01T00:00:00+00:00",
+                    "traffic_source_direct_pct": 51.86506757317707
+                  },
+                  {
+                    "date": "2025-07-01T00:00:00+00:00",
+                    "traffic_source_direct_pct": 47.40215886925623
+                  },
+                  {
+                    "date": "2025-08-01T00:00:00+00:00",
+                    "traffic_source_direct_pct": 45.891452237713985
+                  },
+                  {
+                    "date": "2025-11-01T00:00:00+00:00",
+                    "traffic_source_direct_pct": 49.056103832623364
+                  }
+                ],
+                "source_social_pct_timeseries": [
+                  {
+                    "date": "2024-05-01T00:00:00+00:00",
+                    "traffic_source_social_pct": 9.311424544224323
+                  },
+                  {
+                    "date": "2024-11-01T00:00:00+00:00",
+                    "traffic_source_social_pct": 5.951956491110113
+                  },
+                  {
+                    "date": "2024-12-01T00:00:00+00:00",
+                    "traffic_source_social_pct": 5.94480333236614
+                  },
+                  {
+                    "date": "2025-02-01T00:00:00+00:00",
+                    "traffic_source_social_pct": 3.9339595094947013
+                  },
+                  {
+                    "date": "2025-03-01T00:00:00+00:00",
+                    "traffic_source_social_pct": 3.3093102668591707
+                  },
+                  {
+                    "date": "2025-04-01T00:00:00+00:00",
+                    "traffic_source_social_pct": 3.591991490365483
+                  },
+                  {
+                    "date": "2025-06-01T00:00:00+00:00",
+                    "traffic_source_social_pct": 3.445899672464535
+                  },
+                  {
+                    "date": "2025-07-01T00:00:00+00:00",
+                    "traffic_source_social_pct": 3.4745154534890696
+                  },
+                  {
+                    "date": "2025-08-01T00:00:00+00:00",
+                    "traffic_source_social_pct": 3.3347219996704767
+                  },
+                  {
+                    "date": "2025-11-01T00:00:00+00:00",
+                    "traffic_source_social_pct": 3.388878934895746
+                  }
+                ],
+                "source_paid_referral_pct_timeseries": [
+                  {
+                    "date": "2024-05-01T00:00:00+00:00",
+                    "traffic_source_paid_referral_pct": 0.0
+                  },
+                  {
+                    "date": "2024-11-01T00:00:00+00:00",
+                    "traffic_source_paid_referral_pct": 0.4758199161628354
+                  },
+                  {
+                    "date": "2024-12-01T00:00:00+00:00",
+                    "traffic_source_paid_referral_pct": 0.43488857068909803
+                  },
+                  {
+                    "date": "2025-02-01T00:00:00+00:00",
+                    "traffic_source_paid_referral_pct": 0.5068724131521316
+                  },
+                  {
+                    "date": "2025-03-01T00:00:00+00:00",
+                    "traffic_source_paid_referral_pct": 0.49498419640263985
+                  },
+                  {
+                    "date": "2025-04-01T00:00:00+00:00",
+                    "traffic_source_paid_referral_pct": 0.4815255720654981
+                  },
+                  {
+                    "date": "2025-06-01T00:00:00+00:00",
+                    "traffic_source_paid_referral_pct": 0.5782529863189114
+                  },
+                  {
+                    "date": "2025-07-01T00:00:00+00:00",
+                    "traffic_source_paid_referral_pct": 0.6880599787215156
+                  },
+                  {
+                    "date": "2025-08-01T00:00:00+00:00",
+                    "traffic_source_paid_referral_pct": 0.6787072366936108
+                  },
+                  {
+                    "date": "2025-11-01T00:00:00+00:00",
+                    "traffic_source_paid_referral_pct": 0.7017503268386429
+                  }
+                ],
+                "source_referral_pct_timeseries": [
+                  {
+                    "date": "2024-05-01T00:00:00+00:00",
+                    "traffic_source_referral_pct": 20.495200662244752
+                  },
+                  {
+                    "date": "2024-11-01T00:00:00+00:00",
+                    "traffic_source_referral_pct": 10.755829367369175
+                  },
+                  {
+                    "date": "2024-12-01T00:00:00+00:00",
+                    "traffic_source_referral_pct": 10.749445892007222
+                  },
+                  {
+                    "date": "2025-02-01T00:00:00+00:00",
+                    "traffic_source_referral_pct": 10.76203819823264
+                  },
+                  {
+                    "date": "2025-03-01T00:00:00+00:00",
+                    "traffic_source_referral_pct": 11.02561626200601
+                  },
+                  {
+                    "date": "2025-04-01T00:00:00+00:00",
+                    "traffic_source_referral_pct": 12.448594570263221
+                  },
+                  {
+                    "date": "2025-06-01T00:00:00+00:00",
+                    "traffic_source_referral_pct": 11.804335409497943
+                  },
+                  {
+                    "date": "2025-07-01T00:00:00+00:00",
+                    "traffic_source_referral_pct": 11.623361162551026
+                  },
+                  {
+                    "date": "2025-08-01T00:00:00+00:00",
+                    "traffic_source_referral_pct": 10.757666136231334
+                  },
+                  {
+                    "date": "2025-11-01T00:00:00+00:00",
+                    "traffic_source_referral_pct": 9.639856698194153
+                  }
+                ]
+              }
+            }
+          },
+          "followers": {
+            "count": 6664,
+            "mom_percent": 3.0303030303030303,
+            "qoq_percent": 9.138552243694727,
+            "six_months_growth_percent": 23.430264863863677,
+            "timeseries": [
+              {
+                "date": "2024-01-29",
+                "follower_count": 656
+              },
+              {
+                "date": "2024-02-05",
+                "follower_count": 660
+              },
+              {
+                "date": "2024-02-12",
+                "follower_count": 666
+              },
+              {
+                "date": "2024-02-19",
+                "follower_count": 690
+              },
+              {
+                "date": "2024-02-26",
+                "follower_count": 723
+              },
+              {
+                "date": "2024-03-04",
+                "follower_count": 731
+              },
+              {
+                "date": "2024-03-11",
+                "follower_count": 737
+              },
+              {
+                "date": "2024-03-18",
+                "follower_count": 738
+              },
+              {
+                "date": "2024-03-25",
+                "follower_count": 747
+              },
+              {
+                "date": "2024-04-01",
+                "follower_count": 758
+              }
+            ],
+            "yoy_percent": 88.4082555838281
+          },
+          "news": [
+            {
+              "article_publish_date": "2026-09-27",
+              "article_publisher_name": "https://tech-insider.org/",
+              "article_title": "E2B vs Modal vs Daytona: AI Sandbox Pricing 2026",
+              "article_url": "https://tech-insider.org/e2b-vs-modal-vs-daytona-2026/",
+              "confidence_score": 0.95,
+              "publisher_domain": "tech-insider.org",
+              "source": "google_news"
+            },
+            {
+              "article_publish_date": "2026-09-25",
+              "article_publisher_name": "Business Wire",
+              "article_title": "Lōkahi Therapeutics™ Expands ai2 Pipeline™ Program Through Collaboration with Pepperdine E2B™",
+              "article_url": "https://www.businesswire.com/news/home/20260925420133/en/Lkahi-Therapeutics-Expands-ai2-Pipeline-Program-Through-Collaboration-with-Pepperdine-E2B",
+              "confidence_score": 0.85,
+              "publisher_domain": "businesswire.com",
+              "source": "google_news"
+            },
+            {
+              "article_publish_date": "2026-09-06",
+              "article_publisher_name": "The National Law Review",
+              "article_title": "NWEH transforms clinical trial safety reporting with near real-time EHR and E2B technology",
+              "article_url": "https://natlawreview.com/press-releases/nweh-transforms-clinical-trial-safety-reporting-near-real-time-ehr-and-e2b",
+              "confidence_score": 0.95,
+              "publisher_domain": "natlawreview.com",
+              "source": "google_news"
+            },
+            {
+              "article_publish_date": "2026-09-01",
+              "article_publisher_name": "PR Newswire",
+              "article_title": "Veeva Falcon Safety to Work with All E2B-Compliant Safety Systems Across Any Intake Channels",
+              "article_url": "https://www.prnewswire.com/news-releases/veeva-falcon-safety-to-work-with-all-e2b-compliant-safety-systems-across-any-intake-channels-302865792.html",
+              "confidence_score": 0.85,
+              "publisher_domain": "prnewswire.com",
+              "source": "google_news"
+            },
+            {
+              "article_publish_date": "2026-09-01",
+              "article_publisher_name": "Stock Titan",
+              "article_title": "Veeva Falcon Safety to Work with All E2B-Compliant Safety Systems Across Any Intake Channels",
+              "article_url": "https://www.stocktitan.net/news/VEEV/veeva-falcon-safety-to-work-with-all-e2b-compliant-safety-systems-ikpr53b0jv4x.html",
+              "confidence_score": 0.95,
+              "publisher_domain": "stocktitan.net",
+              "source": "google_news"
+            },
+            {
+              "article_publish_date": "2026-09-01",
+              "article_publisher_name": "Unite.AI",
+              "article_title": "Veeva Falcon Safety Automates Adverse Event Intake Across E2B Systems",
+              "article_url": "https://www.unite.ai/veeva-falcon-safety-automates-adverse-event-intake-across-e2b-systems/",
+              "confidence_score": 0.9,
+              "publisher_domain": "unite.ai",
+              "source": "google_news"
+            },
+            {
+              "article_publish_date": "2026-08-31",
+              "article_publisher_name": "DVIDS",
+              "article_title": "Arctic Wolves Rise to the E2B Challenge [Image 1 of 4]",
+              "article_url": "https://www.dvidshub.net/image/9898324/arctic-wolves-rise-e2b-challenge",
+              "confidence_score": 0.9,
+              "publisher_domain": "dvidshub.net",
+              "source": "google_news"
+            },
+            {
+              "article_publish_date": "2026-08-14",
+              "article_publisher_name": "Adafruit",
+              "article_title": "Gemma Translator – Live Translating Offline on a Raspberry Pi 5 #piday #raspberrypi",
+              "article_url": "https://blog.adafruit.com/2026/08/14/gemma-translator-live-translating-offline-on-a-raspberry-pi-5-piday-raspberrypi/",
+              "confidence_score": 0.85,
+              "publisher_domain": "adafruit.com",
+              "source": "google_news"
+            },
+            {
+              "article_publish_date": "2026-08-12",
+              "article_publisher_name": "TipRanks",
+              "article_title": "Lakefront Biotherapeutics Posts First-Half 2026 Results, Closes Ouro Deal and Reaffirms €2B Cash Guidance",
+              "article_url": "https://www.tipranks.com/news/company-announcements/lakefront-biotherapeutics-posts-first-half-2026-results-closes-ouro-deal-and-reaffirms-e2b-cash-guidance",
+              "confidence_score": 0.8,
+              "publisher_domain": "tipranks.com",
+              "source": "google_news"
+            },
+            {
+              "article_publish_date": "2026-08-11",
+              "article_publisher_name": "blog.google",
+              "article_title": "Mastering Edge AI on Raspberry Pi with LiteRT and Gemma",
+              "article_url": "https://developers.googleblog.com/mastering-edge-ai-on-raspberry-pi-with-litert-and-gemma/",
+              "confidence_score": 0.8,
+              "publisher_domain": "googleblog.com",
+              "source": "google_news"
+            }
+          ],
+          "people": {
+            "cxos": [
+              {
+                "crustdata_person_id": 280431,
+                "basic_profile": {
+                  "name": "Vasek Mlejnsky",
+                  "headline": "Building cloud for agents",
+                  "current_title": "Co-Founder & CEO",
+                  "summary": "I like startups and devtools",
+                  "languages": [
+                    "čeština (Native or bilingual proficiency)",
+                    "angličtina (Native or bilingual proficiency)"
+                  ],
+                  "last_updated": "2026-10-17T01:03:00.817Z",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/77e5018c78f710bfc12919ba8a5d15951841e51e34cca93097a39bdcc6a60579.jpg",
+                  "location": {
+                    "raw": "San Francisco, California, United States"
+                  }
+                },
+                "professional_network": {
+                  "profile_picture_url": "https://media.licdn.com/dms/image/v2/D4E03AQFCj4I0fkOuHA/profile-displayphoto-shrink_800_800/B4EZX3pUE9HcAg-/0/1743616557654?e=1793836800&v=beta&t=QqEEkJ4dsnDVBKOHGALuoeuF_sSiEfG3iJumrlPZ5Wo",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/77e5018c78f710bfc12919ba8a5d15951841e51e34cca93097a39bdcc6a60579.jpg",
+                  "name": "Vasek Mlejnsky",
+                  "headline": "Building cloud for agents",
+                  "current_title": "Co-Founder & CEO",
+                  "summary": "I like startups and devtools",
+                  "location": {
+                    "raw": "San Francisco, California, United States"
+                  },
+                  "connections": 2615
+                },
+                "skills": {
+                  "professional_network_skills": [
+                    "Programming"
+                  ]
+                },
+                "social_handles": {
+                  "professional_network_identifier": {
+                    "profile_url": "https://www.linkedin.com/in/mlejva"
+                  },
+                  "twitter_identifier": {
+                    "slug": null
+                  }
+                },
+                "experience": {
+                  "employment_details": {
+                    "current": [
+                      {
+                        "employer_name": "E2B",
+                        "employer_linkedin_id": "96484695",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQE2o7muaXZKEw/company-logo_400_400/B56Z9ChultGsAU-/0/1783527565940/e2b_dev_logo?e=1794441600&v=beta&t=Jj0bnNvQR0iFjPoaYCq1EPOAqn5ZupDwY8MlA0huGOk",
+                        "employer_linkedin_description": "Machines for AI agents",
+                        "employer_company_id": [
+                          "1083252"
+                        ],
+                        "employer_website": [
+                          "e2b.dev"
+                        ],
+                        "employee_position_id": "2178885022",
+                        "employee_title": "Co-Founder & CEO",
+                        "employee_description": "Building agentic cloud\n\n- Series A company that has raised over $37M and led company to 8-figure revenue\n- Grew the team in San Francisco, USA and Prague, Czech Republic\n- Thousands of paying customers, including companies such as Gusto, Perplexity, Mistral, Hugging Face, PGA, Microsoft and other F500 companies\n- Over 4.5M monthly SDK downloads\n- Featured in Venture Beat, Forbes",
+                        "employee_location": "San Francisco Bay Area",
+                        "employee_start_date": "2023-05-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      },
+                      {
+                        "employer_name": "Pioneer",
+                        "employer_linkedin_id": "18763174",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C560BAQG_RGQb-Ruidg/company-logo_400_400/company-logo_400_400/0/1631409399895/pioneerdotapp_logo?e=1795046400&v=beta&t=5XzXj6365Dlvn0hYv6-8WJTD6aPl_a80TK9TJPC19t8",
+                        "employer_linkedin_description": "Pioneers receive $20,000, join a 3-month remote accelerator program, spend a month together in Silicon Valley, and much more. In our 3 years since launching, we've funded 200+ founders from 50+ countries who've gone on to raise $100M+ from Sequoia, a16z, Y Combinator, Khosla Ventures, General Catalyst, Village Global, and many more VCs & angels.",
+                        "employer_company_id": [
+                          "1034437"
+                        ],
+                        "employer_website": [
+                          "pioneer.app"
+                        ],
+                        "employee_position_id": "2869892281",
+                        "employee_title": "Pioneer",
+                        "employee_description": "Pioneer is a startup accelerator for ambitious outsiders. Started by Daniel Gross.\nSelected as one of the the Pioneers in 2021.",
+                        "employee_location": null,
+                        "employee_start_date": "2021-01-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      }
+                    ],
+                    "past": [
+                      {
+                        "employer_name": "AI Engineer",
+                        "employer_linkedin_id": "95757641",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQFElHL8m07D_w/company-logo_200_200/company-logo_200_200/0/1688314696325?e=1743033600&v=beta&t=01XFuu5u4t1LD5x4wBP2n4eMDP9uyA09DaJ6tfLbiTI",
+                        "employer_linkedin_description": "Software 3.0 INC (owner of AI Engineer events and community) is focused on building a global network of flagship and regional events, complemented by year-round community engagement opportunities. Our mission is to empower and unite the global AI engineering community by delivering transformative events,  knowledge exchange, and collaborative experiences that accelerate practical AI progress.",
+                        "employer_company_id": [
+                          "2785796"
+                        ],
+                        "employer_website": [
+                          "ai.engineer"
+                        ],
+                        "employee_position_id": "2869890508",
+                        "employee_title": "Workshop Speaker",
+                        "employee_description": "Presented and led workshop during the AI Engineer Conference.\n\nPresented how to integrate sandboxed code interpreting in AI applications.",
+                        "employee_location": "San Francisco Bay Area",
+                        "employee_start_date": "2024-06-01T00:00:00.000Z",
+                        "employee_end_date": "2024-06-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Devbook",
+                        "employer_linkedin_id": "36998319",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C560BAQEuRosBozjOfA/company-logo_400_400/company-logo_400_400/0/1630647893012/devbookhq_logo?e=1793836800&v=beta&t=7-30sWWQLOfCOspmFfNiJ0Uzz50k_SZqbmDAcz5nR5k",
+                        "employer_linkedin_description": "Backend for your developer documentation",
+                        "employer_company_id": [
+                          "3109946"
+                        ],
+                        "employer_website": [
+                          "usedevbook.com"
+                        ],
+                        "employee_position_id": "2869898047",
+                        "employee_title": "Co-founder & CEO",
+                        "employee_description": "Search engine for developers. Trainer custom ML models on code datasets.\n\n- 15,000 users\n- 4,000 weekly active users",
+                        "employee_location": null,
+                        "employee_start_date": "2021-01-01T00:00:00.000Z",
+                        "employee_end_date": "2023-03-01T00:00:00.000Z"
+                      }
+                    ]
+                  }
+                },
+                "education": {
+                  "schools": [
+                    {
+                      "school": "Charles University",
+                      "degree": null,
+                      "field_of_study": "Computer Science",
+                      "activities": null
+                    }
+                  ]
+                },
+                "updated_at": "2026-10-17T01:03:00.817Z"
+              },
+              {
+                "crustdata_person_id": 280432,
+                "basic_profile": {
+                  "name": "Tomas‎  ‎Valenta‎ ",
+                  "headline": "‎Building cloud so agents can rm -rf --no-preserve-root / in peace",
+                  "current_title": "Co-Founder & CTO",
+                  "summary": "Some of my work is here - https://github.com/ValentaTomas",
+                  "languages": [
+                    "English (Native or bilingual proficiency)",
+                    "Czech (Native or bilingual proficiency)"
+                  ],
+                  "last_updated": "2026-10-27T13:21:47.250Z",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/c3372dfdd8522fdfc4602ff2b1578990c9f68211e7aa757a50ce7fff77634f06.jpg",
+                  "location": {
+                    "raw": "San Francisco Bay Area"
+                  }
+                },
+                "professional_network": {
+                  "profile_picture_url": "https://media.licdn.com/dms/image/v2/D4E03AQEVG0wygIhgWw/profile-displayphoto-crop_800_800/B4EZfsQYkZHIAI-/0/1752015408503?e=1794441600&v=beta&t=LkTMK6LWPc8BcPHVcdY1U03GKhBYfXKnOEUEe6sLeZA",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/c3372dfdd8522fdfc4602ff2b1578990c9f68211e7aa757a50ce7fff77634f06.jpg",
+                  "name": "Tomas‎  ‎Valenta‎ ",
+                  "headline": "‎Building cloud so agents can rm -rf --no-preserve-root / in peace",
+                  "current_title": "Co-Founder & CTO",
+                  "summary": "Some of my work is here - https://github.com/ValentaTomas",
+                  "location": {
+                    "raw": "San Francisco Bay Area"
+                  },
+                  "connections": 1394
+                },
+                "skills": {
+                  "professional_network_skills": [
+                    "Python (Programming Language)",
+                    "Linux",
+                    "React.js",
+                    "JavaScript",
+                    "C#"
+                  ]
+                },
+                "social_handles": {
+                  "professional_network_identifier": {
+                    "profile_url": "https://www.linkedin.com/in/valentatomas"
+                  },
+                  "twitter_identifier": {
+                    "slug": null
+                  }
+                },
+                "experience": {
+                  "employment_details": {
+                    "current": [
+                      {
+                        "employer_name": "E2B",
+                        "employer_linkedin_id": "96484695",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQE2o7muaXZKEw/company-logo_400_400/B56Z9ChultGsAU-/0/1783527565940/e2b_dev_logo?e=1794441600&v=beta&t=Jj0bnNvQR0iFjPoaYCq1EPOAqn5ZupDwY8MlA0huGOk",
+                        "employer_linkedin_description": "Machines for AI agents",
+                        "employer_company_id": [
+                          "1083252"
+                        ],
+                        "employer_website": [
+                          "e2b.dev"
+                        ],
+                        "employee_position_id": "2179997202",
+                        "employee_title": "Co-Founder & CTO",
+                        "employee_description": null,
+                        "employee_location": "San Francisco a okolí",
+                        "employee_start_date": "2023-05-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      }
+                    ],
+                    "past": []
+                  }
+                },
+                "education": {
+                  "schools": [
+                    {
+                      "school": "Masarykova univerzita",
+                      "degree": null,
+                      "field_of_study": "Informatics",
+                      "activities": null
+                    }
+                  ]
+                },
+                "updated_at": "2026-10-27T13:21:47.250Z"
+              }
+            ],
+            "decision_makers": [
+              {
+                "crustdata_person_id": 280431,
+                "basic_profile": {
+                  "name": "Vasek Mlejnsky",
+                  "headline": "Building cloud for agents",
+                  "current_title": "Co-Founder & CEO",
+                  "summary": "I like startups and devtools",
+                  "languages": [
+                    "čeština (Native or bilingual proficiency)",
+                    "angličtina (Native or bilingual proficiency)"
+                  ],
+                  "last_updated": "2026-10-17T01:03:00.817Z",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/77e5018c78f710bfc12919ba8a5d15951841e51e34cca93097a39bdcc6a60579.jpg",
+                  "location": {
+                    "raw": "San Francisco, California, United States"
+                  }
+                },
+                "professional_network": {
+                  "profile_picture_url": "https://media.licdn.com/dms/image/v2/D4E03AQFCj4I0fkOuHA/profile-displayphoto-shrink_800_800/B4EZX3pUE9HcAg-/0/1743616557654?e=1793836800&v=beta&t=QqEEkJ4dsnDVBKOHGALuoeuF_sSiEfG3iJumrlPZ5Wo",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/77e5018c78f710bfc12919ba8a5d15951841e51e34cca93097a39bdcc6a60579.jpg",
+                  "name": "Vasek Mlejnsky",
+                  "headline": "Building cloud for agents",
+                  "current_title": "Co-Founder & CEO",
+                  "summary": "I like startups and devtools",
+                  "location": {
+                    "raw": "San Francisco, California, United States"
+                  },
+                  "connections": 2615
+                },
+                "skills": {
+                  "professional_network_skills": [
+                    "Programming"
+                  ]
+                },
+                "social_handles": {
+                  "professional_network_identifier": {
+                    "profile_url": "https://www.linkedin.com/in/mlejva"
+                  },
+                  "twitter_identifier": {
+                    "slug": null
+                  }
+                },
+                "experience": {
+                  "employment_details": {
+                    "current": [
+                      {
+                        "employer_name": "E2B",
+                        "employer_linkedin_id": "96484695",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQE2o7muaXZKEw/company-logo_400_400/B56Z9ChultGsAU-/0/1783527565940/e2b_dev_logo?e=1794441600&v=beta&t=Jj0bnNvQR0iFjPoaYCq1EPOAqn5ZupDwY8MlA0huGOk",
+                        "employer_linkedin_description": "Machines for AI agents",
+                        "employer_company_id": [
+                          "1083252"
+                        ],
+                        "employer_website": [
+                          "e2b.dev"
+                        ],
+                        "employee_position_id": "2178885022",
+                        "employee_title": "Co-Founder & CEO",
+                        "employee_description": "Building agentic cloud\n\n- Series A company that has raised over $37M and led company to 8-figure revenue\n- Grew the team in San Francisco, USA and Prague, Czech Republic\n- Thousands of paying customers, including companies such as Gusto, Perplexity, Mistral, Hugging Face, PGA, Microsoft and other F500 companies\n- Over 4.5M monthly SDK downloads\n- Featured in Venture Beat, Forbes",
+                        "employee_location": "San Francisco Bay Area",
+                        "employee_start_date": "2023-05-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      },
+                      {
+                        "employer_name": "Pioneer",
+                        "employer_linkedin_id": "18763174",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C560BAQG_RGQb-Ruidg/company-logo_400_400/company-logo_400_400/0/1631409399895/pioneerdotapp_logo?e=1795046400&v=beta&t=5XzXj6365Dlvn0hYv6-8WJTD6aPl_a80TK9TJPC19t8",
+                        "employer_linkedin_description": "Pioneers receive $20,000, join a 3-month remote accelerator program, spend a month together in Silicon Valley, and much more. In our 3 years since launching, we've funded 200+ founders from 50+ countries who've gone on to raise $100M+ from Sequoia, a16z, Y Combinator, Khosla Ventures, General Catalyst, Village Global, and many more VCs & angels.",
+                        "employer_company_id": [
+                          "1034437"
+                        ],
+                        "employer_website": [
+                          "pioneer.app"
+                        ],
+                        "employee_position_id": "2869892281",
+                        "employee_title": "Pioneer",
+                        "employee_description": "Pioneer is a startup accelerator for ambitious outsiders. Started by Daniel Gross.\nSelected as one of the the Pioneers in 2021.",
+                        "employee_location": null,
+                        "employee_start_date": "2021-01-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      }
+                    ],
+                    "past": [
+                      {
+                        "employer_name": "AI Engineer",
+                        "employer_linkedin_id": "95757641",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQFElHL8m07D_w/company-logo_200_200/company-logo_200_200/0/1688314696325?e=1743033600&v=beta&t=01XFuu5u4t1LD5x4wBP2n4eMDP9uyA09DaJ6tfLbiTI",
+                        "employer_linkedin_description": "Software 3.0 INC (owner of AI Engineer events and community) is focused on building a global network of flagship and regional events, complemented by year-round community engagement opportunities. Our mission is to empower and unite the global AI engineering community by delivering transformative events,  knowledge exchange, and collaborative experiences that accelerate practical AI progress.",
+                        "employer_company_id": [
+                          "2785796"
+                        ],
+                        "employer_website": [
+                          "ai.engineer"
+                        ],
+                        "employee_position_id": "2869890508",
+                        "employee_title": "Workshop Speaker",
+                        "employee_description": "Presented and led workshop during the AI Engineer Conference.\n\nPresented how to integrate sandboxed code interpreting in AI applications.",
+                        "employee_location": "San Francisco Bay Area",
+                        "employee_start_date": "2024-06-01T00:00:00.000Z",
+                        "employee_end_date": "2024-06-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Devbook",
+                        "employer_linkedin_id": "36998319",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C560BAQEuRosBozjOfA/company-logo_400_400/company-logo_400_400/0/1630647893012/devbookhq_logo?e=1793836800&v=beta&t=7-30sWWQLOfCOspmFfNiJ0Uzz50k_SZqbmDAcz5nR5k",
+                        "employer_linkedin_description": "Backend for your developer documentation",
+                        "employer_company_id": [
+                          "3109946"
+                        ],
+                        "employer_website": [
+                          "usedevbook.com"
+                        ],
+                        "employee_position_id": "2869898047",
+                        "employee_title": "Co-founder & CEO",
+                        "employee_description": "Search engine for developers. Trainer custom ML models on code datasets.\n\n- 15,000 users\n- 4,000 weekly active users",
+                        "employee_location": null,
+                        "employee_start_date": "2021-01-01T00:00:00.000Z",
+                        "employee_end_date": "2023-03-01T00:00:00.000Z"
+                      }
+                    ]
+                  }
+                },
+                "education": {
+                  "schools": [
+                    {
+                      "school": "Charles University",
+                      "degree": null,
+                      "field_of_study": "Computer Science",
+                      "activities": null
+                    }
+                  ]
+                },
+                "updated_at": "2026-10-17T01:03:00.817Z"
+              },
+              {
+                "crustdata_person_id": 563747,
+                "basic_profile": {
+                  "name": "Tomas Srnka 🦌",
+                  "headline": "Building teams & platforms",
+                  "current_title": "Head of Engineering",
+                  "summary": null,
+                  "languages": [
+                    "Czech (Native or bilingual proficiency)",
+                    "English (Full professional proficiency)",
+                    "German (Elementary proficiency)",
+                    "Slovak (Native or bilingual proficiency)"
+                  ],
+                  "last_updated": "2026-10-19T18:03:12.881Z",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/6b262343f0243ba6ebc17efa720f2809c2ab7b133237d01b6515e1187de12d09.jpg",
+                  "location": {
+                    "raw": "Prague, Czechia"
+                  }
+                },
+                "professional_network": {
+                  "profile_picture_url": "https://media.licdn.com/dms/image/v2/D5603AQHJHBfmhapztQ/profile-displayphoto-crop_800_800/B56aDT8mYPG4AQ-/0/1790262275254?e=1793836800&v=beta&t=XVkBpWoEkA4tslO0fJN-x8kZfj9tixfpYrwAWrrSB6g",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/6b262343f0243ba6ebc17efa720f2809c2ab7b133237d01b6515e1187de12d09.jpg",
+                  "name": "Tomas Srnka 🦌",
+                  "headline": "Building teams & platforms",
+                  "current_title": "Head of Engineering",
+                  "summary": null,
+                  "location": {
+                    "raw": "Prague, Czechia"
+                  },
+                  "connections": 2349
+                },
+                "skills": {
+                  "professional_network_skills": [
+                    "Storage",
+                    "PHP",
+                    "Apache",
+                    "Linux",
+                    "Web Development"
+                  ]
+                },
+                "social_handles": {
+                  "professional_network_identifier": {
+                    "profile_url": "https://www.linkedin.com/in/tomassrnka"
+                  },
+                  "twitter_identifier": {
+                    "slug": "tomassrnka"
+                  }
+                },
+                "experience": {
+                  "employment_details": {
+                    "current": [
+                      {
+                        "employer_name": "vpsFree.cz o.s.",
+                        "employer_linkedin_id": "3085184",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C4D0BAQGsWFFImhgyOA/company-logo_400_400/company-logo_400_400/0/1630550426092/vpsfree_cz_o_s__logo?e=1790208000&v=beta&t=9Ck_EN_dwN-GU6H_c0UrUr8QeNLvK-2JcjHoxtcfAqo",
+                        "employer_linkedin_description": "vpsFree.cz o.s. is a non-profit organisation providing virtual servers for its members. Currently, we are operating servers in Prague and Brno for more than 450 members running almost 600 virtual servers. Our goal is to create an open community of people sharing common interest in linux and opensource technologies.",
+                        "employer_company_id": [
+                          "4216428"
+                        ],
+                        "employer_website": [
+                          "vpsfree.cz"
+                        ],
+                        "employee_position_id": "275335493",
+                        "employee_title": "Co-founder, Member of executive committee",
+                        "employee_description": "Originally a hobby project to run virtual servers for friends, started while in high-school. Turned into organization supporting open-source software, communities and building own cloud-like system for (not only its) members. Currently having 1500+ members and growing.\n\nActive in operating the organisation alongside long-term friends and members to server our purpose.",
+                        "employee_location": null,
+                        "employee_start_date": "2009-04-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      },
+                      {
+                        "employer_name": "E2B",
+                        "employer_linkedin_id": "96484695",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQE2o7muaXZKEw/company-logo_400_400/B56Z9ChultGsAU-/0/1783527565940/e2b_dev_logo?e=1794441600&v=beta&t=Jj0bnNvQR0iFjPoaYCq1EPOAqn5ZupDwY8MlA0huGOk",
+                        "employer_linkedin_description": "Machines for AI agents",
+                        "employer_company_id": [
+                          "1083252"
+                        ],
+                        "employer_website": [
+                          "e2b.dev"
+                        ],
+                        "employee_position_id": "2863205861",
+                        "employee_title": "Head of Engineering",
+                        "employee_description": null,
+                        "employee_location": null,
+                        "employee_start_date": "2026-02-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      }
+                    ],
+                    "past": [
+                      {
+                        "employer_name": "Relbit, s.r.o.",
+                        "employer_linkedin_id": "2102484",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C4D0BAQEbjtDKBoRBGw/company-logo_400_400/company-logo_400_400/0/1631302395374?e=1794441600&v=beta&t=iz0990xHqsnlGobiZ49uRuDgdRXF-3sw6rOcxQmJBr4",
+                        "employer_linkedin_description": "We are developing a new approach to server management, the open-source project Evia. We want to bring reliable evolutionary software to the market, which helps system administrators or entrepreneurs to save time and create stable platforms for their activities.Our product portfolio includes the public PaaS built on Evia and the open-source project Evia. To learn more, visit https://eviaproject.org/",
+                        "employer_company_id": [
+                          "15541772"
+                        ],
+                        "employer_website": [
+                          null
+                        ],
+                        "employee_position_id": "163017031",
+                        "employee_title": "Founder, Managing Partner",
+                        "employee_description": "I was a co-founder of Relbit and responsible for team of 10 people developing, marketing and operating the system & platform.\n\nRelbit was s startup building a PaaS (Platform-as-a-service) system for simple deployment and operations of PHP and MySQL web applications with automatic infinite scaling options. \n\nRelbit offered both on-prem system with easy installation & online hosted version.\n\nThe on-prem system was a custom built operating system based on Scientific Linux / CentOS with easy installation, clustering, management, upgrade options etc. The system utilised OpenVZ containers and ZFS storage. \n\nThe online offering allowed customers to have easy web-hosting like experience was large applications. \n\nCustomers included SME.sk, QualityUnit (LiveAgent & PostAffiliatePro), BiznisWeb.sk and others. \n\nThe company raised angel/seed investment in 2010, joined StartupSauna 2014 in Helsinki and was closed in the beginning of 2015.",
+                        "employee_location": null,
+                        "employee_start_date": "2010-07-01T00:00:00.000Z",
+                        "employee_end_date": "2015-01-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Google",
+                        "employer_linkedin_id": "1441",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C4D0BAQHiNSL4Or29cg/company-logo_200_200/company-logo_200_200/0/1631311446380?e=1754524800&v=beta&t=ZBdwk74kQ7OjCzxTOB37kQzyhNBl_yLjOTE6GcG3UvY",
+                        "employer_linkedin_description": "A problem isn't truly solved until it's solved for all. Googlers build products that help create opportunities for everyone, whether down the street or across the globe. Bring your insight, imagination and a healthy disregard for the impossible. Bring everything that makes you unique. Together, we can build for everyone.Check out our career opportunities at goo.gle/3DLEokh",
+                        "employer_company_id": [
+                          "4926893"
+                        ],
+                        "employer_website": [
+                          "google.com"
+                        ],
+                        "employee_position_id": "175027176",
+                        "employee_title": "Google Summer of Code Student",
+                        "employee_description": "PHP/MySQL developer for phpMyAdmin project, successfully delivered & merged into main version:\n- Replication support (Master & Slave setup, Status pages etc.), initial patches in PMA 3.2\n- Updated UI with progress bars, initial patches in PMA 3.3\n- Helped to finish sync functionality between different tables/databases.",
+                        "employee_location": null,
+                        "employee_start_date": "2009-05-01T00:00:00.000Z",
+                        "employee_end_date": "2009-08-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Loopia Group",
+                        "employer_linkedin_id": "19001737",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C4D0BAQEmRgN0ARhKgg/company-logo_200_200/company-logo_200_200/0/1669901913801/loopia_group_logo?e=1744243200&v=beta&t=yBF8D81q272IRL_tN6o_2Ls798a6Stz9MNZzX368QCQ",
+                        "employer_linkedin_description": "Loopia Group is a leading European web services and hosting business with its largest operations in Sweden, Norway, Finland, Slovakia, Czech Republic, Hungary and Serbia.",
+                        "employer_company_id": [
+                          "2398666"
+                        ],
+                        "employer_website": [
+                          "loopia.group"
+                        ],
+                        "employee_position_id": "1930144242",
+                        "employee_title": "Interim Chief Technology Officer",
+                        "employee_description": null,
+                        "employee_location": null,
+                        "employee_start_date": "2022-02-01T00:00:00.000Z",
+                        "employee_end_date": "2022-07-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Loopia Group",
+                        "employer_linkedin_id": "19001737",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C4D0BAQEmRgN0ARhKgg/company-logo_200_200/company-logo_200_200/0/1669901913801/loopia_group_logo?e=1744243200&v=beta&t=yBF8D81q272IRL_tN6o_2Ls798a6Stz9MNZzX368QCQ",
+                        "employer_linkedin_description": "Loopia Group is a leading European web services and hosting business with its largest operations in Sweden, Norway, Finland, Slovakia, Czech Republic, Hungary and Serbia.",
+                        "employer_company_id": [
+                          "2398666"
+                        ],
+                        "employer_website": [
+                          "loopia.group"
+                        ],
+                        "employee_position_id": "2068899059",
+                        "employee_title": "Chief Technology Officer",
+                        "employee_description": "[Acquired by team.blue in 2024] \nHelping entrepreneurs and individuals succeed online by leading talented team of system engineers,  developers, product and project managers (150+ people) spread across 7 countries. We build and operate DNS, hosting, mail, and cloud services for over 650,000 customers across the Nordics and CEE region.",
+                        "employee_location": null,
+                        "employee_start_date": "2022-08-01T00:00:00.000Z",
+                        "employee_end_date": "2024-09-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Loopia Group",
+                        "employer_linkedin_id": "19001737",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C4D0BAQEmRgN0ARhKgg/company-logo_200_200/company-logo_200_200/0/1669901913801/loopia_group_logo?e=1744243200&v=beta&t=yBF8D81q272IRL_tN6o_2Ls798a6Stz9MNZzX368QCQ",
+                        "employer_linkedin_description": "Loopia Group is a leading European web services and hosting business with its largest operations in Sweden, Norway, Finland, Slovakia, Czech Republic, Hungary and Serbia.",
+                        "employer_company_id": [
+                          "2398666"
+                        ],
+                        "employer_website": [
+                          "loopia.group"
+                        ],
+                        "employee_position_id": "2125594771",
+                        "employee_title": "Head of IT for CEE region & Head of Odin platform",
+                        "employee_description": "Responsible for leading team of developers and engineers in CEE region incl. regional leaders in the industry Active24 (CZ), Websupport (SK+HU) and Magyar hosting/EZIT (HU).",
+                        "employee_location": "Bratislava, Slovakia",
+                        "employee_start_date": "2019-05-01T00:00:00.000Z",
+                        "employee_end_date": "2022-01-01T00:00:00.000Z"
+                      }
+                    ]
+                  }
+                },
+                "education": {
+                  "schools": [
+                    {
+                      "school": "Univerzita Komenského v Bratislave",
+                      "degree": "Master's Degree",
+                      "field_of_study": "Faculty of Management / Strategic Management & Information Systems",
+                      "activities": null
+                    },
+                    {
+                      "school": "Czech Technical University in Prague",
+                      "degree": "Bachelor's degree",
+                      "field_of_study": "Computer Science",
+                      "activities": "eClub"
+                    },
+                    {
+                      "school": "Gymnazium Jura Hronca, International Baccalaureate Diploma Programme",
+                      "degree": null,
+                      "field_of_study": "Computer Science, Mathematics, Business & Management",
+                      "activities": "BratMUN, Blast:beat"
+                    }
+                  ]
+                },
+                "updated_at": "2026-10-19T18:03:12.881Z"
+              },
+              {
+                "crustdata_person_id": 177125225,
+                "basic_profile": {
+                  "name": "Mark Temple",
+                  "headline": "Head of Finance at E2B",
+                  "current_title": "Head of Finance",
+                  "summary": "marktemple.org - 👋🏻",
+                  "languages": [],
+                  "last_updated": "2026-10-22T13:53:50.856Z",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/8439becf6cd6940b9d45e00ef405ced261ea11acd4de19ee82b4ef15028114ac.jpg",
+                  "location": {
+                    "raw": "San Francisco, California, United States"
+                  }
+                },
+                "professional_network": {
+                  "profile_picture_url": "https://media.licdn.com/dms/image/v2/C4E03AQHy3q6h9RDvIw/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1647204331638?e=1784764800&v=beta&t=F3WR9N7mhJ-_3k0zEuh6qC0GLbjc8dun6aVGT8k1Oew",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/8439becf6cd6940b9d45e00ef405ced261ea11acd4de19ee82b4ef15028114ac.jpg",
+                  "name": "Mark Temple",
+                  "headline": "Head of Finance at E2B",
+                  "current_title": "Head of Finance",
+                  "summary": "marktemple.org - 👋🏻",
+                  "location": {
+                    "raw": "San Francisco, California, United States"
+                  },
+                  "connections": 2082
+                },
+                "skills": {
+                  "professional_network_skills": [
+                    "Market Analysis",
+                    "Business Strategy",
+                    "Business Operations",
+                    "Corporate Development",
+                    "CFO"
+                  ]
+                },
+                "social_handles": {
+                  "professional_network_identifier": {
+                    "profile_url": "https://www.linkedin.com/in/templemark"
+                  },
+                  "twitter_identifier": {
+                    "slug": null
+                  }
+                },
+                "experience": {
+                  "employment_details": {
+                    "current": [
+                      {
+                        "employer_name": "Self-employed",
+                        "employer_linkedin_id": null,
+                        "employer_logo_url": null,
+                        "employer_linkedin_description": null,
+                        "employer_company_id": [
+                          null
+                        ],
+                        "employer_website": [
+                          null
+                        ],
+                        "employee_position_id": "2075373927",
+                        "employee_title": "Fractional CFO",
+                        "employee_description": "Clients Include:\n- Array Labs\n- Andreessen Horowitz\n- Assured Health\n- Atomic\n- E2B\n- Compound\n- Dawn Health\n- Integral\n- Lantern\n- Maximus\n- Paravision\n- Salvo Health\n- SageSure Insurance Managers",
+                        "employee_location": null,
+                        "employee_start_date": "2020-09-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      },
+                      {
+                        "employer_name": "E2B",
+                        "employer_linkedin_id": "96484695",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQE2o7muaXZKEw/company-logo_400_400/B56Z9ChultGsAU-/0/1783527565940/e2b_dev_logo?e=1794441600&v=beta&t=Jj0bnNvQR0iFjPoaYCq1EPOAqn5ZupDwY8MlA0huGOk",
+                        "employer_linkedin_description": "Machines for AI agents",
+                        "employer_company_id": [
+                          "1083252"
+                        ],
+                        "employer_website": [
+                          "e2b.dev"
+                        ],
+                        "employee_position_id": "2968907866",
+                        "employee_title": "Head of Finance",
+                        "employee_description": null,
+                        "employee_location": "San Francisco Bay Area",
+                        "employee_start_date": "2026-07-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      }
+                    ],
+                    "past": [
+                      {
+                        "employer_name": "Atomic",
+                        "employer_linkedin_id": "2913118",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQHSTdKxtpoRzQ/company-logo_200_200/company-logo_200_200/0/1734550280849/atomic_vc_logo?e=1752105600&v=beta&t=Lq9imA4gUBpsz62AtpIv5oju6L4McnkJAU_vkMeMg-I",
+                        "employer_linkedin_description": "Atomic is the venture studio that pioneered the model of starting companies by pairing founders with the best ideas, teams, and resources. When entrepreneurs team up with Atomic, they join a group of experienced founders and a ready-made team of experts who have successfully built many companies, generating billions of dollars in value. Our fourth fund of $320 million is used exclusively to fund companies started at Atomic.",
+                        "employer_company_id": [
+                          "6085777"
+                        ],
+                        "employer_website": [
+                          null
+                        ],
+                        "employee_position_id": "1347566589",
+                        "employee_title": "Associate",
+                        "employee_description": "Atomic is the venture studio that founded and funded companies like Bungalow, Found, Hims & Hers (NYSE: HIMS), Homebound, OpenStore, Replicant, and Terminal. We start companies and invest in them from our $275M fund.",
+                        "employee_location": "San Francisco Bay Area",
+                        "employee_start_date": "2018-08-01T00:00:00.000Z",
+                        "employee_end_date": "2021-01-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Blackstone",
+                        "employer_linkedin_id": "7834",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C4E0BAQHM1mo8m_ecGw/company-logo_200_200/company-logo_200_200/0/1678125020983/blackstonegroup_logo?e=1753315200&v=beta&t=CZDLgijA7dJQTWoeA17y96yzBL7ohfpWZqD5w9G3w1o",
+                        "employer_linkedin_description": "Blackstone is the world’s largest alternative asset manager. Blackstone seeks to deliver compelling returns for institutional and individual investors by strengthening the companies in which the firm invests. Blackstone’s $1.3 trillion in assets under management include global investment strategies focused on real estate, private equity, credit, infrastructure, life sciences, growth equity, secondaries and hedge funds. Further information is available at www.blackstone.com. Follow @blackstone on LinkedIn, X (Twitter), and Instagram.",
+                        "employer_company_id": [
+                          "681931"
+                        ],
+                        "employer_website": [
+                          "blackstone.com"
+                        ],
+                        "employee_position_id": "316168555",
+                        "employee_title": "Summer Intern",
+                        "employee_description": "- Worked in the 50-person Blackstone Internet Technology Services division for 8 weeks each summer",
+                        "employee_location": "Greater New York City Area",
+                        "employee_start_date": "2009-06-01T00:00:00.000Z",
+                        "employee_end_date": "2011-08-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Box",
+                        "employer_linkedin_id": "54178",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQGRW76dCz-yqg/company-logo_400_400/B56ZVJlIIsHEAY-/0/1740696224544/box_logo?e=1754524800&v=beta&t=eOcf8zKYy4t1rPejPsvO5xMD-qZG7xnIV2tKB0EtB00",
+                        "employer_linkedin_description": "Box (NYSE:BOX) is the Intelligent Content Cloud, a single platform that enables organizations to fuel collaboration, manage the entire content lifecycle, secure critical content, and transform business workflows with enterprise AI. Founded in 2005, Box simplifies work for leading global organizations, including JLL, Morgan Stanley, and Nationwide. Box is headquartered in Redwood City, CA, with offices across the United States, Europe, and Asia. Visit box.com to learn more. And visit box.org to learn more about how Box empowers nonprofits to fulfill their missions.",
+                        "employer_company_id": [
+                          "662371"
+                        ],
+                        "employer_website": [
+                          "box.com"
+                        ],
+                        "employee_position_id": "546003824",
+                        "employee_title": "Investor Relations & Treasury",
+                        "employee_description": "- Supported earnings preparation process including editing CFO’s talking points, obtaining customer and financial data, and updating S-1 filing.",
+                        "employee_location": "San Francisco Bay Area",
+                        "employee_start_date": "2014-06-01T00:00:00.000Z",
+                        "employee_end_date": "2014-08-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Union Square Advisors LLC",
+                        "employer_linkedin_id": "384953",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C4E0BAQE-EDrEHb-pJA/company-logo_200_200/company-logo_200_200/0/1667942751654/union_square_advisors_logo?e=1748476800&v=beta&t=eMWy1rav4DGjo5NznFVDNaK_m-MRnhQlYBeg658MnVo",
+                        "employer_linkedin_description": "Union Square Advisors is a leading technology-focused investment bank that offers strategic mergers & acquisitions advice and execution, agented private capital financing and capital markets advisory services. Founded in 2007, with offices in San Francisco, New York and Boston, Union Square Advisors works with leading public and private technology companies, private equity, venture capital and family offices. Our expertise spans many aspects of the technology landscape, including Enterprise Software and Infrastructure, FinTech, HealthTech, Internet+Digital Media, eCommerce, Consumer Software, AIoT & Industrial Technology, GRC, Back-Office Software and other key segments. Since inception, Union Square Advisors has advised on more than 190 strategic and financing transactions, valued in excess of $120B. For more information, please visit http://www.usadvisors.com.Union Square Advisors LLC is a member of FINRA and SIPC.",
+                        "employer_company_id": [
+                          "904849"
+                        ],
+                        "employer_website": [
+                          "usadvisors.com"
+                        ],
+                        "employee_position_id": "816540953",
+                        "employee_title": "Technology Investment Banking - M&A",
+                        "employee_description": "- Technology M&A & Private Capital Raises",
+                        "employee_location": "San Francisco, California",
+                        "employee_start_date": "2016-01-01T00:00:00.000Z",
+                        "employee_end_date": "2018-01-01T00:00:00.000Z"
+                      }
+                    ]
+                  }
+                },
+                "education": {
+                  "schools": [
+                    {
+                      "school": "Washington University in St. Louis",
+                      "degree": "Bachelor of Business Administration - BBA",
+                      "field_of_study": "Finance & Computer Science",
+                      "activities": "Captain of Washington University Squash Team"
+                    },
+                    {
+                      "school": "Rye Country Day School",
+                      "degree": null,
+                      "field_of_study": null,
+                      "activities": null
+                    }
+                  ]
+                },
+                "updated_at": "2026-10-22T13:53:50.856Z"
+              },
+              {
+                "crustdata_person_id": 280432,
+                "basic_profile": {
+                  "name": "Tomas‎  ‎Valenta‎ ",
+                  "headline": "‎Building cloud so agents can rm -rf --no-preserve-root / in peace",
+                  "current_title": "Co-Founder & CTO",
+                  "summary": "Some of my work is here - https://github.com/ValentaTomas",
+                  "languages": [
+                    "English (Native or bilingual proficiency)",
+                    "Czech (Native or bilingual proficiency)"
+                  ],
+                  "last_updated": "2026-10-27T13:21:47.250Z",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/c3372dfdd8522fdfc4602ff2b1578990c9f68211e7aa757a50ce7fff77634f06.jpg",
+                  "location": {
+                    "raw": "San Francisco Bay Area"
+                  }
+                },
+                "professional_network": {
+                  "profile_picture_url": "https://media.licdn.com/dms/image/v2/D4E03AQEVG0wygIhgWw/profile-displayphoto-crop_800_800/B4EZfsQYkZHIAI-/0/1752015408503?e=1794441600&v=beta&t=LkTMK6LWPc8BcPHVcdY1U03GKhBYfXKnOEUEe6sLeZA",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/c3372dfdd8522fdfc4602ff2b1578990c9f68211e7aa757a50ce7fff77634f06.jpg",
+                  "name": "Tomas‎  ‎Valenta‎ ",
+                  "headline": "‎Building cloud so agents can rm -rf --no-preserve-root / in peace",
+                  "current_title": "Co-Founder & CTO",
+                  "summary": "Some of my work is here - https://github.com/ValentaTomas",
+                  "location": {
+                    "raw": "San Francisco Bay Area"
+                  },
+                  "connections": 1394
+                },
+                "skills": {
+                  "professional_network_skills": [
+                    "Python (Programming Language)",
+                    "Linux",
+                    "React.js",
+                    "JavaScript",
+                    "C#"
+                  ]
+                },
+                "social_handles": {
+                  "professional_network_identifier": {
+                    "profile_url": "https://www.linkedin.com/in/valentatomas"
+                  },
+                  "twitter_identifier": {
+                    "slug": null
+                  }
+                },
+                "experience": {
+                  "employment_details": {
+                    "current": [
+                      {
+                        "employer_name": "E2B",
+                        "employer_linkedin_id": "96484695",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQE2o7muaXZKEw/company-logo_400_400/B56Z9ChultGsAU-/0/1783527565940/e2b_dev_logo?e=1794441600&v=beta&t=Jj0bnNvQR0iFjPoaYCq1EPOAqn5ZupDwY8MlA0huGOk",
+                        "employer_linkedin_description": "Machines for AI agents",
+                        "employer_company_id": [
+                          "1083252"
+                        ],
+                        "employer_website": [
+                          "e2b.dev"
+                        ],
+                        "employee_position_id": "2179997202",
+                        "employee_title": "Co-Founder & CTO",
+                        "employee_description": null,
+                        "employee_location": "San Francisco a okolí",
+                        "employee_start_date": "2023-05-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      }
+                    ],
+                    "past": []
+                  }
+                },
+                "education": {
+                  "schools": [
+                    {
+                      "school": "Masarykova univerzita",
+                      "degree": null,
+                      "field_of_study": "Informatics",
+                      "activities": null
+                    }
+                  ]
+                },
+                "updated_at": "2026-10-27T13:21:47.250Z"
+              },
+              {
+                "crustdata_person_id": 110354416,
+                "basic_profile": {
+                  "name": "Tomas V.",
+                  "headline": "Head of Product @ E2B",
+                  "current_title": "Head of Product",
+                  "summary": "Infrastructure Specialist with a demonstrated history of working in the computer software industry. \n\nhttps://github.com/tvi",
+                  "languages": [
+                    "English (Full professional proficiency)",
+                    "German (Elementary proficiency)",
+                    "Mandarin Chinese (Elementary proficiency)",
+                    "Slovak (Native or bilingual proficiency)"
+                  ],
+                  "last_updated": "2026-10-11T13:06:21.714Z",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/ee2dec2901656df9802b3402b3a02e41e02926718082ec18652cc3bf47d88fb8.jpg",
+                  "location": {
+                    "raw": "San Francisco, California, United States"
+                  }
+                },
+                "professional_network": {
+                  "profile_picture_url": "https://media.licdn.com/dms/image/v2/C5603AQFj69P5rTN2Kw/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1540794437410?e=1793232000&v=beta&t=8CFDl0BCCmwxA3h5aWxFjZ0v4DpPh1v62gpnGon-hpk",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/ee2dec2901656df9802b3402b3a02e41e02926718082ec18652cc3bf47d88fb8.jpg",
+                  "name": "Tomas V.",
+                  "headline": "Head of Product @ E2B",
+                  "current_title": "Head of Product",
+                  "summary": "Infrastructure Specialist with a demonstrated history of working in the computer software industry. \n\nhttps://github.com/tvi",
+                  "location": {
+                    "raw": "San Francisco, California, United States"
+                  },
+                  "connections": 1376
+                },
+                "skills": {
+                  "professional_network_skills": [
+                    "Go",
+                    "Blockchain",
+                    "Kubernetes",
+                    "Computer Science",
+                    "Web Development"
+                  ]
+                },
+                "social_handles": {
+                  "professional_network_identifier": {
+                    "profile_url": "https://www.linkedin.com/in/tvirgl"
+                  },
+                  "twitter_identifier": {
+                    "slug": "erggo"
+                  }
+                },
+                "experience": {
+                  "employment_details": {
+                    "current": [
+                      {
+                        "employer_name": "E2B",
+                        "employer_linkedin_id": "96484695",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQE2o7muaXZKEw/company-logo_400_400/B56Z9ChultGsAU-/0/1783527565940/e2b_dev_logo?e=1794441600&v=beta&t=Jj0bnNvQR0iFjPoaYCq1EPOAqn5ZupDwY8MlA0huGOk",
+                        "employer_linkedin_description": "Machines for AI agents",
+                        "employer_company_id": [
+                          "1083252"
+                        ],
+                        "employer_website": [
+                          "e2b.dev"
+                        ],
+                        "employee_position_id": "2889326992",
+                        "employee_title": "Head of Product",
+                        "employee_description": null,
+                        "employee_location": "San Francisco, CA",
+                        "employee_start_date": "2026-04-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      }
+                    ],
+                    "past": [
+                      {
+                        "employer_name": "Wish",
+                        "employer_linkedin_id": "1344398",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C560BAQGj4N65gtGF3Q/company-logo_200_200/company-logo_200_200/0/1659622141651/wishshopping_logo?e=1750291200&v=beta&t=YUVXqPhqQ0AfJ88EuW1-MB_KvW8YLtBlDT6Y5T6RpcY",
+                        "employer_linkedin_description": "Wish is a mobile e-commerce platform that connects millions of consumers with the widest selection of products delivered directly to their doors. Our vision is to unlock ecommerce for the underserved by giving everyone access to the most affordable and convenient shopping experience on the planet. Wish is headquartered in San Francisco, with additional offices around the world.",
+                        "employer_company_id": [
+                          "637482"
+                        ],
+                        "employer_website": [
+                          "wish.com"
+                        ],
+                        "employee_position_id": "1475454800",
+                        "employee_title": "Senior Software Engineer, Core Infrastructure",
+                        "employee_description": null,
+                        "employee_location": null,
+                        "employee_start_date": "2019-04-01T00:00:00.000Z",
+                        "employee_end_date": "2021-04-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Wish",
+                        "employer_linkedin_id": "1344398",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C560BAQGj4N65gtGF3Q/company-logo_200_200/company-logo_200_200/0/1659622141651/wishshopping_logo?e=1750291200&v=beta&t=YUVXqPhqQ0AfJ88EuW1-MB_KvW8YLtBlDT6Y5T6RpcY",
+                        "employer_linkedin_description": "Wish is a mobile e-commerce platform that connects millions of consumers with the widest selection of products delivered directly to their doors. Our vision is to unlock ecommerce for the underserved by giving everyone access to the most affordable and convenient shopping experience on the planet. Wish is headquartered in San Francisco, with additional offices around the world.",
+                        "employer_company_id": [
+                          "637482"
+                        ],
+                        "employer_website": [
+                          "wish.com"
+                        ],
+                        "employee_position_id": "1769964214",
+                        "employee_title": "Staff Software Engineer, Core Infrastructure",
+                        "employee_description": null,
+                        "employee_location": null,
+                        "employee_start_date": "2021-04-01T00:00:00.000Z",
+                        "employee_end_date": "2024-01-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Wish",
+                        "employer_linkedin_id": "1344398",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C560BAQGj4N65gtGF3Q/company-logo_200_200/company-logo_200_200/0/1659622141651/wishshopping_logo?e=1750291200&v=beta&t=YUVXqPhqQ0AfJ88EuW1-MB_KvW8YLtBlDT6Y5T6RpcY",
+                        "employer_linkedin_description": "Wish is a mobile e-commerce platform that connects millions of consumers with the widest selection of products delivered directly to their doors. Our vision is to unlock ecommerce for the underserved by giving everyone access to the most affordable and convenient shopping experience on the planet. Wish is headquartered in San Francisco, with additional offices around the world.",
+                        "employer_company_id": [
+                          "637482"
+                        ],
+                        "employer_website": [
+                          "wish.com"
+                        ],
+                        "employee_position_id": "1965118266",
+                        "employee_title": "Software Engineer, Core Infrastructure",
+                        "employee_description": null,
+                        "employee_location": null,
+                        "employee_start_date": "2018-02-01T00:00:00.000Z",
+                        "employee_end_date": "2019-04-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Conduit",
+                        "employer_linkedin_id": "89964146",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQG8R8uKDpnqJg/company-logo_400_400/B56Z73hUBCGUAU-/0/1782269165842/conduitxyz_logo?e=1794441600&v=beta&t=8p6qjYpeEfmNCCoarfyHn7LkrSUwnteGks8Od_yFMqo",
+                        "employer_linkedin_description": "Powerful Chain InfrastructureWork with our renowned team of experts for your custom chain, backed by our powerful enterprise-grade infrastructure.",
+                        "employer_company_id": [
+                          "1072755"
+                        ],
+                        "employer_website": [
+                          "conduit.xyz"
+                        ],
+                        "employee_position_id": "2551695660",
+                        "employee_title": "Founding Engineer",
+                        "employee_description": null,
+                        "employee_location": "San Francisco, CA",
+                        "employee_start_date": "2024-01-01T00:00:00.000Z",
+                        "employee_end_date": "2026-04-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Google",
+                        "employer_linkedin_id": "1441",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C4D0BAQHiNSL4Or29cg/company-logo_200_200/company-logo_200_200/0/1631311446380?e=1754524800&v=beta&t=ZBdwk74kQ7OjCzxTOB37kQzyhNBl_yLjOTE6GcG3UvY",
+                        "employer_linkedin_description": "A problem isn't truly solved until it's solved for all. Googlers build products that help create opportunities for everyone, whether down the street or across the globe. Bring your insight, imagination and a healthy disregard for the impossible. Bring everything that makes you unique. Together, we can build for everyone.Check out our career opportunities at goo.gle/3DLEokh",
+                        "employer_company_id": [
+                          "4926893"
+                        ],
+                        "employer_website": [
+                          "google.com"
+                        ],
+                        "employee_position_id": "392194879",
+                        "employee_title": "Site Reliability Engineering Intern",
+                        "employee_description": "BigTable Site Reliability Engineering",
+                        "employee_location": "Greater New York City Area",
+                        "employee_start_date": "2013-06-01T00:00:00.000Z",
+                        "employee_end_date": "2013-09-01T00:00:00.000Z"
+                      }
+                    ]
+                  }
+                },
+                "education": {
+                  "schools": [
+                    {
+                      "school": "Imperial College London",
+                      "degree": "Master of Engineering (MEng)",
+                      "field_of_study": "Computing",
+                      "activities": "DoCSoc (Computing Society)"
+                    }
+                  ]
+                },
+                "updated_at": "2026-10-11T13:06:21.714Z"
+              }
+            ],
+            "founders": [
+              {
+                "crustdata_person_id": 280431,
+                "basic_profile": {
+                  "name": "Vasek Mlejnsky",
+                  "headline": "Building cloud for agents",
+                  "current_title": "Co-Founder & CEO",
+                  "summary": "I like startups and devtools",
+                  "languages": [
+                    "čeština (Native or bilingual proficiency)",
+                    "angličtina (Native or bilingual proficiency)"
+                  ],
+                  "last_updated": "2026-10-17T01:03:00.817Z",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/77e5018c78f710bfc12919ba8a5d15951841e51e34cca93097a39bdcc6a60579.jpg",
+                  "location": {
+                    "raw": "San Francisco, California, United States"
+                  }
+                },
+                "professional_network": {
+                  "profile_picture_url": "https://media.licdn.com/dms/image/v2/D4E03AQFCj4I0fkOuHA/profile-displayphoto-shrink_800_800/B4EZX3pUE9HcAg-/0/1743616557654?e=1793836800&v=beta&t=QqEEkJ4dsnDVBKOHGALuoeuF_sSiEfG3iJumrlPZ5Wo",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/77e5018c78f710bfc12919ba8a5d15951841e51e34cca93097a39bdcc6a60579.jpg",
+                  "name": "Vasek Mlejnsky",
+                  "headline": "Building cloud for agents",
+                  "current_title": "Co-Founder & CEO",
+                  "summary": "I like startups and devtools",
+                  "location": {
+                    "raw": "San Francisco, California, United States"
+                  },
+                  "connections": 2615
+                },
+                "skills": {
+                  "professional_network_skills": [
+                    "Programming"
+                  ]
+                },
+                "social_handles": {
+                  "professional_network_identifier": {
+                    "profile_url": "https://www.linkedin.com/in/mlejva"
+                  },
+                  "twitter_identifier": {
+                    "slug": null
+                  }
+                },
+                "experience": {
+                  "employment_details": {
+                    "current": [
+                      {
+                        "employer_name": "E2B",
+                        "employer_linkedin_id": "96484695",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQE2o7muaXZKEw/company-logo_400_400/B56Z9ChultGsAU-/0/1783527565940/e2b_dev_logo?e=1794441600&v=beta&t=Jj0bnNvQR0iFjPoaYCq1EPOAqn5ZupDwY8MlA0huGOk",
+                        "employer_linkedin_description": "Machines for AI agents",
+                        "employer_company_id": [
+                          "1083252"
+                        ],
+                        "employer_website": [
+                          "e2b.dev"
+                        ],
+                        "employee_position_id": "2178885022",
+                        "employee_title": "Co-Founder & CEO",
+                        "employee_description": "Building agentic cloud\n\n- Series A company that has raised over $37M and led company to 8-figure revenue\n- Grew the team in San Francisco, USA and Prague, Czech Republic\n- Thousands of paying customers, including companies such as Gusto, Perplexity, Mistral, Hugging Face, PGA, Microsoft and other F500 companies\n- Over 4.5M monthly SDK downloads\n- Featured in Venture Beat, Forbes",
+                        "employee_location": "San Francisco Bay Area",
+                        "employee_start_date": "2023-05-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      },
+                      {
+                        "employer_name": "Pioneer",
+                        "employer_linkedin_id": "18763174",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C560BAQG_RGQb-Ruidg/company-logo_400_400/company-logo_400_400/0/1631409399895/pioneerdotapp_logo?e=1795046400&v=beta&t=5XzXj6365Dlvn0hYv6-8WJTD6aPl_a80TK9TJPC19t8",
+                        "employer_linkedin_description": "Pioneers receive $20,000, join a 3-month remote accelerator program, spend a month together in Silicon Valley, and much more. In our 3 years since launching, we've funded 200+ founders from 50+ countries who've gone on to raise $100M+ from Sequoia, a16z, Y Combinator, Khosla Ventures, General Catalyst, Village Global, and many more VCs & angels.",
+                        "employer_company_id": [
+                          "1034437"
+                        ],
+                        "employer_website": [
+                          "pioneer.app"
+                        ],
+                        "employee_position_id": "2869892281",
+                        "employee_title": "Pioneer",
+                        "employee_description": "Pioneer is a startup accelerator for ambitious outsiders. Started by Daniel Gross.\nSelected as one of the the Pioneers in 2021.",
+                        "employee_location": null,
+                        "employee_start_date": "2021-01-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      }
+                    ],
+                    "past": [
+                      {
+                        "employer_name": "AI Engineer",
+                        "employer_linkedin_id": "95757641",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQFElHL8m07D_w/company-logo_200_200/company-logo_200_200/0/1688314696325?e=1743033600&v=beta&t=01XFuu5u4t1LD5x4wBP2n4eMDP9uyA09DaJ6tfLbiTI",
+                        "employer_linkedin_description": "Software 3.0 INC (owner of AI Engineer events and community) is focused on building a global network of flagship and regional events, complemented by year-round community engagement opportunities. Our mission is to empower and unite the global AI engineering community by delivering transformative events,  knowledge exchange, and collaborative experiences that accelerate practical AI progress.",
+                        "employer_company_id": [
+                          "2785796"
+                        ],
+                        "employer_website": [
+                          "ai.engineer"
+                        ],
+                        "employee_position_id": "2869890508",
+                        "employee_title": "Workshop Speaker",
+                        "employee_description": "Presented and led workshop during the AI Engineer Conference.\n\nPresented how to integrate sandboxed code interpreting in AI applications.",
+                        "employee_location": "San Francisco Bay Area",
+                        "employee_start_date": "2024-06-01T00:00:00.000Z",
+                        "employee_end_date": "2024-06-01T00:00:00.000Z"
+                      },
+                      {
+                        "employer_name": "Devbook",
+                        "employer_linkedin_id": "36998319",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/C560BAQEuRosBozjOfA/company-logo_400_400/company-logo_400_400/0/1630647893012/devbookhq_logo?e=1793836800&v=beta&t=7-30sWWQLOfCOspmFfNiJ0Uzz50k_SZqbmDAcz5nR5k",
+                        "employer_linkedin_description": "Backend for your developer documentation",
+                        "employer_company_id": [
+                          "3109946"
+                        ],
+                        "employer_website": [
+                          "usedevbook.com"
+                        ],
+                        "employee_position_id": "2869898047",
+                        "employee_title": "Co-founder & CEO",
+                        "employee_description": "Search engine for developers. Trainer custom ML models on code datasets.\n\n- 15,000 users\n- 4,000 weekly active users",
+                        "employee_location": null,
+                        "employee_start_date": "2021-01-01T00:00:00.000Z",
+                        "employee_end_date": "2023-03-01T00:00:00.000Z"
+                      }
+                    ]
+                  }
+                },
+                "education": {
+                  "schools": [
+                    {
+                      "school": "Charles University",
+                      "degree": null,
+                      "field_of_study": "Computer Science",
+                      "activities": null
+                    }
+                  ]
+                },
+                "updated_at": "2026-10-17T01:03:00.817Z"
+              },
+              {
+                "crustdata_person_id": 280432,
+                "basic_profile": {
+                  "name": "Tomas‎  ‎Valenta‎ ",
+                  "headline": "‎Building cloud so agents can rm -rf --no-preserve-root / in peace",
+                  "current_title": "Co-Founder & CTO",
+                  "summary": "Some of my work is here - https://github.com/ValentaTomas",
+                  "languages": [
+                    "English (Native or bilingual proficiency)",
+                    "Czech (Native or bilingual proficiency)"
+                  ],
+                  "last_updated": "2026-10-27T13:21:47.250Z",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/c3372dfdd8522fdfc4602ff2b1578990c9f68211e7aa757a50ce7fff77634f06.jpg",
+                  "location": {
+                    "raw": "San Francisco Bay Area"
+                  }
+                },
+                "professional_network": {
+                  "profile_picture_url": "https://media.licdn.com/dms/image/v2/D4E03AQEVG0wygIhgWw/profile-displayphoto-crop_800_800/B4EZfsQYkZHIAI-/0/1752015408503?e=1794441600&v=beta&t=LkTMK6LWPc8BcPHVcdY1U03GKhBYfXKnOEUEe6sLeZA",
+                  "profile_picture_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/c3372dfdd8522fdfc4602ff2b1578990c9f68211e7aa757a50ce7fff77634f06.jpg",
+                  "name": "Tomas‎  ‎Valenta‎ ",
+                  "headline": "‎Building cloud so agents can rm -rf --no-preserve-root / in peace",
+                  "current_title": "Co-Founder & CTO",
+                  "summary": "Some of my work is here - https://github.com/ValentaTomas",
+                  "location": {
+                    "raw": "San Francisco Bay Area"
+                  },
+                  "connections": 1394
+                },
+                "skills": {
+                  "professional_network_skills": [
+                    "Python (Programming Language)",
+                    "Linux",
+                    "React.js",
+                    "JavaScript",
+                    "C#"
+                  ]
+                },
+                "social_handles": {
+                  "professional_network_identifier": {
+                    "profile_url": "https://www.linkedin.com/in/valentatomas"
+                  },
+                  "twitter_identifier": {
+                    "slug": null
+                  }
+                },
+                "experience": {
+                  "employment_details": {
+                    "current": [
+                      {
+                        "employer_name": "E2B",
+                        "employer_linkedin_id": "96484695",
+                        "employer_logo_url": "https://media.licdn.com/dms/image/v2/D560BAQE2o7muaXZKEw/company-logo_400_400/B56Z9ChultGsAU-/0/1783527565940/e2b_dev_logo?e=1794441600&v=beta&t=Jj0bnNvQR0iFjPoaYCq1EPOAqn5ZupDwY8MlA0huGOk",
+                        "employer_linkedin_description": "Machines for AI agents",
+                        "employer_company_id": [
+                          "1083252"
+                        ],
+                        "employer_website": [
+                          "e2b.dev"
+                        ],
+                        "employee_position_id": "2179997202",
+                        "employee_title": "Co-Founder & CTO",
+                        "employee_description": null,
+                        "employee_location": "San Francisco a okolí",
+                        "employee_start_date": "2023-05-01T00:00:00.000Z",
+                        "employee_end_date": null
+                      }
+                    ],
+                    "past": []
+                  }
+                },
+                "education": {
+                  "schools": [
+                    {
+                      "school": "Masarykova univerzita",
+                      "degree": null,
+                      "field_of_study": "Informatics",
+                      "activities": null
+                    }
+                  ]
+                },
+                "updated_at": "2026-10-27T13:21:47.250Z"
+              }
+            ]
+          },
+          "taxonomy": {
+            "primary_naics_detail": {
+              "naics_code": "513210",
+              "year": 2022,
+              "sector": "Information",
+              "sub_sector": "Publishing Industries",
+              "industry_group": "Software Publishers",
+              "industry": "Software Publishers"
+            },
+            "sic_detail_list": [
+              {
+                "sic_code": "7372",
+                "year": 1987,
+                "industry": "Prepackaged Software"
+              }
+            ],
+            "categories": [
+              "Agentic AI",
+              "Artificial Intelligence (AI)",
+              "Cloud Management",
+              "Developer APIs",
+              "Software"
+            ],
+            "professional_network_industries": [
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ],
+            "professional_network_industry": "Technology, Information and Internet",
+            "professional_network_specialities": []
+          },
+          "locations": {
+            "city": "San Francisco",
+            "country": "USA",
+            "state": "California",
+            "street_address": "Market St, San Francisco, California",
+            "headquarters": "San Francisco, California, United States",
+            "all_office_addresses": [
+              "Na Perštýně 342/1, Prague, 11000, CZ"
+            ]
+          },
+          "revenue": {
+            "estimated": {
+              "lower_bound_usd": 500000,
+              "upper_bound_usd": 1000000,
+              "timeseries": [
+                {
+                  "date": "2025-01-01",
+                  "revenue_lower_bound_usd": 500000,
+                  "revenue_upper_bound_usd": 1000000
+                },
+                {
+                  "date": "2025-02-01",
+                  "revenue_lower_bound_usd": 500000,
+                  "revenue_upper_bound_usd": 1000000
+                },
+                {
+                  "date": "2025-03-01",
+                  "revenue_lower_bound_usd": 500000,
+                  "revenue_upper_bound_usd": 1000000
+                },
+                {
+                  "date": "2025-04-01",
+                  "revenue_lower_bound_usd": 500000,
+                  "revenue_upper_bound_usd": 1000000
+                },
+                {
+                  "date": "2025-05-01",
+                  "revenue_lower_bound_usd": 500000,
+                  "revenue_upper_bound_usd": 1000000
+                },
+                {
+                  "date": "2025-06-01",
+                  "revenue_lower_bound_usd": 500000,
+                  "revenue_upper_bound_usd": 1000000
+                },
+                {
+                  "date": "2025-07-01",
+                  "revenue_lower_bound_usd": 500000,
+                  "revenue_upper_bound_usd": 1000000
+                },
+                {
+                  "date": "2025-08-01",
+                  "revenue_lower_bound_usd": 500000,
+                  "revenue_upper_bound_usd": 1000000
+                },
+                {
+                  "date": "2025-09-01",
+                  "revenue_lower_bound_usd": 500000,
+                  "revenue_upper_bound_usd": 1000000
+                },
+                {
+                  "date": "2025-10-01",
+                  "revenue_lower_bound_usd": 500000,
+                  "revenue_upper_bound_usd": 1000000
+                }
+              ]
+            },
+            "public_markets": {
+              "ipo_date": null,
+              "stock_symbols": [
+                "E2B"
+              ],
+              "fiscal_year_end": null
+            },
+            "acquisition_status": null
+          }
+        }
+      }
+    ]
+  }
+]

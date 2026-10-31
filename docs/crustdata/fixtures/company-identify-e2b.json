@@ -1,0 +1,227 @@
+[
+  {
+    "matched_on": "e2b.dev",
+    "match_type": "domain",
+    "matches": [
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 1083252,
+          "basic_info": {
+            "name": "E2B",
+            "crustdata_company_id": 1083252,
+            "primary_domain": "e2b.dev",
+            "all_domains": [
+              "e2b.dev"
+            ],
+            "website": "https://e2b.dev",
+            "professional_network_url": "https://www.linkedin.com/company/e2b-dev",
+            "professional_network_id": "96484695",
+            "profile_name": "E2B",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/44911e15e7fc39ef81b1510e902c3c2038fac060a6d5620fb8d5820c15b16c9b.jpg",
+            "description": "Machines for AI agents",
+            "company_type": "Privately Held",
+            "year_founded": 2023,
+            "employee_count_range": "51-200",
+            "markets": [
+              "PRIVATE"
+            ],
+            "industries": [
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      }
+    ]
+  },
+  {
+    "matched_on": "mem0.ai",
+    "match_type": "domain",
+    "matches": [
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 6037747,
+          "basic_info": {
+            "name": "Mem0",
+            "crustdata_company_id": 6037747,
+            "primary_domain": "mem0.ai",
+            "all_domains": [
+              "mem0.ai"
+            ],
+            "website": "https://mem0.ai/?utm_source=linkedin&utm_medium=bio&utm_campaign=mem0",
+            "professional_network_url": "https://www.linkedin.com/company/mem0",
+            "professional_network_id": "95698199",
+            "profile_name": "Mem0",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/02910c0b43da7b6d0886228f66dbc2c105cc8a7b4e32ddcd2911b05ff18e704f.jpg",
+            "description": "The memory layer for Personalized AI",
+            "company_type": "Privately Held",
+            "year_founded": 2023,
+            "employee_count_range": "11-50",
+            "markets": [
+              "PRIVATE"
+            ],
+            "industries": [
+              "Software Development",
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      }
+    ]
+  },
+  {
+    "matched_on": "composio.dev",
+    "match_type": "domain",
+    "matches": [
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 1232908,
+          "basic_info": {
+            "name": "Composio",
+            "crustdata_company_id": 1232908,
+            "primary_domain": "composio.dev",
+            "all_domains": [
+              "composio.dev"
+            ],
+            "website": "https://composio.dev/",
+            "professional_network_url": "https://www.linkedin.com/company/composiohq",
+            "professional_network_id": "100723307",
+            "profile_name": "Composio",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/db45fea61e5122f56b2a93ab53873c50fd55810df49e149b6124594f63af8941.jpg",
+            "description": "At Composio, We're building the future of Agentic Actions. We are empowering AI Agents to interact with hundreds of applications/tools and take autonomous actions, streamlining workflows and unlocking new possibilities. We're always on a lookout for great talent and check out our careers page!",
+            "company_type": "Privately Held",
+            "year_founded": 2023,
+            "employee_count_range": "11-50",
+            "markets": [
+              "PRIVATE"
+            ],
+            "industries": [
+              "Software Development",
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      }
+    ]
+  },
+  {
+    "matched_on": "browserbase.com",
+    "match_type": "domain",
+    "matches": [
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 1985131,
+          "basic_info": {
+            "name": "Browserbase",
+            "crustdata_company_id": 1985131,
+            "primary_domain": "browserbase.com",
+            "all_domains": [
+              "browserbase.com"
+            ],
+            "website": "https://browserbase.com",
+            "professional_network_url": "https://www.linkedin.com/company/browserbasehq",
+            "professional_network_id": "100530625",
+            "profile_name": "Browserbase",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/06179cd34142f4637e07f2371e7907227f8e5dbf46df026c60155d25ae07cb75.jpg",
+            "description": "Browserbase is the complete platform to build and deploy agents that browse and interact with the web like humans.",
+            "company_type": "Privately Held",
+            "year_founded": 2024,
+            "employee_count_range": "11-50",
+            "markets": [
+              "PRIVATE"
+            ],
+            "industries": [
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      }
+    ]
+  },
+  {
+    "matched_on": "daytona.io",
+    "match_type": "domain",
+    "matches": [
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 1072284,
+          "basic_info": {
+            "name": "Daytona",
+            "crustdata_company_id": 1072284,
+            "primary_domain": "daytona.io",
+            "all_domains": [
+              "daytona.io"
+            ],
+            "website": "https://www.daytona.io",
+            "professional_network_url": "https://www.linkedin.com/company/daytonaio",
+            "professional_network_id": "92808467",
+            "profile_name": "Daytona",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/604915213acec949857860b3d9025d2f5cef01fdb10bcf2dfa18478c12afc531.jpg",
+            "description": "Daytona provides a secure, scalable infrastructure for executing AI-generated code. Our platform delivers instant environment creation, complete isolation, and enterprise-grade security for AI workflows. With comprehensive APIs and native Git/LSP support, we enable developers to safely run AI-generated code while maintaining full programmatic control. Built for the future of AI development.",
+            "company_type": "Privately Held",
+            "year_founded": 2023,
+            "employee_count_range": "11-50",
+            "markets": [
+              "PRIVATE"
+            ],
+            "industries": [
+              "Software Development",
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      }
+    ]
+  },
+  {
+    "matched_on": "trychroma.com",
+    "match_type": "domain",
+    "matches": [
+      {
+        "confidence_score": 1.0,
+        "company_data": {
+          "crustdata_company_id": 1032275,
+          "basic_info": {
+            "name": "Chroma",
+            "crustdata_company_id": 1032275,
+            "primary_domain": "trychroma.com",
+            "all_domains": [
+              "trychroma.com"
+            ],
+            "website": "https://www.trychroma.com/",
+            "professional_network_url": "https://www.linkedin.com/company/trychroma",
+            "professional_network_id": "90663044",
+            "profile_name": "Chroma",
+            "logo_permalink": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/7e966f24ce7bd4852b5108eea49c24d694df259a250262d340a1416122b75016.jpg",
+            "description": "Chroma builds data infrastructure for AI",
+            "company_type": "Privately Held",
+            "year_founded": 2022,
+            "employee_count_range": "11-50",
+            "markets": [
+              "PRIVATE"
+            ],
+            "industries": [
+              "Technology, Information and Internet",
+              "Technology, Information and Media"
+            ]
+          },
+          "social_profiles": null
+        }
+      }
+    ]
+  }
+]

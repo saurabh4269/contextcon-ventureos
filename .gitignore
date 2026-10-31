@@ -8,3 +8,5 @@ out/
 *.log
 *.tsbuildinfo
 .DS_Store
+# Crustdata response cache (dev only; see README)
+.cache/
