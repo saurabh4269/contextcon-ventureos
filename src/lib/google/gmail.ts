@@ -37,7 +37,9 @@ export function parseFrom(v: string): { name: string; address: string | null } {
   return { name: (paren?.[1]?.trim() || bare?.[0] || v.trim()), address: bare ? bare[0] : null };
 }
 
-export function toInboxThread(t: Thread, snippet = ""): InboxThread {
+/** null when the thread has no usable time (no internalDate, no valid Date header): it cannot be placed in a window, so
+ *  it is dropped rather than shown as 1 Jan 1970. */
+export function toInboxThread(t: Thread, snippet = ""): InboxThread | null {
   const msgs = t.messages ?? [];
   const last = msgs.at(-1);
   const h = (name: string) => last?.payload?.headers?.find((x) => x.name.toLowerCase() === name.toLowerCase())?.value ?? "";
@@ -46,6 +48,9 @@ export function toInboxThread(t: Thread, snippet = ""): InboxThread {
   const fromHeader = (theirs ?? last)?.payload?.headers?.find((x) => x.name.toLowerCase() === "from")?.value ?? "";
   const from = parseFrom(fromHeader || h("From"));
   const subject = h("Subject") || msgs[0]?.payload?.headers?.find((x) => x.name.toLowerCase() === "subject")?.value || "(no subject)";
+  const internal = Number(last?.internalDate);
+  const dated = Number.isFinite(internal) && internal > 0 ? internal : Date.parse(h("Date"));
+  if (!Number.isFinite(dated)) return null;
   return {
     id: t.id,
     from: from.name || "(unknown sender)",
@@ -53,7 +58,7 @@ export function toInboxThread(t: Thread, snippet = ""): InboxThread {
     subject,
     snippet,
     companyDomain: companyDomainFromInbox({ fromAddress: from.address, subject, snippet }),
-    lastMessageAt: new Date(Number(last?.internalDate ?? 0)).toISOString(),
+    lastMessageAt: new Date(dated).toISOString(),
     messages: msgs.length,
     unread: msgs.some((m) => m.labelIds?.includes("UNREAD")),
   };
@@ -66,7 +71,7 @@ export async function listInboxThreads(cfg: GoogleConfig, opts: { after?: Date |
   const listed = data.threads ?? [];
   const snippetOf = Object.fromEntries(listed.map((t) => [t.id, t.snippet ?? ""]));
   const meta = "format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date";
-  const threads = await Promise.all(listed.map(async (row) => toInboxThread((await googleJson<Thread>(cfg, `${API}/threads/${encodeURIComponent(row.id)}?${meta}`, {}, f)).data, snippetOf[row.id] ?? "")));
+  const threads = (await Promise.all(listed.map(async (row) => toInboxThread((await googleJson<Thread>(cfg, `${API}/threads/${encodeURIComponent(row.id)}?${meta}`, {}, f)).data, snippetOf[row.id] ?? "")))).filter((t): t is InboxThread => t !== null);
   threads.sort((a, b) => b.lastMessageAt.localeCompare(a.lastMessageAt));
   return { threads, estimate: data.resultSizeEstimate ?? threads.length };
 }

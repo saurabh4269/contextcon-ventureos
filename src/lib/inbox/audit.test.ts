@@ -64,13 +64,13 @@ describe("toInboxThread", () => {
         { internalDate: "2", labelIds: ["SENT"], payload: { headers: h("Me <partner@myfund.vc>", "Re: Acme pitch") } },
       ],
     });
-    expect(t.fromAddress).toBe("ana@acme.ai");
-    expect(t.companyDomain).toBe("acme.ai");
-    expect(t.subject).toBe("Re: Acme pitch");
+    expect(t!.fromAddress).toBe("ana@acme.ai");
+    expect(t!.companyDomain).toBe("acme.ai");
+    expect(t!.subject).toBe("Re: Acme pitch");
   });
   it("without a SENT label the last message is used", () => {
     const t = toInboxThread({ id: "t", messages: [{ internalDate: "1", payload: { headers: h("a@one.com") } }, { internalDate: "2", payload: { headers: h("b@two.com") } }] });
-    expect(t.companyDomain).toBe("two.com");
+    expect(t!.companyDomain).toBe("two.com");
   });
 });
 
@@ -95,5 +95,15 @@ describe("pipeline names", () => {
   it("a reply thread does not make the row name start with Re:", () => {
     const rows = mergePipelineDeals([{ companyDomain: "acme.ai", subject: "Re: Acme AI seed pitch", lastMessageAt: "2026-10-31T10:00:00.000Z" }], []);
     expect(rows[0]!.name).toBe("Acme AI seed pitch");
+  });
+});
+
+describe("toInboxThread without internalDate", () => {
+  const hd = (...kv: [string, string][]) => kv.map(([name, value]) => ({ name, value }));
+  it("falls back to the Date header, and a thread with no usable time is dropped instead of dated 1970", () => {
+    const withHeader = toInboxThread({ id: "t1", messages: [{ payload: { headers: hd(["From", "a@one.com"], ["Subject", "s"], ["Date", "Fri, 30 Oct 2026 09:30:00 +0530"]) } }] });
+    expect(withHeader?.lastMessageAt).toBe("2026-10-30T04:00:00.000Z");
+    expect(toInboxThread({ id: "t2", messages: [{ payload: { headers: hd(["From", "a@one.com"], ["Subject", "s"]) } }] })).toBeNull();
+    expect(toInboxThread({ id: "t3", messages: [] })).toBeNull();
   });
 });

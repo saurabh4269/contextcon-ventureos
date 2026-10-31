@@ -165,6 +165,7 @@ async function screen(c: Ctx): Promise<Outcome> {
 async function dataroom(c: Ctx): Promise<Outcome> {
   const { deal } = c;
   const prev = stepOf(deal, "dataroom").draft;
+  if (prev?.sending && !prev.approved) return { status: "done", transport: "live", summary: "A live send is marked in progress or its outcome is unknown; resolve it before anything else is done with this draft.", draft: prev };
   if (prev?.approved) return { status: "done", transport: prev.approved.transport, summary: `Data-room request ${prev.approved.transport === "live" ? "sent" : "recorded as a dry run (not sent)"}.`, draft: prev };
   const founder = deal.email?.fromAddress ?? null;
   const fallback = c.deps.demoRecipient ?? null;
@@ -246,6 +247,7 @@ const fmtIst = (d: Date) => fmtDateTime(d.toISOString());
 async function schedule(c: Ctx): Promise<Outcome> {
   const { deal, deps, m } = c;
   const prev = stepOf(deal, "schedule").draft;
+  if (prev?.sending && !prev.approved) return { status: "done", transport: "live", summary: "A live send is marked in progress or its outcome is unknown; resolve it before anything else is done with this draft.", draft: prev, facts: stepOf(deal, "schedule").facts };
   if (prev?.approved) return { status: "done", transport: prev.approved.transport, summary: `Partner meeting ${prev.approved.transport === "live" ? "created on your calendar" : "recorded as a dry run (no event created)"}.`, draft: prev, facts: stepOf(deal, "schedule").facts };
   const co = companyOf(c);
   const text = [co?.description, ...(co?.industries ?? []), ...(co?.categories ?? [])].join(" ").toLowerCase();
@@ -436,7 +438,7 @@ export async function advance(deal: Deal, deps: WorkflowDeps): Promise<Deal> {
       }
       // the new outcome replaces the old one entirely: facts, memo and numbers of an earlier run must not survive a run
       // that ends unavailable / in error (only an approved draft is kept: it records what was sent)
-      const approvedDraft = step.draft?.approved ? step.draft : undefined;
+      const approvedDraft = step.draft?.approved || step.draft?.sending ? step.draft : undefined;
       Object.assign(step, { needs: undefined, error: undefined, summary: undefined, transport: undefined, facts: undefined, memo: undefined, credits: undefined, creditsCached: undefined, draft: approvedDraft }, out);
       step.finishedAt = iso(deps);
       deal.updatedAt = iso(deps);
