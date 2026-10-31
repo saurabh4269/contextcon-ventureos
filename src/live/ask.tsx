@@ -8,6 +8,7 @@ import { Page, TopBar } from "@port/components/shell";
 import { Orb } from "@port/components/assistant";
 import { cx } from "@port/components/ui";
 import type { ShellData } from "@port/types";
+import { AGENT_EXAMPLES } from "@/lib/sourcing/examples";
 import { ScreenRun } from "./screen/views";
 import { useScreen } from "./screen/useScreen";
 import type { ScreenState } from "./screen/state";
@@ -49,6 +50,11 @@ export function AskBody({ state, onAsk, onStop }: { state: ScreenState; onAsk: (
       <h1 className="serif mt-7 text-[28px] leading-tight tracking-[-0.02em] sm:text-[32px]">What should we find?</h1>
       <p className="mt-1.5 text-[13px] text-zinc-500">Live on Crustdata. Every number cited.</p>
       <div className="mt-7 w-full text-left"><AskInput hero running={false} onAsk={onAsk} onStop={onStop} /></div>
+      <div className="mt-4 flex flex-wrap justify-center gap-2" data-testid="ask-examples" aria-label="Example requests">
+        {AGENT_EXAMPLES.map((ex) => (
+          <button key={ex.short} type="button" title={ex.q} onClick={() => onAsk(ex.q)} className="inline-flex h-8 items-center rounded-full bg-white px-3 text-[12.5px] text-zinc-600 ring-1 ring-zinc-200/90 transition-colors hover:text-ink hover:ring-zinc-300">{ex.short}</button>
+        ))}
+      </div>
     </div>
   );
   return (
