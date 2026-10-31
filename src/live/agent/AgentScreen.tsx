@@ -382,7 +382,7 @@ function Intro() {
     ["Read the request", "deterministic parser, no LLM: every filter shows the words it came from"],
     ["Search", "POST /company/search, relaxing one constraint at a time if too few match (never padded)"],
     ["Verify", "POST /company/enrich: headcount growth recomputed from the monthly series"],
-    ["Founders", "POST /person/search, then /person/enrich for past employers"],
+    ["Founders", "POST /person/search (work history included); /person/enrich only if a profile came back with none"],
     ["Rank and cite", "every value carries its endpoint, record and fetch time"],
   ];
   return (
