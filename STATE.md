@@ -120,7 +120,7 @@ First-principles production pass over every screen, API route, workflow step, th
 Output and `REPORT.md` are in `/workspace/skeleton_audit` (before/, after/, compare/, raw JSON). New skeletons: `port/src/components/skeletons.tsx`
 (Brain, Portfolio, Memo, Deal, Settings, Review) and inline ones for Today, Pipeline, Person, Mandate, Workflow. Each uses the loaded screen's
 wrapper grid and the loaded height of each card. Phone widths: Brain, Portfolio and Memo stack to one column under 900 px (they overflowed the viewport).
-Not matched by design: `/ask?q=` and `/agent?q=` (a streamed run grows step by step, so its timeline becomes a wider result).
+`/ask?q=` and `/agent?q=` show a result-shaped placeholder from the first moment of the run (summary, filter cards and table or cards; Understood, Steps, summary and results), so the finished result no longer pushes the page; their timeline and steps still grow as the stream arrives. Phone widths of Deal, Memo, Brain, Portfolio and Settings › Connectors were measured and tuned (largest remaining delta at 390: Deal's SVG graph element, Connectors 121 px).
 
 ### Remaining blocker
 

@@ -1,6 +1,6 @@
 // Skeleton UI audit. Drives a local `npm run build && DEALDESK_DATA_MODE=live npm start` (port 3240) with Playwright.
 //   node scripts/skeleton-audit.mjs --label=before|after [--base=http://localhost:3240] [--out=/workspace/skeleton_audit]
-//        [--only=today,deal] [--widths=1440,390] [--states=loaded,empty,error]
+//        [--only=today,deal] [--widths=1440,390] [--states=loaded,empty,error] [--merge]
 // For every screen, width and final state (loaded | empty | error) it:
 //   1. holds every API call of the screen (route interception, mocks from scripts/skeleton-audit/mocks.mjs: 0 credits),
 //   2. captures the loading state (skeleton): screenshot + bounding boxes of the layout blocks,
@@ -203,6 +203,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       }
     }
   } finally { await browser.close(); }
-  fs.writeFileSync(path.join(OUT, `raw_${LABEL}.json`), JSON.stringify(rows, null, 1));
+  // --merge: keep the rows of an earlier run for the screens not measured now (re-run only what changed)
+  let out = rows;
+  const rawFile = path.join(OUT, `raw_${LABEL}.json`);
+  if (args.includes("--merge") && fs.existsSync(rawFile)) {
+    const fresh = new Set(rows.filter((r) => !r.failed).map((r) => `${r.screen}|${r.width}|${r.final}`));
+    out = [...JSON.parse(fs.readFileSync(rawFile, "utf8")).filter((r) => r.failed || !fresh.has(`${r.screen}|${r.width}|${r.final}`)), ...rows];
+  }
+  fs.writeFileSync(rawFile, JSON.stringify(out, null, 1));
   await compare(rows.filter((r) => !r.failed));
 }
