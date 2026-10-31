@@ -1,0 +1,112 @@
+{
+ "status": "ok",
+ "person": {
+  "id": 280431,
+  "name": "Vasek Mlejnsky",
+  "title": "Co-Founder & CEO",
+  "headline": "Building cloud for agents",
+  "location": "San Francisco, California, United States",
+  "linkedinUrl": "https://www.linkedin.com/in/mlejva",
+  "pictureUrl": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/77e5018c78f710bfc12919ba8a5d15951841e51e34cca93097a39bdcc6a60579.jpg",
+  "current": [
+   {
+    "company": "E2B",
+    "title": "Co-Founder & CEO",
+    "start": "2023-05-01",
+    "companyId": 1083252,
+    "companyDomain": "e2b.dev"
+   },
+   {
+    "company": "Pioneer",
+    "title": "Pioneer",
+    "start": "2021-01-01",
+    "companyId": 1034437,
+    "companyDomain": "pioneer.app"
+   }
+  ],
+  "past": [
+   {
+    "company": "AI Engineer",
+    "title": "Workshop Speaker",
+    "start": "2024-06-01",
+    "end": "2024-06-01",
+    "companyId": 2785796,
+    "companyDomain": "ai.engineer"
+   },
+   {
+    "company": "Devbook",
+    "title": "Co-founder & CEO",
+    "start": "2021-01-01",
+    "end": "2023-03-01",
+    "companyId": 3109946,
+    "companyDomain": "usedevbook.com"
+   }
+  ],
+  "schools": []
+ },
+ "call": {
+  "id": "person",
+  "method": "POST",
+  "path": "/person/enrich",
+  "body": {
+   "professional_network_profile_urls": [
+    "https://www.linkedin.com/in/mlejva"
+   ],
+   "fields": [
+    "basic_profile",
+    "experience",
+    "education",
+    "social_handles"
+   ]
+  },
+  "status": "ok",
+  "ms": 0,
+  "cached": false,
+  "retrievedAt": "2026-10-31T14:01:29.811Z",
+  "creditsUsed": "1",
+  "data": {
+   "id": 280431,
+   "name": "Vasek Mlejnsky",
+   "title": "Co-Founder & CEO",
+   "headline": "Building cloud for agents",
+   "location": "San Francisco, California, United States",
+   "linkedinUrl": "https://www.linkedin.com/in/mlejva",
+   "pictureUrl": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/77e5018c78f710bfc12919ba8a5d15951841e51e34cca93097a39bdcc6a60579.jpg",
+   "current": [
+    {
+     "company": "E2B",
+     "title": "Co-Founder & CEO",
+     "start": "2023-05-01",
+     "companyId": 1083252,
+     "companyDomain": "e2b.dev"
+    },
+    {
+     "company": "Pioneer",
+     "title": "Pioneer",
+     "start": "2021-01-01",
+     "companyId": 1034437,
+     "companyDomain": "pioneer.app"
+    }
+   ],
+   "past": [
+    {
+     "company": "AI Engineer",
+     "title": "Workshop Speaker",
+     "start": "2024-06-01",
+     "end": "2024-06-01",
+     "companyId": 2785796,
+     "companyDomain": "ai.engineer"
+    },
+    {
+     "company": "Devbook",
+     "title": "Co-founder & CEO",
+     "start": "2021-01-01",
+     "end": "2023-03-01",
+     "companyId": 3109946,
+     "companyDomain": "usedevbook.com"
+    }
+   ],
+   "schools": []
+  }
+ }
+}

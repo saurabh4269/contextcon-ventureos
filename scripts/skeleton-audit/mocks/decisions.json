@@ -1,0 +1,261 @@
+{
+ "dealId": "e2b.dev",
+ "companyDomain": "e2b.dev",
+ "source": "crustdata",
+ "decisions": {
+  "fitScore": {
+   "status": "unavailable",
+   "reason": "No firm mandate is set (Settings → Firm mandate, /settings/mandate): enter sectors, stages, geographies or check size to score this company."
+  },
+  "screenerVerdict": {
+   "status": "unavailable",
+   "reason": "The screener verdict needs the fit score: No firm mandate is set (Settings → Firm mandate, /settings/mandate): enter sectors, stages, geographies or check size to score this company."
+  },
+  "valuationRange": {
+   "status": "unavailable",
+   "reason": "Crustdata has no company valuations; the valuation range needs the firm's dilution prior (Settings → Firm mandate, /settings/mandate), which is unset."
+  },
+  "returnMultipleLow": {
+   "status": "unavailable",
+   "reason": "Return multiples are the firm's target-return prior, which is unset (Settings → Firm mandate, /settings/mandate)."
+  },
+  "returnMultipleHigh": {
+   "status": "unavailable",
+   "reason": "Return multiples are the firm's target-return prior, which is unset (Settings → Firm mandate, /settings/mandate)."
+  },
+  "compsMedianMultiple": {
+   "status": "unavailable",
+   "reason": "Crustdata has no peer valuations; turning peers' round sizes into post-money needs the firm's dilution prior, which is unset (Settings → Firm mandate, /settings/mandate)."
+  },
+  "diligenceVerdict": {
+   "status": "unavailable",
+   "reason": "The diligence verdict follows the screener verdict: The screener verdict needs the fit score: No firm mandate is set (Settings → Firm mandate, /settings/mandate): enter sectors, stages, geographies or check size to score this company."
+  },
+  "icMemoArrUsedM": {
+   "status": "ok",
+   "value": 0.8,
+   "inputs": [
+    {
+     "name": "revenue low (USD)",
+     "value": 500000
+    },
+    {
+     "name": "revenue high (USD)",
+     "value": 1000000
+    }
+   ],
+   "method": "Midpoint of Crustdata's estimated annual revenue range, USD M (an estimate, not reported ARR)",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.revenue.estimated",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "$500K–$1M estimated annual revenue."
+  },
+  "icMemoValuation": {
+   "status": "unavailable",
+   "reason": "The IC memo valuation is the valuation range: Crustdata has no company valuations; the valuation range needs the firm's dilution prior (Settings → Firm mandate, /settings/mandate), which is unset."
+  },
+  "icMemoCompsLine": {
+   "status": "unavailable",
+   "reason": "Crustdata POST /company/search returned no peers for the company's sector, stage and geography."
+  }
+ },
+ "endpoints": {
+  "fitScore": "/api/deals/e2b.dev/decisions#fitScore",
+  "screenerVerdict": "/api/deals/e2b.dev/decisions#screenerVerdict",
+  "valuationRange": "/api/deals/e2b.dev/valuation",
+  "returnMultipleLow": "/api/deals/e2b.dev/valuation#returnMultipleLow",
+  "returnMultipleHigh": "/api/deals/e2b.dev/valuation#returnMultipleHigh",
+  "compsMedianMultiple": "/api/deals/e2b.dev/valuation#compsMedianMultiple",
+  "diligenceVerdict": "/api/deals/e2b.dev/decisions#diligenceVerdict",
+  "icMemoArrUsedM": "/api/deals/e2b.dev/decisions#icMemoArrUsedM",
+  "icMemoValuation": "/api/deals/e2b.dev/decisions#icMemoValuation",
+  "icMemoCompsLine": "/api/deals/e2b.dev/decisions#icMemoCompsLine"
+ },
+ "fields": {
+  "fitScore": {
+   "status": "unavailable",
+   "reason": "No firm mandate is set (Settings → Firm mandate, /settings/mandate): enter sectors, stages, geographies or check size to score this company."
+  },
+  "criterionSector": {
+   "status": "unavailable",
+   "reason": "The firm mandate has no sectors set (Settings → Firm mandate, /settings/mandate), so this criterion is not scored."
+  },
+  "criterionStage": {
+   "status": "unavailable",
+   "reason": "The firm mandate has no stages set (Settings → Firm mandate, /settings/mandate), so this criterion is not scored."
+  },
+  "criterionGeo": {
+   "status": "unavailable",
+   "reason": "The firm mandate has no geographies set (Settings → Firm mandate, /settings/mandate), so this criterion is not scored."
+  },
+  "criterionCheckSize": {
+   "status": "unavailable",
+   "reason": "The firm mandate has no check size set (Settings → Firm mandate, /settings/mandate), so this criterion is not scored."
+  },
+  "criterionMemory": {
+   "status": "ok",
+   "value": "no prior decisions",
+   "inputs": [
+    {
+     "name": "past decisions",
+     "value": 0
+    }
+   ],
+   "method": "Past review-queue decisions on this company",
+   "citations": [
+    {
+     "source": "Deal Desk review queue (firm memory)",
+     "endpoint": "GET /api/exceptions?status=all",
+     "path": "items[subject.domain=e2b.dev]",
+     "url": "/review",
+     "retrievedAt": "2026-10-31T14:01:29.809Z"
+    }
+   ],
+   "reasoning": "The firm has no recorded decisions on e2b.dev; this criterion is neutral (not scored)."
+  },
+  "returnMultipleLow": {
+   "status": "unavailable",
+   "reason": "Return multiples are the firm's target-return prior, which is unset (Settings → Firm mandate, /settings/mandate)."
+  },
+  "returnMultipleHigh": {
+   "status": "unavailable",
+   "reason": "Return multiples are the firm's target-return prior, which is unset (Settings → Firm mandate, /settings/mandate)."
+  },
+  "compsMedianMultiple": {
+   "status": "unavailable",
+   "reason": "Crustdata has no peer valuations; turning peers' round sizes into post-money needs the firm's dilution prior, which is unset (Settings → Firm mandate, /settings/mandate)."
+  },
+  "growthYoY": {
+   "status": "ok",
+   "value": 136.4,
+   "inputs": [
+    {
+     "name": "headcount.growth_percent.yoy",
+     "value": 136.36363636363635
+    }
+   ],
+   "method": "Read as reported (Crustdata computes it from its headcount history)",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.headcount.growth_percent.yoy",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "Headcount year-over-year change: 136.4%."
+  },
+  "headcountLatest": {
+   "status": "ok",
+   "value": 52,
+   "inputs": [
+    {
+     "name": "headcount.total",
+     "value": 52
+    }
+   ],
+   "method": "Read as reported",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.headcount.total",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "E2B has 52 employees on Crustdata's latest index."
+  },
+  "lastFundingUsdM": {
+   "status": "ok",
+   "value": {
+    "amount": 21000000,
+    "currency": "USD"
+   },
+   "inputs": [
+    {
+     "name": "funding.last_round_amount_usd",
+     "value": 21000000
+    },
+    {
+     "name": "funding.last_round_type",
+     "value": "series_a"
+    }
+   ],
+   "method": "Read as reported; currency USD per the field name (last_round_amount_usd)",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.funding.last_round_amount_usd",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "Last round (series_a, 2025-07-28): $21M."
+  },
+  "diligenceVerdict": {
+   "status": "unavailable",
+   "reason": "The diligence verdict follows the screener verdict: The screener verdict needs the fit score: No firm mandate is set (Settings → Firm mandate, /settings/mandate): enter sectors, stages, geographies or check size to score this company."
+  },
+  "icMemoArrUsedM": {
+   "status": "ok",
+   "value": 0.8,
+   "inputs": [
+    {
+     "name": "revenue low (USD)",
+     "value": 500000
+    },
+    {
+     "name": "revenue high (USD)",
+     "value": 1000000
+    }
+   ],
+   "method": "Midpoint of Crustdata's estimated annual revenue range, USD M (an estimate, not reported ARR)",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.revenue.estimated",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "$500K–$1M estimated annual revenue."
+  },
+  "icMemoValuation": {
+   "status": "unavailable",
+   "reason": "The IC memo valuation is the valuation range: Crustdata has no company valuations; the valuation range needs the firm's dilution prior (Settings → Firm mandate, /settings/mandate), which is unset."
+  },
+  "icMemoCompsLine": {
+   "status": "unavailable",
+   "reason": "Crustdata POST /company/search returned no peers for the company's sector, stage and geography."
+  },
+  "screenerVerdict": {
+   "status": "unavailable",
+   "reason": "The screener verdict needs the fit score: No firm mandate is set (Settings → Firm mandate, /settings/mandate): enter sectors, stages, geographies or check size to score this company."
+  },
+  "valuationRange": {
+   "status": "unavailable",
+   "reason": "Crustdata has no company valuations; the valuation range needs the firm's dilution prior (Settings → Firm mandate, /settings/mandate), which is unset."
+  },
+  "valuationLow": {
+   "status": "unavailable",
+   "reason": "Crustdata has no company valuations; the valuation range needs the firm's dilution prior (Settings → Firm mandate, /settings/mandate), which is unset."
+  },
+  "valuationHigh": {
+   "status": "unavailable",
+   "reason": "Crustdata has no company valuations; the valuation range needs the firm's dilution prior (Settings → Firm mandate, /settings/mandate), which is unset."
+  },
+  "valuationCap": {
+   "status": "unavailable",
+   "reason": "A valuation cap comes from the round's term sheet (SAFE/note), which this build does not ingest."
+  },
+  "founderAsk": {
+   "status": "unavailable",
+   "reason": "The founder's ask comes from the pitch/term sheet, which this build does not ingest."
+  }
+ }
+}

@@ -1,0 +1,1529 @@
+{
+ "status": "ok",
+ "domain": "e2b.dev",
+ "requestedAt": "2026-10-31T14:01:29.775Z",
+ "company": {
+  "id": 1083252,
+  "name": "E2B",
+  "domain": "e2b.dev",
+  "website": "https://e2b.dev",
+  "logoUrl": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/44911e15e7fc39ef81b1510e902c3c2038fac060a6d5620fb8d5820c15b16c9b.jpg",
+  "description": "Machines for AI agents",
+  "yearFounded": 2023,
+  "employeeRange": "51-200",
+  "linkedinUrl": "https://www.linkedin.com/company/e2b-dev",
+  "hq": "San Francisco, California, United States",
+  "country": "USA",
+  "industries": [
+   "Technology, Information and Internet",
+   "Technology, Information and Media"
+  ],
+  "categories": [
+   "Agentic AI",
+   "Artificial Intelligence (AI)",
+   "Cloud Management",
+   "Developer APIs",
+   "Software"
+  ],
+  "headcount": {
+   "total": 52,
+   "growth": {
+    "mom": 15.555555555555555,
+    "qoq": 26.82926829268293,
+    "six_months": 73.33333333333333,
+    "yoy": 136.36363636363635
+   },
+   "monthly": [
+    {
+     "date": "2022-12-26",
+     "v": 1
+    },
+    {
+     "date": "2023-01-30",
+     "v": 1
+    },
+    {
+     "date": "2023-02-27",
+     "v": 1
+    }
+   ],
+   "byFunction": [
+    {
+     "label": "Engineering",
+     "monthly": [
+      {
+       "date": "2025-04-01",
+       "v": 6
+      },
+      {
+       "date": "2025-05-01",
+       "v": 5
+      },
+      {
+       "date": "2025-06-01",
+       "v": 5
+      },
+      {
+       "date": "2025-07-01",
+       "v": 5
+      },
+      {
+       "date": "2025-08-01",
+       "v": 7
+      },
+      {
+       "date": "2025-09-01",
+       "v": 7
+      }
+     ]
+    },
+    {
+     "label": "Entrepreneurship",
+     "monthly": [
+      {
+       "date": "2025-04-01",
+       "v": 3
+      },
+      {
+       "date": "2025-05-01",
+       "v": 3
+      },
+      {
+       "date": "2025-06-01",
+       "v": 3
+      },
+      {
+       "date": "2025-07-01",
+       "v": 3
+      },
+      {
+       "date": "2025-08-01",
+       "v": 3
+      },
+      {
+       "date": "2025-09-01",
+       "v": 3
+      }
+     ]
+    },
+    {
+     "label": "Business Development",
+     "monthly": [
+      {
+       "date": "2025-04-01",
+       "v": 4
+      },
+      {
+       "date": "2025-05-01",
+       "v": 4
+      },
+      {
+       "date": "2025-06-01",
+       "v": 5
+      },
+      {
+       "date": "2025-07-01",
+       "v": 5
+      },
+      {
+       "date": "2025-08-01",
+       "v": 4
+      },
+      {
+       "date": "2025-09-01",
+       "v": 3
+      }
+     ]
+    },
+    {
+     "label": "Customer Success and Support",
+     "monthly": [
+      {
+       "date": "2025-11-01",
+       "v": 1
+      },
+      {
+       "date": "2025-12-01",
+       "v": 2
+      },
+      {
+       "date": "2026-01-01",
+       "v": 2
+      },
+      {
+       "date": "2026-02-01",
+       "v": 2
+      },
+      {
+       "date": "2026-03-01",
+       "v": 2
+      },
+      {
+       "date": "2026-04-01",
+       "v": 2
+      }
+     ]
+    },
+    {
+     "label": "Arts and Design",
+     "monthly": [
+      {
+       "date": "2025-11-01",
+       "v": 2
+      },
+      {
+       "date": "2025-12-01",
+       "v": 2
+      },
+      {
+       "date": "2026-01-01",
+       "v": 2
+      },
+      {
+       "date": "2026-02-01",
+       "v": 2
+      },
+      {
+       "date": "2026-03-01",
+       "v": 2
+      },
+      {
+       "date": "2026-04-01",
+       "v": 2
+      }
+     ]
+    },
+    {
+     "label": "Operations",
+     "monthly": [
+      {
+       "date": "2025-04-01",
+       "v": 1
+      },
+      {
+       "date": "2025-05-01",
+       "v": 2
+      },
+      {
+       "date": "2025-06-01",
+       "v": 2
+      },
+      {
+       "date": "2025-07-01",
+       "v": 2
+      },
+      {
+       "date": "2025-08-01",
+       "v": 2
+      },
+      {
+       "date": "2025-09-01",
+       "v": 2
+      }
+     ]
+    },
+    {
+     "label": "Human Resources",
+     "monthly": [
+      {
+       "date": "2025-11-01",
+       "v": 1
+      },
+      {
+       "date": "2025-12-01",
+       "v": 1
+      },
+      {
+       "date": "2026-01-01",
+       "v": 1
+      },
+      {
+       "date": "2026-02-01",
+       "v": 1
+      },
+      {
+       "date": "2026-03-01",
+       "v": 1
+      },
+      {
+       "date": "2026-04-01",
+       "v": 2
+      }
+     ]
+    },
+    {
+     "label": "Marketing",
+     "monthly": [
+      {
+       "date": "2025-06-01",
+       "v": 1
+      },
+      {
+       "date": "2025-07-01",
+       "v": 1
+      },
+      {
+       "date": "2025-08-01",
+       "v": 1
+      },
+      {
+       "date": "2025-09-01",
+       "v": 1
+      },
+      {
+       "date": "2025-10-01",
+       "v": 1
+      },
+      {
+       "date": "2025-11-01",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "label": "Education",
+     "monthly": [
+      {
+       "date": "2025-06-01",
+       "v": 1
+      },
+      {
+       "date": "2025-07-01",
+       "v": 1
+      },
+      {
+       "date": "2025-08-01",
+       "v": 1
+      },
+      {
+       "date": "2025-09-01",
+       "v": 1
+      },
+      {
+       "date": "2025-10-01",
+       "v": 1
+      },
+      {
+       "date": "2025-11-01",
+       "v": 1
+      }
+     ]
+    },
+    {
+     "label": "Information Technology",
+     "monthly": [
+      {
+       "date": "2025-12-01",
+       "v": 1
+      },
+      {
+       "date": "2026-01-01",
+       "v": 1
+      },
+      {
+       "date": "2026-02-01",
+       "v": 1
+      },
+      {
+       "date": "2026-03-01",
+       "v": 1
+      },
+      {
+       "date": "2026-04-01",
+       "v": 1
+      },
+      {
+       "date": "2026-05-01",
+       "v": 1
+      }
+     ]
+    }
+   ]
+  },
+  "funding": {
+   "totalUsd": 35000000,
+   "lastRoundType": "series_a",
+   "lastRoundUsd": 21000000,
+   "lastDate": "2025-07-28",
+   "investors": [
+    "Decibel Partners",
+    "Edward Lando",
+    "Insight Partners",
+    "Jakub Jurovych",
+    "Juraj Masar",
+    "KAYA",
+    "Liu Jiang",
+    "Matej Turek",
+    "Pareto Holdings",
+    "Scott Johnston"
+   ]
+  },
+  "revenue": {
+   "lowUsd": 500000,
+   "highUsd": 1000000
+  },
+  "web": {
+   "domain": "e2b.dev",
+   "monthlyVisitors": 186562,
+   "momPct": -4.89,
+   "qoqPct": -7.8,
+   "monthly": [
+    {
+     "date": "2024-04-01",
+     "v": 67313
+    },
+    {
+     "date": "2024-05-01",
+     "v": 70585
+    },
+    {
+     "date": "2024-09-01",
+     "v": 175484
+    },
+    {
+     "date": "2024-10-01",
+     "v": 224811
+    },
+    {
+     "date": "2024-11-01",
+     "v": 137865
+    },
+    {
+     "date": "2024-12-01",
+     "v": 113466
+    },
+    {
+     "date": "2025-02-01",
+     "v": 71136
+    },
+    {
+     "date": "2025-03-01",
+     "v": 138287
+    },
+    {
+     "date": "2025-04-01",
+     "v": 145296
+    },
+    {
+     "date": "2025-06-01",
+     "v": 152682
+    }
+   ]
+  },
+  "followers": {
+   "count": 6664,
+   "qoqPct": 9.138552243694727,
+   "sixMonthPct": 23.430264863863677,
+   "yoyPct": 88.4082555838281
+  },
+  "news": [
+   {
+    "title": "E2B vs Modal vs Daytona: AI Sandbox Pricing 2026",
+    "url": "https://tech-insider.org/e2b-vs-modal-vs-daytona-2026/",
+    "date": "2026-09-27",
+    "publisher": "https://tech-insider.org/"
+   },
+   {
+    "title": "NWEH transforms clinical trial safety reporting with near real-time EHR and E2B technology",
+    "url": "https://natlawreview.com/press-releases/nweh-transforms-clinical-trial-safety-reporting-near-real-time-ehr-and-e2b",
+    "date": "2026-09-06",
+    "publisher": "The National Law Review"
+   },
+   {
+    "title": "Veeva Falcon Safety to Work with All E2B-Compliant Safety Systems Across Any Intake Channels",
+    "url": "https://www.stocktitan.net/news/VEEV/veeva-falcon-safety-to-work-with-all-e2b-compliant-safety-systems-ikpr53b0jv4x.html",
+    "date": "2026-09-01",
+    "publisher": "Stock Titan"
+   },
+   {
+    "title": "Veeva Falcon Safety Automates Adverse Event Intake Across E2B Systems",
+    "url": "https://www.unite.ai/veeva-falcon-safety-automates-adverse-event-intake-across-e2b-systems/",
+    "date": "2026-09-01",
+    "publisher": "Unite.AI"
+   },
+   {
+    "title": "Arctic Wolves Rise to the E2B Challenge [Image 1 of 4]",
+    "url": "https://www.dvidshub.net/image/9898324/arctic-wolves-rise-e2b-challenge",
+    "date": "2026-08-31",
+    "publisher": "DVIDS"
+   }
+  ]
+ },
+ "calls": {
+  "identify": {
+   "id": "identify",
+   "method": "POST",
+   "path": "/company/identify",
+   "body": {
+    "domains": [
+     "e2b.dev"
+    ]
+   },
+   "status": "ok",
+   "ms": 13,
+   "cached": false,
+   "retrievedAt": "2026-10-31T14:01:29.788Z",
+   "creditsUsed": "0",
+   "data": {
+    "id": 1083252,
+    "name": "E2B",
+    "confidence": 1,
+    "matchType": "domain"
+   }
+  },
+  "enrich": {
+   "id": "enrich",
+   "method": "POST",
+   "path": "/company/enrich",
+   "body": {
+    "crustdata_company_ids": [
+     1083252
+    ],
+    "fields": [
+     "basic_info",
+     "headcount",
+     "funding",
+     "web_traffic",
+     "followers",
+     "news",
+     "people",
+     "taxonomy",
+     "locations",
+     "revenue"
+    ]
+   },
+   "status": "ok",
+   "ms": 3,
+   "cached": false,
+   "retrievedAt": "2026-10-31T14:01:29.791Z",
+   "creditsUsed": "2",
+   "data": {
+    "id": 1083252,
+    "name": "E2B",
+    "domain": "e2b.dev",
+    "website": "https://e2b.dev",
+    "logoUrl": "https://crustdata-media.s3.us-east-2.amazonaws.com/company/44911e15e7fc39ef81b1510e902c3c2038fac060a6d5620fb8d5820c15b16c9b.jpg",
+    "description": "Machines for AI agents",
+    "yearFounded": 2023,
+    "employeeRange": "51-200",
+    "linkedinUrl": "https://www.linkedin.com/company/e2b-dev",
+    "hq": "San Francisco, California, United States",
+    "country": "USA",
+    "industries": [
+     "Technology, Information and Internet",
+     "Technology, Information and Media"
+    ],
+    "categories": [
+     "Agentic AI",
+     "Artificial Intelligence (AI)",
+     "Cloud Management",
+     "Developer APIs",
+     "Software"
+    ],
+    "headcount": {
+     "total": 52,
+     "growth": {
+      "mom": 15.555555555555555,
+      "qoq": 26.82926829268293,
+      "six_months": 73.33333333333333,
+      "yoy": 136.36363636363635
+     },
+     "monthly": [
+      {
+       "date": "2022-12-26",
+       "v": 1
+      },
+      {
+       "date": "2023-01-30",
+       "v": 1
+      },
+      {
+       "date": "2023-02-27",
+       "v": 1
+      }
+     ],
+     "byFunction": [
+      {
+       "label": "Engineering",
+       "monthly": [
+        {
+         "date": "2025-04-01",
+         "v": 6
+        },
+        {
+         "date": "2025-05-01",
+         "v": 5
+        },
+        {
+         "date": "2025-06-01",
+         "v": 5
+        },
+        {
+         "date": "2025-07-01",
+         "v": 5
+        },
+        {
+         "date": "2025-08-01",
+         "v": 7
+        },
+        {
+         "date": "2025-09-01",
+         "v": 7
+        }
+       ]
+      },
+      {
+       "label": "Entrepreneurship",
+       "monthly": [
+        {
+         "date": "2025-04-01",
+         "v": 3
+        },
+        {
+         "date": "2025-05-01",
+         "v": 3
+        },
+        {
+         "date": "2025-06-01",
+         "v": 3
+        },
+        {
+         "date": "2025-07-01",
+         "v": 3
+        },
+        {
+         "date": "2025-08-01",
+         "v": 3
+        },
+        {
+         "date": "2025-09-01",
+         "v": 3
+        }
+       ]
+      },
+      {
+       "label": "Business Development",
+       "monthly": [
+        {
+         "date": "2025-04-01",
+         "v": 4
+        },
+        {
+         "date": "2025-05-01",
+         "v": 4
+        },
+        {
+         "date": "2025-06-01",
+         "v": 5
+        },
+        {
+         "date": "2025-07-01",
+         "v": 5
+        },
+        {
+         "date": "2025-08-01",
+         "v": 4
+        },
+        {
+         "date": "2025-09-01",
+         "v": 3
+        }
+       ]
+      },
+      {
+       "label": "Customer Success and Support",
+       "monthly": [
+        {
+         "date": "2025-11-01",
+         "v": 1
+        },
+        {
+         "date": "2025-12-01",
+         "v": 2
+        },
+        {
+         "date": "2026-01-01",
+         "v": 2
+        },
+        {
+         "date": "2026-02-01",
+         "v": 2
+        },
+        {
+         "date": "2026-03-01",
+         "v": 2
+        },
+        {
+         "date": "2026-04-01",
+         "v": 2
+        }
+       ]
+      },
+      {
+       "label": "Arts and Design",
+       "monthly": [
+        {
+         "date": "2025-11-01",
+         "v": 2
+        },
+        {
+         "date": "2025-12-01",
+         "v": 2
+        },
+        {
+         "date": "2026-01-01",
+         "v": 2
+        },
+        {
+         "date": "2026-02-01",
+         "v": 2
+        },
+        {
+         "date": "2026-03-01",
+         "v": 2
+        },
+        {
+         "date": "2026-04-01",
+         "v": 2
+        }
+       ]
+      },
+      {
+       "label": "Operations",
+       "monthly": [
+        {
+         "date": "2025-04-01",
+         "v": 1
+        },
+        {
+         "date": "2025-05-01",
+         "v": 2
+        },
+        {
+         "date": "2025-06-01",
+         "v": 2
+        },
+        {
+         "date": "2025-07-01",
+         "v": 2
+        },
+        {
+         "date": "2025-08-01",
+         "v": 2
+        },
+        {
+         "date": "2025-09-01",
+         "v": 2
+        }
+       ]
+      },
+      {
+       "label": "Human Resources",
+       "monthly": [
+        {
+         "date": "2025-11-01",
+         "v": 1
+        },
+        {
+         "date": "2025-12-01",
+         "v": 1
+        },
+        {
+         "date": "2026-01-01",
+         "v": 1
+        },
+        {
+         "date": "2026-02-01",
+         "v": 1
+        },
+        {
+         "date": "2026-03-01",
+         "v": 1
+        },
+        {
+         "date": "2026-04-01",
+         "v": 2
+        }
+       ]
+      },
+      {
+       "label": "Marketing",
+       "monthly": [
+        {
+         "date": "2025-06-01",
+         "v": 1
+        },
+        {
+         "date": "2025-07-01",
+         "v": 1
+        },
+        {
+         "date": "2025-08-01",
+         "v": 1
+        },
+        {
+         "date": "2025-09-01",
+         "v": 1
+        },
+        {
+         "date": "2025-10-01",
+         "v": 1
+        },
+        {
+         "date": "2025-11-01",
+         "v": 1
+        }
+       ]
+      },
+      {
+       "label": "Education",
+       "monthly": [
+        {
+         "date": "2025-06-01",
+         "v": 1
+        },
+        {
+         "date": "2025-07-01",
+         "v": 1
+        },
+        {
+         "date": "2025-08-01",
+         "v": 1
+        },
+        {
+         "date": "2025-09-01",
+         "v": 1
+        },
+        {
+         "date": "2025-10-01",
+         "v": 1
+        },
+        {
+         "date": "2025-11-01",
+         "v": 1
+        }
+       ]
+      },
+      {
+       "label": "Information Technology",
+       "monthly": [
+        {
+         "date": "2025-12-01",
+         "v": 1
+        },
+        {
+         "date": "2026-01-01",
+         "v": 1
+        },
+        {
+         "date": "2026-02-01",
+         "v": 1
+        },
+        {
+         "date": "2026-03-01",
+         "v": 1
+        },
+        {
+         "date": "2026-04-01",
+         "v": 1
+        },
+        {
+         "date": "2026-05-01",
+         "v": 1
+        }
+       ]
+      }
+     ]
+    },
+    "funding": {
+     "totalUsd": 35000000,
+     "lastRoundType": "series_a",
+     "lastRoundUsd": 21000000,
+     "lastDate": "2025-07-28",
+     "investors": [
+      "Decibel Partners",
+      "Edward Lando",
+      "Insight Partners",
+      "Jakub Jurovych",
+      "Juraj Masar",
+      "KAYA",
+      "Liu Jiang",
+      "Matej Turek",
+      "Pareto Holdings",
+      "Scott Johnston"
+     ]
+    },
+    "revenue": {
+     "lowUsd": 500000,
+     "highUsd": 1000000
+    },
+    "web": {
+     "domain": "e2b.dev",
+     "monthlyVisitors": 186562,
+     "momPct": -4.89,
+     "qoqPct": -7.8,
+     "monthly": [
+      {
+       "date": "2024-04-01",
+       "v": 67313
+      },
+      {
+       "date": "2024-05-01",
+       "v": 70585
+      },
+      {
+       "date": "2024-09-01",
+       "v": 175484
+      },
+      {
+       "date": "2024-10-01",
+       "v": 224811
+      },
+      {
+       "date": "2024-11-01",
+       "v": 137865
+      },
+      {
+       "date": "2024-12-01",
+       "v": 113466
+      },
+      {
+       "date": "2025-02-01",
+       "v": 71136
+      },
+      {
+       "date": "2025-03-01",
+       "v": 138287
+      },
+      {
+       "date": "2025-04-01",
+       "v": 145296
+      },
+      {
+       "date": "2025-06-01",
+       "v": 152682
+      }
+     ]
+    },
+    "followers": {
+     "count": 6664,
+     "qoqPct": 9.138552243694727,
+     "sixMonthPct": 23.430264863863677,
+     "yoyPct": 88.4082555838281
+    },
+    "news": [
+     {
+      "title": "E2B vs Modal vs Daytona: AI Sandbox Pricing 2026",
+      "url": "https://tech-insider.org/e2b-vs-modal-vs-daytona-2026/",
+      "date": "2026-09-27",
+      "publisher": "https://tech-insider.org/"
+     },
+     {
+      "title": "NWEH transforms clinical trial safety reporting with near real-time EHR and E2B technology",
+      "url": "https://natlawreview.com/press-releases/nweh-transforms-clinical-trial-safety-reporting-near-real-time-ehr-and-e2b",
+      "date": "2026-09-06",
+      "publisher": "The National Law Review"
+     },
+     {
+      "title": "Veeva Falcon Safety to Work with All E2B-Compliant Safety Systems Across Any Intake Channels",
+      "url": "https://www.stocktitan.net/news/VEEV/veeva-falcon-safety-to-work-with-all-e2b-compliant-safety-systems-ikpr53b0jv4x.html",
+      "date": "2026-09-01",
+      "publisher": "Stock Titan"
+     },
+     {
+      "title": "Veeva Falcon Safety Automates Adverse Event Intake Across E2B Systems",
+      "url": "https://www.unite.ai/veeva-falcon-safety-automates-adverse-event-intake-across-e2b-systems/",
+      "date": "2026-09-01",
+      "publisher": "Unite.AI"
+     },
+     {
+      "title": "Arctic Wolves Rise to the E2B Challenge [Image 1 of 4]",
+      "url": "https://www.dvidshub.net/image/9898324/arctic-wolves-rise-e2b-challenge",
+      "date": "2026-08-31",
+      "publisher": "DVIDS"
+     }
+    ]
+   }
+  },
+  "founders": {
+   "id": "founders",
+   "method": "POST",
+   "path": "/person/search",
+   "body": {
+    "filters": {
+     "op": "and",
+     "conditions": [
+      {
+       "field": "experience.employment_details.current.company_id",
+       "type": "=",
+       "value": 1083252
+      },
+      {
+       "field": "experience.employment_details.current.title",
+       "type": "(.)",
+       "value": "Founder"
+      }
+     ]
+    },
+    "fields": [
+     "basic_profile",
+     "social_handles",
+     "experience",
+     "education"
+    ],
+    "limit": 5
+   },
+   "status": "ok",
+   "ms": 2,
+   "cached": false,
+   "retrievedAt": "2026-10-31T14:01:29.799Z",
+   "creditsUsed": "0.66",
+   "data": {
+    "total": 2,
+    "people": [
+     {
+      "id": 280431,
+      "name": "Vasek Mlejnsky",
+      "title": "Co-Founder & CEO",
+      "headline": "Building cloud for agents",
+      "location": "San Francisco, California, United States",
+      "linkedinUrl": "https://www.linkedin.com/in/mlejva",
+      "pictureUrl": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/77e5018c78f710bfc12919ba8a5d15951841e51e34cca93097a39bdcc6a60579.jpg",
+      "current": [],
+      "past": [],
+      "schools": []
+     },
+     {
+      "id": 280432,
+      "name": "Tomas Valenta",
+      "title": "Co-Founder & CTO",
+      "headline": "Building cloud so agents can rm -rf --no-preserve-root / in peace",
+      "location": "San Francisco Bay Area",
+      "linkedinUrl": "https://www.linkedin.com/in/valentatomas",
+      "pictureUrl": "https://crustdata-media.s3.us-east-2.amazonaws.com/person/c3372dfdd8522fdfc4602ff2b1578990c9f68211e7aa757a50ce7fff77634f06.jpg",
+      "current": [],
+      "past": [],
+      "schools": []
+     }
+    ]
+   }
+  },
+  "jobs": {
+   "id": "jobs",
+   "method": "POST",
+   "path": "/job/search",
+   "body": {
+    "filters": {
+     "field": "company.basic_info.company_id",
+     "type": "=",
+     "value": 1083252
+    },
+    "sorts": [
+     {
+      "field": "metadata.date_added",
+      "order": "desc"
+     }
+    ],
+    "limit": 25
+   },
+   "status": "ok",
+   "ms": 2,
+   "cached": false,
+   "retrievedAt": "2026-10-31T14:01:29.799Z",
+   "creditsUsed": "0.75",
+   "data": {
+    "total": 32,
+    "listings": [
+     {
+      "title": "Support Engineer",
+      "category": "Engineering",
+      "url": "https://jobs.ashbyhq.com/e2b/4779efbf-7f43-4b8d-97df-85c9f3b1db99",
+      "date": "2026-10-13",
+      "location": "Prague, Czech Republic"
+     },
+     {
+      "title": "Senior Data Engineer",
+      "category": "Engineering",
+      "url": "https://jobs.ashbyhq.com/e2b/64fe2979-3abe-4a32-8a24-ec5b8582c1a1",
+      "date": "2026-10-06",
+      "location": "San Francisco"
+     },
+     {
+      "title": "Founding Product Marketing Lead",
+      "category": "Marketing",
+      "url": "https://jobs.ashbyhq.com/e2b/d07e3421-9d5f-4145-8b54-cf6f4ac2cb45",
+      "date": "2026-09-30",
+      "location": "San Francisco"
+     },
+     {
+      "title": "Videographer & Video Editor",
+      "category": "Marketing",
+      "url": "https://jobs.ashbyhq.com/e2b/8807b7c1-3dc4-4f4c-bb20-634fcef4634c",
+      "date": "2026-09-23",
+      "location": "San Francisco"
+     },
+     {
+      "title": "Billing Engineer",
+      "category": "Engineering",
+      "url": "https://jobs.ashbyhq.com/e2b/efc5fc81-83b7-40f6-8c00-a5a8bf508fe5",
+      "date": "2026-09-21",
+      "location": "Prague, Czech Republic"
+     }
+    ],
+    "byCategory": [
+     {
+      "category": "Engineering",
+      "count": 3
+     },
+     {
+      "category": "Marketing",
+      "count": 2
+     }
+    ]
+   }
+  },
+  "news": {
+   "id": "news",
+   "method": "POST",
+   "path": "/web/search/live",
+   "body": {
+    "query": "\"E2B\" Agentic AI",
+    "human_mode": false,
+    "page": 1
+   },
+   "status": "ok",
+   "ms": 2,
+   "cached": false,
+   "retrievedAt": "2026-10-31T14:01:29.799Z",
+   "creditsUsed": "1",
+   "data": {
+    "query": "E2B Series A",
+    "results": [
+     {
+      "title": "E2B vs Modal vs Daytona: AI Sandbox Pricing 2026",
+      "url": "https://www.google.com/goto?url=CAEScQHrOzAVazbif1wF9zeo-XS-1qQDOZm30tl4NYfWeJ4iymSQSUgVJ59diURmge2CCyfM_9FlzsmGd2w8JxKzDt7BmO4uAEStScVWkImb5E4E_KNxUzrNB0IFXcuRv1bMfQbC7QdqwFqGblRW7Ol130-P",
+      "snippet": "E2B vs Modal vs Daytona compared: pricing, cold-start speed, GPU support, and isolation tech for AI agent sandboxes in 2026.",
+      "source": "news"
+     },
+     {
+      "title": "Intel Xeon 658X In E2B LGA4710 2 Frame 1",
+      "url": "https://www.google.com/goto?url=CAESwgEB6zswFaWBtJ6pyq3SDQz31Sj5ZOr_cpxd_6XpJqad_HyeLPEZ5oDC9syIx_4Rd3nec69jf_73shVlY4Ly6yvko4Dybt5zBubFffnVOm2KCx4cj8s1jIfcAEUCuUFTams7Hu93Md_qx_vGWKOUj4T9iGDpk8VyiEs21HQyQwjxk9_iGoAwJvuEkD8bEqBT9LWw3se3mRW3KVHEAEX3M2Z9iPJJWNorMAO0A6e_2oJSQ7ERaF--c9K6Wd-h1SW7sPFS1A",
+      "snippet": "ServeTheHome is the IT professional's guide to servers, storage, networking, and high-end workstation hardware, plus great open source projects.",
+      "source": "news"
+     },
+     {
+      "title": "Veeva Falcon Safety Automates Adverse Event Intake Across E2B Systems",
+      "url": "https://www.google.com/goto?url=CAESlgEB6zswFdUQ-ZMhJzmJXFVjU2PhhDjE2swtRUf4GIBsJ9so86UdFI4gX71SQI7LUQOv3PIy4ZhrbRjqFuwvHTLdGf5iE-YES410BFZhIiZ1okvzQ4-SaFpRsmw2QPSqohEKla_ABhaIq8BWdG7A8XORi1OQWBgfIa7EvGDCSV6XWTsXbnqvp74FYZoTMAUiE8A7g_4YY1I",
+      "snippet": "Veeva Systems on September 1, 2026 announced Veeva Falcon Safety, an agentic product designed to streamline adverse event intake,...",
+      "source": "news"
+     },
+     {
+      "title": "Google announces Gemma 4 optimized for the Pixel 10’s TPU",
+      "url": "https://9to5google.com/2026/07/14/pixel-10-gemma-4/",
+      "snippet": "Google today announced Gemma 4 E2B for TPU that's designed to run natively on the Pixel 10's TPU. Gemma is Google's series...",
+      "source": "news"
+     },
+     {
+      "title": "Best Agent Sandboxes in 2026: Cold Start, Per-Second Pricing, and Network Policy Across E2B, Daytona, Modal, Cloudflare, and Vercel",
+      "url": "https://www.google.com/goto?url=CAESnwEB6zswFahMAdiohYG1sEsOYFJ7H28oowk2mL9a-Auyopqrr_H0jqebN2GrCbsnjCNfFQssZkZoJs-rWL-2q48LiYmxot91m7Gvjnh8bd3aLS86urhtCNrmGJWZJjW0jq4rxka6-lQy7vcVNQGR4DO9dlj3b9l4QphBKj2bHKsc_U_AORjh7a3-1yWNC6IzG0e1XjJbD5VTHexb5IXNB30",
+      "snippet": "Compare agent sandboxes on measured cold start, per-second pricing, idle billing, and egress policy across E2B, Modal, Vercel.",
+      "source": "news"
+     },
+     {
+      "title": "On-device AI: Google brings 2-billion-parameter model to smartphones",
+      "url": "https://www.google.com/goto?url=CAESqQEB6zswFTGgbK8dodcDH6famuIMjkgyoMk6wYSL6Fkmaa51EBqWzcAVl901aGstvSPAQDn-0d0avHAgN88tCsPAyK4LIj-PCGJMYJh_rWpWAbupyvwgTeRkoH-ojY9Y5Su_9peOLrGeZHgWuJy4FAveISW3wYBcNDLWWXB-RMju8R6ojurylxMoGpMYfHrgyilRTgi9eL32bLpwzhaswZ59etD4gyJfI0ib",
+      "snippet": "Google is moving AI functions from the cloud directly to the smartphone. The Gemma 4 E2B for TPU model is specifically designed for the...",
+      "source": "news"
+     },
+     {
+      "title": "E2B shares its vision of sandboxed, cloud environments for every AI agent after raising $21M in funding",
+      "url": "https://siliconangle.com/2025/07/28/e2b-shares-vision-sandboxed-cloud-environments-every-ai-agent-raising-21m-funding/",
+      "snippet": "Agentic cloud infrastructure startup E2B said today it has raised $21 million in early-stage funding to build out an entirely new,...",
+      "source": "news"
+     },
+     {
+      "title": "E2B: $21 Million Series A Raised For AI Agent Cloud Infrastructure Platform",
+      "url": "https://www.google.com/goto?url=CAESmAEB6zswFZ6XRSBk4Fk3-d7etPkOFkNX4oipG4pvjwzlxuO5BN24AAFiX29_GFLjI93MUHstVgdChuxM41xd8yLMDgjWXULIU4f8x9TCg9eC1wOx4C-NwsUzcuG_8BzauHU7lCPEPneqjUB6B2a0LoZblQJAOct7lcx_11HCurxXyzOypYr0ZQWtQ3gwH3UqktzuXG2HYFXMAQ",
+      "snippet": "E2B: $21 Million Series A Raised For AI Agent Cloud Infrastructure Platform · KEY QUOTES: “The expectations we have from AI agents in the...",
+      "source": "news"
+     }
+    ]
+   }
+  },
+  "comps": {
+   "id": "comps",
+   "method": "POST",
+   "path": "/company/search",
+   "body": {
+    "search": {
+     "query": "Machines for AI agents · Agentic AI, Artificial Intelligence (AI), Cloud Management",
+     "mode": "hybrid"
+    },
+    "filters": {
+     "field": "crustdata_company_id",
+     "type": "not_in",
+     "value": [
+      1083252
+     ]
+    },
+    "fields": [
+     "crustdata_company_id",
+     "basic_info.name",
+     "basic_info.primary_domain",
+     "basic_info.description",
+     "basic_info.year_founded",
+     "basic_info.employee_count_range",
+     "funding.total_investment_usd",
+     "funding.last_round_type"
+    ],
+    "limit": 5
+   },
+   "status": "ok",
+   "ms": 1,
+   "cached": false,
+   "retrievedAt": "2026-10-31T14:01:29.799Z",
+   "creditsUsed": null,
+   "data": []
+  }
+ },
+ "fields": {
+  "headcountLatest": {
+   "status": "ok",
+   "value": 52,
+   "inputs": [
+    {
+     "name": "headcount.total",
+     "value": 52
+    }
+   ],
+   "method": "Read as reported",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.headcount.total",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "E2B has 52 employees on Crustdata's latest index."
+  },
+  "headcountGrowth6m": {
+   "status": "ok",
+   "value": 73.3,
+   "inputs": [
+    {
+     "name": "headcount.growth_percent.six_months",
+     "value": 73.33333333333333
+    }
+   ],
+   "method": "Read as reported (Crustdata computes it from its headcount history)",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.headcount.growth_percent.six_months",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "Headcount 6-month change: 73.3%."
+  },
+  "growthYoY": {
+   "status": "ok",
+   "value": 136.4,
+   "inputs": [
+    {
+     "name": "headcount.growth_percent.yoy",
+     "value": 136.36363636363635
+    }
+   ],
+   "method": "Read as reported (Crustdata computes it from its headcount history)",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.headcount.growth_percent.yoy",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "Headcount year-over-year change: 136.4%."
+  },
+  "headcountGrowthQoQ": {
+   "status": "ok",
+   "value": 26.8,
+   "inputs": [
+    {
+     "name": "headcount.growth_percent.qoq",
+     "value": 26.82926829268293
+    }
+   ],
+   "method": "Read as reported (Crustdata computes it from its headcount history)",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.headcount.growth_percent.qoq",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "Headcount quarter-over-quarter change: 26.8%."
+  },
+  "fundingTotal": {
+   "status": "ok",
+   "value": {
+    "amount": 35000000,
+    "currency": "USD"
+   },
+   "inputs": [
+    {
+     "name": "funding.total_investment_usd",
+     "value": 35000000
+    }
+   ],
+   "method": "Read as reported; currency USD per the field name (total_investment_usd)",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.funding.total_investment_usd",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "Total raised across all rounds: $35M."
+  },
+  "lastFunding": {
+   "status": "ok",
+   "value": {
+    "amount": 21000000,
+    "currency": "USD"
+   },
+   "inputs": [
+    {
+     "name": "funding.last_round_amount_usd",
+     "value": 21000000
+    },
+    {
+     "name": "funding.last_round_type",
+     "value": "series_a"
+    }
+   ],
+   "method": "Read as reported; currency USD per the field name (last_round_amount_usd)",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.funding.last_round_amount_usd",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "Last round (series_a, 2025-07-28): $21M."
+  },
+  "lastRoundType": {
+   "status": "ok",
+   "value": "series_a",
+   "inputs": [
+    {
+     "name": "funding.last_round_type",
+     "value": "series_a"
+    }
+   ],
+   "method": "Read as reported",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.funding.last_round_type",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "Last round type: series_a."
+  },
+  "lastFundingDate": {
+   "status": "ok",
+   "value": "2025-07-28",
+   "inputs": [
+    {
+     "name": "funding.last_fundraise_date",
+     "value": "2025-07-28"
+    }
+   ],
+   "method": "Read as reported (date part)",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.funding.last_fundraise_date",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "Last fundraise on 2025-07-28."
+  },
+  "webMonthlyVisitors": {
+   "status": "ok",
+   "value": 186562,
+   "inputs": [
+    {
+     "name": "monthly_visitors",
+     "value": 186562
+    }
+   ],
+   "method": "Read as reported, rounded to whole visitors",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.web_traffic.domain_traffic[\"e2b.dev\"].monthly_visitors",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "186,562 monthly visitors to e2b.dev."
+  },
+  "webTrafficQoQ": {
+   "status": "ok",
+   "value": -7.8,
+   "inputs": [
+    {
+     "name": "qoq_pct",
+     "value": -7.8
+    }
+   ],
+   "method": "Read as reported",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.web_traffic.domain_traffic[\"e2b.dev\"].qoq_pct",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "Web traffic changed -7.8% quarter over quarter."
+  },
+  "followers": {
+   "status": "ok",
+   "value": 6664,
+   "inputs": [
+    {
+     "name": "followers.count",
+     "value": 6664
+    }
+   ],
+   "method": "Read as reported",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.followers.count",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "6,664 followers on the company's professional-network page."
+  },
+  "openRoles": {
+   "status": "ok",
+   "value": 32,
+   "inputs": [
+    {
+     "name": "total_count",
+     "value": 32
+    }
+   ],
+   "method": "total_count of the job search on company.basic_info.company_id",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /job/search",
+     "path": "total_count",
+     "retrievedAt": "2026-10-31T14:01:29.799Z"
+    }
+   ],
+   "reasoning": "32 open roles indexed for E2B."
+  },
+  "engineeringRolesSample": {
+   "status": "ok",
+   "value": 3,
+   "inputs": [
+    {
+     "name": "listings returned",
+     "value": 5
+    },
+    {
+     "name": "total_count",
+     "value": 32
+    }
+   ],
+   "method": "count of job_details.category == \"Engineering\" over the returned listings",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /job/search",
+     "path": "job_listings[].job_details.category",
+     "retrievedAt": "2026-10-31T14:01:29.799Z"
+    }
+   ],
+   "reasoning": "3 of the 5 most recent listings are Engineering (sample, not all 32)."
+  },
+  "foundersFound": {
+   "status": "ok",
+   "value": 2,
+   "inputs": [
+    {
+     "name": "total_count",
+     "value": 2
+    }
+   ],
+   "method": "number of profiles returned by the founder filter tree (current company_id + title contains \"Founder\")",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /person/search",
+     "path": "profiles[]",
+     "retrievedAt": "2026-10-31T14:01:29.799Z"
+    }
+   ],
+   "reasoning": "2 founder profile(s): Vasek Mlejnsky, Tomas Valenta."
+  },
+  "foundedYear": {
+   "status": "ok",
+   "value": 2023,
+   "inputs": [
+    {
+     "name": "basic_info.year_founded",
+     "value": 2023
+    }
+   ],
+   "method": "Read as reported",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/enrich",
+     "path": "[0].matches[0].company_data.basic_info.year_founded",
+     "retrievedAt": "2026-10-31T14:01:29.791Z"
+    }
+   ],
+   "reasoning": "Founded in 2023."
+  },
+  "compsFound": {
+   "status": "ok",
+   "value": 0,
+   "inputs": [
+    {
+     "name": "query",
+     "value": "Machines for AI agents · Agentic AI, Artificial Intelligence (AI), Cloud Management"
+    }
+   ],
+   "method": "number of companies returned by ranked /company/search on the company's description (target excluded)",
+   "citations": [
+    {
+     "source": "Crustdata",
+     "endpoint": "POST /company/search",
+     "path": "companies[]",
+     "retrievedAt": "2026-10-31T14:01:29.799Z"
+    }
+   ],
+   "reasoning": "0 comparable companies: none."
+  },
+  "signalScore": {
+   "status": "unavailable",
+   "reason": "A fit/signal score needs the firm's thesis and the Deal Desk scoring model (builder pipeline); this build has neither, so no score is computed from Crustdata signals alone."
+  }
+ }
+}
