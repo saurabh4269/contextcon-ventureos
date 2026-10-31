@@ -100,7 +100,6 @@ export type LiveCall<T = unknown> = {
 
 export type LiveFailure =
   | { status: "not_connected"; message: string }
-  | { status: "disabled"; message: string }
   | { status: "error"; message: string; upstreamStatus?: number };
 
 export type IdentifyData = { id: number; name: string; confidence?: number; matchType?: string };
@@ -130,7 +129,7 @@ export type CompanyLookup = { status: "ok"; company: LiveCompany; identify: Live
 export type PersonLookup = { status: "ok"; person: LivePerson; call: LiveCall } | { status: "no_match"; linkedinUrl: string; call: LiveCall } | LiveFailure;
 
 /* ── connectors (GET /api/integrations/connectors) — see docs/API.md ── */
-export type IntegrationStatus = "connected" | "not_configured" | "error" | "demo";
+export type IntegrationStatus = "connected" | "not_configured" | "error";
 export type IntegrationInfo = {
   id: string;
   name: string;
@@ -145,4 +144,4 @@ export type IntegrationInfo = {
   docsUrl: string;
   lastCheckedAt: string | null;
 };
-export type IntegrationsResponse = { dataMode: "demo" | "live"; checkedAt: string; connectors: IntegrationInfo[] };
+export type IntegrationsResponse = { checkedAt: string; connectors: IntegrationInfo[] };

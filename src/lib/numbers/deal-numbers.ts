@@ -1,5 +1,5 @@
 // GET /api/deals/:id/numbers and /valuation — interim implementation of the builder's contract (builder-main a5330b1).
-// Swapping to the builder's backend means replacing this module (and demo.ts) with calls to its API; the route
+// Swapping to the builder's backend means replacing this module with calls to its API; the route
 // handlers and the UI only depend on the `DealNumbers` / `DealValuation` shapes below.
 import { unavailable, type ComputedField } from "@/lib/fields";
 import type { CompanyFields } from "./company-fields";
@@ -28,8 +28,9 @@ export type DealNumbers = Record<DealNumberKey, ComputedField<unknown>>;
 export const VALUATION_KEYS = ["low", "high", "cap", "ask", "returnMultipleLow", "returnMultipleHigh", "compsMedianMultiple"] as const;
 export type DealValuation = Record<(typeof VALUATION_KEYS)[number], ComputedField<unknown>>;
 
-export type NumbersResponse = { id: string; source: "live" | "demo"; dataMode: "demo" | "live"; fields: DealNumbers };
-export type ValuationResponse = { id: string; source: "live" | "demo"; dataMode: "demo" | "live"; explainable: DealValuation };
+/** `source` names where the computed values come from; money values are {amount, currency} (see docs/API.md). */
+export type NumbersResponse = { id: string; source: "crustdata"; fields: DealNumbers };
+export type ValuationResponse = { id: string; source: "crustdata"; explainable: DealValuation };
 
 const PIPELINE =
   "Computed by the Deal Desk pipeline (builder backend: data-room ingest, firm mandate, scoring/LLM); not available in this build.";
@@ -57,7 +58,7 @@ export function liveDealNumbers(company: CompanyFields): DealNumbers {
   const out = Object.fromEntries(DEAL_NUMBER_KEYS.map((k) => [k, unavailable(REASONS[k])])) as DealNumbers;
   out.headcountLatest = company.headcountLatest;
   out.growthYoY = company.growthYoY;
-  out.lastFundingUsdM = company.lastFundingUsdM;
+  out.lastFundingUsdM = company.lastFunding; // builder key name; value is Money {amount, currency}
   return out;
 }
 

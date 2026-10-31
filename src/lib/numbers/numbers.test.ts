@@ -1,13 +1,12 @@
+import { fixtureClient } from "@/test/crustdata";
 import { describe, expect, it } from "vitest";
-import { createCrustdataClient } from "@/lib/crustdata";
 import { explain, isOk, show } from "@/lib/fields";
 import { researchCompany } from "@/lib/live/research";
 import { DEAL_NUMBER_KEYS, liveDealNumbers, liveDealValuation } from "./deal-numbers";
 import { companyFields } from "./company-fields";
-import { demoDeal } from "./demo";
 
 const research = async () => {
-  const r = await researchCompany(createCrustdataClient({ forceFixture: true }), "e2b.dev");
+  const r = await researchCompany(fixtureClient(), "e2b.dev");
   if (r.status !== "ok") throw new Error(`expected ok, got ${r.status}`);
   return r;
 };
@@ -17,10 +16,10 @@ describe("live company fields (real E2B captures)", () => {
     const f = companyFields(await research());
     expect(f.headcountLatest).toMatchObject({ status: "ok", value: 52 });
     expect(f.growthYoY).toMatchObject({ status: "ok", value: 136.4 });
-    expect(f.lastFundingUsdM).toMatchObject({ status: "ok", value: 21 });
-    expect(f.fundingTotalUsdM).toMatchObject({ status: "ok", value: 35 });
+    expect(f.lastFunding).toMatchObject({ status: "ok", value: { amount: 21_000_000, currency: "USD" } });
+    expect(f.fundingTotal).toMatchObject({ status: "ok", value: { amount: 35_000_000, currency: "USD" } });
     expect(f.openRoles).toMatchObject({ status: "ok", value: 32 });
-    for (const k of ["headcountLatest", "growthYoY", "lastFundingUsdM", "openRoles"] as const) {
+    for (const k of ["headcountLatest", "growthYoY", "lastFunding", "openRoles"] as const) {
       const v = f[k];
       if (!isOk(v)) throw new Error(k);
       expect(v.citations[0]).toMatchObject({ source: "Crustdata" });
@@ -42,22 +41,11 @@ describe("live company fields (real E2B captures)", () => {
     const n = liveDealNumbers(companyFields(await research()));
     expect(Object.keys(n).sort()).toEqual([...DEAL_NUMBER_KEYS].sort());
     expect(n.headcountLatest.status).toBe("ok");
+    expect(n.lastFundingUsdM).toMatchObject({ status: "ok", value: { currency: "USD" } });
     for (const k of ["fitScore", "returnMultipleLow", "compsMedianMultiple", "diligenceVerdict", "icMemoValuation"] as const) {
       expect(n[k]).toMatchObject({ status: "unavailable" });
       expect((n[k] as { reason: string }).reason.length).toBeGreaterThan(20);
     }
     expect(Object.values(liveDealValuation()).every((f) => f.status === "unavailable")).toBe(true);
-  });
-});
-
-describe("demo numbers module", () => {
-  it("feeds the same shape, every citation labelled demo data", () => {
-    const d = demoDeal("helio")!;
-    expect(d.fields.fitScore).toMatchObject({ status: "ok", value: 72 });
-    expect(d.fields.compsMedianMultiple).toMatchObject({ status: "ok", value: 11 });
-    for (const f of [...Object.values(d.fields), ...Object.values(d.explainable)]) {
-      if (isOk(f)) expect(f.citations.every((c) => c.source.startsWith("Demo data"))).toBe(true);
-    }
-    expect(demoDeal("e2b.dev")).toBeUndefined();
   });
 });

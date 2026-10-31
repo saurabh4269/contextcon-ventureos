@@ -1,5 +1,5 @@
-/** Documented fixture credit labels (see docs.crustdata.com/general/pricing). */
-export const FIXTURE_CREDITS = {
+/** Documented Crustdata pricing per call/row (docs.crustdata.com/general/pricing), shown as cost labels in Settings. */
+export const CREDIT_COSTS = {
   identify: "0",
   enrichCompany: "2",
   personEnrich: "1",

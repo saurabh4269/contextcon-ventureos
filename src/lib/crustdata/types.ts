@@ -35,17 +35,15 @@ export type CrustdataErrorBody = {
 };
 
 export type CrustdataCallMeta = {
-  mode: "live" | "fixture";
   path: string;
-  /** `X-Credits-Used` header of the original response (null when the header was absent or in fixture mode). */
+  /** `X-Credits-Used` header of the original response (null when the header was absent). */
   creditsUsed: string | null;
   requestId: string | null;
   asOf: string;
   /** ISO time the upstream response was fetched (for cache hits: when it was originally fetched). */
   retrievedAt: string;
-  /** Observed latency of the original network call, ms (0 for fixtures). */
+  /** Observed latency of the original network call, ms. */
   latencyMs: number;
   /** True when served from the response cache (no credits spent for this read). */
   cached: boolean;
-  fixtureLabel?: string;
 };

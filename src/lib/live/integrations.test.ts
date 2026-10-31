@@ -26,9 +26,6 @@ describe("connector status comes from config + health checks only", () => {
     expect(r.detail).toContain("Invalid API key");
   });
 
-  it("demo when explicitly forced to fixtures and no key is set", async () => {
-    expect((await checkIntegration(spec("crustdata"), { DEALDESK_FIXTURES: "1" }, never)).status).toBe("demo");
-  });
 
   it("a valid key for an integration this build does not use says so", async () => {
     const r = await checkIntegration(spec("slack"), { SLACK_BOT_TOKEN: "x" }, respond(200, { ok: true, team: "Northbeam" }));

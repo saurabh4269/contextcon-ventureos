@@ -73,7 +73,7 @@ export async function crustdataFetch<T>(
   path: string,
   init: RequestInit,
   limiter: RateLimiter,
-  opts: { timeoutMs?: number; retries?: number; max429WaitMs?: number } = {},
+  opts: { timeoutMs?: number; retries?: number; max429WaitMs?: number; fetchImpl?: typeof fetch } = {},
 ): Promise<{ data: T; creditsUsed: string | null; requestId: string | null }> {
   const timeoutMs = opts.timeoutMs ?? 30_000;
   const max429Retries = opts.retries ?? 3;
@@ -89,7 +89,7 @@ export async function crustdataFetch<T>(
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     let res: Response;
     try {
-      res = await fetch(`${CRUSTDATA_BASE_URL}${path}`, {
+      res = await (opts.fetchImpl ?? fetch)(`${CRUSTDATA_BASE_URL}${path}`, {
         ...init,
         signal: controller.signal,
         headers: {

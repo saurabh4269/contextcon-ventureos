@@ -1,10 +1,10 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import type { CrustdataClient } from "@/lib/crustdata";
-import { badRequest, failureFrom, failureResponse, liveCrustdataClient, liveModeGuard } from "./server";
+import { badRequest, failureFrom, failureResponse, liveCrustdataClient } from "./server";
 
 /**
- * Wraps a /api/live/* handler: live-mode guard, client construction (not-connected → 503), error mapping (→ 502).
+ * Wraps a /api/live/* handler: client construction (not-connected → 503), error mapping (→ 502).
  * `parse` validates query params and returns either the parsed input or a 400 message.
  */
 export function liveRoute<I>(
@@ -12,8 +12,6 @@ export function liveRoute<I>(
   run: (client: CrustdataClient, input: I) => Promise<unknown>,
 ) {
   return async function GET(req: Request) {
-    const guard = liveModeGuard();
-    if (guard) return failureResponse(guard);
     const parsed = parse(new URL(req.url).searchParams);
     if (!parsed.ok) return badRequest(parsed.message);
     try {
