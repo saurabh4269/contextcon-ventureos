@@ -51,6 +51,12 @@ export class CircuitBreaker {
     if (s.failures >= this.threshold) s.openUntil = this.now() + this.cooldownMs;
   }
 
+  /** The caller gave up before reaching the upstream (e.g. its deadline ran out): free a half-open trial slot. */
+  release(key: string): void {
+    const s = this.states.get(key);
+    if (s) s.trialInFlight = false;
+  }
+
   status(key: string): "closed" | "open" | "half_open" {
     const s = this.states.get(key);
     if (!s || s.failures < this.threshold) return "closed";

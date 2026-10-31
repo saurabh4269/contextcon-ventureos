@@ -170,7 +170,10 @@ export async function crustdataFetch<T>(
     opts.breaker?.check(breakerKey);
     await limiter.acquire(path);
     const remaining = deadline - Date.now();
-    if (remaining <= 0) throw new CrustdataTransportError("timeout", `Crustdata ${method} ${path} ran out of time (deadline reached after ${attempt - 1} attempt(s))`);
+    if (remaining <= 0) {
+      opts.breaker?.release(breakerKey);
+      throw new CrustdataTransportError("timeout", `Crustdata ${method} ${path} ran out of time (deadline reached after ${attempt - 1} attempt(s))`);
+    }
     const attemptTimeout = Math.min(timeoutMs, remaining);
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), attemptTimeout);

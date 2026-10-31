@@ -296,3 +296,14 @@ describe("request-scoped deadline", () => {
     await withDeadline(100, () => withDeadline(10_000, async () => expect(remainingMs()!).toBeLessThanOrEqual(100)));
   });
 });
+
+describe("breaker trial slot", () => {
+  it("is released when the deadline runs out before the trial reaches Crustdata", async () => {
+    let now = 0;
+    const breaker = new CircuitBreaker(1, 1_000, () => now);
+    await expect(fetchOnce(scripted([err(503)]).f, { breaker, transientRetries: 0 })).rejects.toBeInstanceOf(CrustdataApiError);
+    now = 5_000; // cooldown over: the next caller is the half-open trial
+    await expect(fetchOnce(scripted([ok(IDENTIFY_E2B)]).f, { breaker, deadlineMs: 0 })).rejects.toBeInstanceOf(CrustdataTransportError);
+    await expect(fetchOnce(scripted([ok(IDENTIFY_E2B)]).f, { breaker })).resolves.toBeTruthy();
+  });
+});
