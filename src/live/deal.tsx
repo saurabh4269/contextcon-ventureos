@@ -13,8 +13,13 @@ import type { LoadStatus, ShellData } from "@port/types";
 import { noMatchSignals, placeholderDeal, toLiveDeal, toValuationSection, withDecisionFit } from "@/lib/adapters/deal";
 import type { ResearchResult } from "@/lib/live/types";
 import type { DecisionsResponse } from "@/lib/numbers/decisions";
+import type { DealSection } from "@port/types";
 import { failureMessage, useLiveJson } from "./useLiveJson";
 import { recordEvent } from "./memory";
+
+/** Unavailable decisions wait in the review queue; say so where the "—" is shown. */
+const withReviewNote = (s: DealSection, open: number): DealSection =>
+  open && s.kind === "valuation" ? { ...s, unavailable: `${s.unavailable ?? "Some decisions are unavailable."} ${open === 1 ? "One decision is" : `${open} decisions are`} waiting for you in Review (/review).` } : s;
 
 type Ok = Extract<ResearchResult, { status: "ok" }>;
 type NoMatch = Extract<ResearchResult, { status: "no_match" }>;
@@ -40,7 +45,7 @@ function LiveDealFor({ shell, domain, tab }: { shell: ShellData; domain: string;
   const research = ok ? toLiveDeal(ok) : null;
   const base = research ? (val.state === "ok" ? withDecisionFit(research, val.data.decisions) : research) : noMatch ? { ...placeholderDeal(domain), signals: noMatchSignals(domain, noMatch.calls.identify, noMatch.requestedAt) } : placeholderDeal(domain);
   const data = ok && val.state === "ok"
-    ? { ...base, sections: { ...base.sections, valuation: toValuationSection(val.data.fields) }, outline: [...base.outline, { id: "valuation", label: "Valuation", state: "warn" as const }] }
+    ? { ...base, sections: { ...base.sections, valuation: withReviewNote(toValuationSection(val.data.fields), val.data.review?.open.length ?? 0) }, outline: [...base.outline, { id: "valuation", label: "Valuation", state: "warn" as const }] }
     : base;
   const valid = (v?: string) => (v && (v === "signals" || data.sections?.[v]) ? v : "signals");
   const [view, setView] = useState(valid(tab));

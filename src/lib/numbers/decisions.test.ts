@@ -78,8 +78,9 @@ describe("GET /api/deals/:id/decisions (builder contract)", () => {
 describe("deal page from decisions", () => {
   it("valuation section shows decision stats, all '—' with reasons in this build", async () => {
     const s = toValuationSection((await local()).fields);
-    expect(s.stats!.map((x) => x.id)).toEqual(["fit", "screener", "diligence", "low", "high", "ask", "rml", "rmh", "comps"]);
-    expect(s.stats!.every((x) => x.value === "—" && /^Unavailable: /.test(x.hint ?? ""))).toBe(true);
+    if (s.kind !== "valuation") throw new Error(s.kind);
+    expect(s.stats.map((x) => x.id)).toEqual(["fit", "screener", "diligence", "low", "high", "ask", "rml", "rmh", "comps"]);
+    expect(s.stats.every((x) => x.value === "—" && /^Unavailable: /.test(x.hint ?? ""))).toBe(true);
   });
 
   it("an ok fitScore scores the fit tile and header pill; unavailable keeps it unscored with the decision's reason", async () => {

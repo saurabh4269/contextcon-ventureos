@@ -40,6 +40,8 @@ export type DecisionsResponse = {
   endpoints: Record<string, string>;
   fields: DecisionFields;
   builder?: { status: "used" | "not_configured" | "unavailable"; reason?: string };
+  /** Review queue (/review) items for this deal's decisions: unavailable or partial-input decisions wait for a person. */
+  review?: { runId: string; href: string; open: { id: string; key: string; kind: string }[]; resolved: { id: string; key: string; status: string }[] };
 };
 
 const SCREENER =

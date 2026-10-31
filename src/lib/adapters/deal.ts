@@ -8,7 +8,7 @@ import type { LiveCall, LivePerson, Point, ResearchResult } from "@/lib/live/typ
 import { CRUSTDATA_API_VERSION } from "@/lib/crustdata/http";
 import { fmtAgo, fmtCompact, fmtDate, fmtDateTime, fmtInt, fmtLabel, fmtMoney, fmtMonth, fmtMonthYear, fmtPct, isMoney, money } from "@/lib/format";
 import { ENRICH_ROOT } from "@/lib/numbers/company-fields";
-import { uncitedOk, whyFromCall, whyFromField, type CallMeta, type Why } from "@/lib/provenance";
+import { uncitedOk, whyFromCall, whyFromDecision, whyFromField, type CallMeta, type Why } from "@/lib/provenance";
 
 type Ok = Extract<ResearchResult, { status: "ok" }>;
 type F = ComputedField<unknown>;
@@ -353,7 +353,9 @@ export function noMatchSignals(domain: string, identify: LiveCall, requestedAt: 
 
 /* ── Decisions + valuation (GET /api/deals/:id/decisions → fields; /valuation → explainable is accepted too) ── */
 type ValuationKey = "low" | "high" | "cap" | "ask" | "returnMultipleLow" | "returnMultipleHigh" | "compsMedianMultiple";
-type Explainable = Partial<Record<ValuationKey | "valuationLow" | "valuationHigh" | "valuationCap" | "founderAsk" | "fitScore" | "screenerVerdict" | "diligenceVerdict", F>>;
+type CriterionKey = "criterionSector" | "criterionStage" | "criterionGeo" | "criterionCheckSize" | "criterionMemory";
+type Explainable = Partial<Record<ValuationKey | CriterionKey | "valuationLow" | "valuationHigh" | "valuationCap" | "founderAsk" | "fitScore" | "screenerVerdict" | "diligenceVerdict", F>>;
+const CRITERIA: [CriterionKey, string][] = [["criterionSector", "Sector"], ["criterionStage", "Stage"], ["criterionGeo", "Geography"], ["criterionCheckSize", "Check size"], ["criterionMemory", "Firm memory"]];
 const fmtX = (v: unknown) => `${n(v)}×`;
 const fmtMoneyOrNum = (v: unknown) => (isMoney(v) ? fmtMoney(v) : String(v));
 const fmtScore = (v: unknown) => `${fmtInt(v)} / 100`; // data-literal-ok: score scale of the decision engine's fitScore
@@ -364,9 +366,12 @@ export function toValuationSection(x: Explainable): DealSection {
   const stat = (id: string, label: string, f: F, fmt: (v: unknown) => string) => ({ id, label, value: show(f, fmt), hint: explain(f), why: whyFromField(f) });
   const lo = x.valuationLow ?? x.low ?? MISSING, hi = x.valuationHigh ?? x.high ?? MISSING;
   const priced = isOk(lo) && isOk(hi);
+  // Fit and screener verdict: the sources panel shows the decision plus each mandate criterion it was decided on.
+  const criteria = CRITERIA.map(([k, name]) => ({ name, field: x[k] }));
+  const decided = (id: string, label: string, f: F, fmt: (v: unknown) => string) => ({ ...stat(id, label, f, fmt), why: whyFromDecision(f, criteria) });
   const decision = [
-    ...(x.fitScore ? [stat("fit", "Fit score", x.fitScore, fmtScore)] : []),
-    ...(x.screenerVerdict ? [stat("screener", "Screener verdict", x.screenerVerdict, String)] : []),
+    ...(x.fitScore ? [decided("fit", "Fit score", x.fitScore, fmtScore)] : []),
+    ...(x.screenerVerdict ? [decided("screener", "Screener verdict", x.screenerVerdict, String)] : []),
     ...(x.diligenceVerdict ? [stat("diligence", "Diligence verdict", x.diligenceVerdict, String)] : []),
   ];
   return {

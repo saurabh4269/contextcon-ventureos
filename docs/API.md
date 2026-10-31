@@ -148,6 +148,13 @@ Decision · valuation section) and `/memo`.
   data is dropped. Citations are re-anchored to `GET /api/deals/:id/decisions` + `fields.<key>.citations[i]` + our
   retrieval time, then `enforceCited` runs. `builder.status`: `used` | `not_configured` | `unavailable` (+ reason).
   8 s timeout; on any error the local result is returned.
+* Review queue: `fitScore, screenerVerdict, valuationRange, diligenceVerdict, icMemoArrUsedM, icMemoValuation,
+  icMemoCompsLine` that are `unavailable` are raised as `missing_data`, and `ok` ones computed with an unavailable/empty
+  input as `low_confidence`, on run `deal:<domain>:decisions` (source `deal`, idempotent per key; resolved keys are not
+  re-raised). A person's **edit** fills the decision as `ok`, cited `{ source: "Deal Desk review queue (entered by you)",
+  endpoint: "POST /api/exceptions/<id>", path: "resolution.value", retrievedAt }`; rejecting a low-confidence decision
+  withholds it. `review: { runId, href, open[], resolved[] }` is on the response; `?review=0` reads without recording.
+  The deal page's fit and screener stats open the sources panel with each mandate criterion (`whyFromDecision`).
 
 ### `GET /api/integrations/connectors[?fresh=1]`
 
