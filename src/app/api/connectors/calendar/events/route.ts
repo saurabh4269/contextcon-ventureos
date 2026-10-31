@@ -18,13 +18,13 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export async function GET(req: Request) {
   const raw = new URL(req.url).searchParams.get("max");
   const max = raw ? Number(raw) : DEFAULT_MAX;
-  if (!Number.isInteger(max) || max < 1 || max > MAX) return NextResponse.json({ status: "error", message: `max must be 1..${MAX}` }, { status: 400 });
+  if (!Number.isInteger(max) || max < 1 || max > MAX) return NextResponse.json({ status: "error", message: `max must be 1..${MAX}` }, { status: 400, headers: NO_STORE });
   return withGoogle(async (cfg) => NextResponse.json({ status: "ok", events: await listUpcoming(cfg, { from: new Date(), max }) }, { headers: NO_STORE }));
 }
 
 export async function POST(req: Request) {
   const b = (await req.json().catch(() => null)) as { action?: unknown; approvalToken?: unknown; summary?: unknown; start?: unknown; end?: unknown; description?: unknown; attendees?: unknown } | null;
-  const bad = (message: string) => NextResponse.json({ status: "error", message }, { status: 400 });
+  const bad = (message: string) => NextResponse.json({ status: "error", message }, { status: 400, headers: NO_STORE });
   if (!b || typeof b !== "object" || Array.isArray(b)) return bad("body must be a JSON object {summary, start, end, description?, attendees?}");
   if (typeof b.summary !== "string" || !b.summary.trim() || b.summary.length > MAX_SUMMARY) return bad(`summary is required (≤ ${MAX_SUMMARY} chars)`);
   if (typeof b.start !== "string" || typeof b.end !== "string" || Number.isNaN(Date.parse(b.start)) || Number.isNaN(Date.parse(b.end))) return bad("start and end must be ISO timestamps");

@@ -20,7 +20,10 @@ export async function POST(req: Request) {
   const type = timestamps ? "application/x-ndjson" : "audio/mpeg";
   const meta = { ...NO_STORE, "x-voice-id": cfg.voiceId, "x-model-id": cfg.modelId };
   const cached = ttsCacheFile(cfg, parsed.text, timestamps);
-  if (cached && fs.existsSync(cached)) return new Response(fs.readFileSync(cached), { status: 200, headers: { ...meta, "content-type": type, "x-cache": "hit" } });
+  if (cached) {
+    try { return new Response(fs.readFileSync(cached), { status: 200, headers: { ...meta, "content-type": type, "x-cache": "hit" } }); }
+    catch { /* no cached copy (or unreadable): synthesize */ }
+  }
   let up: Response;
   try {
     up = await elevenlabsTts(cfg, parsed.text, { timestamps, signal: req.signal });

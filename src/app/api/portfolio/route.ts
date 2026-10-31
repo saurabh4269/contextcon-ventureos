@@ -10,6 +10,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const [deals, stages] = await Promise.all([workflowStore.list(), listStages()]);
-  return NextResponse.json({ status: "ok", companies: portfolioFrom(deals, stages), storage: storageInfo() }, { headers: { "cache-control": "no-store" } });
+  const headers = { "cache-control": "no-store" };
+  try {
+    const [deals, stages] = await Promise.all([workflowStore.list(), listStages()]);
+    return NextResponse.json({ status: "ok", companies: portfolioFrom(deals, stages), storage: storageInfo() }, { headers });
+  } catch (e) {
+    // an unreadable store is an error, not an empty portfolio
+    console.error(`[portfolio] store error: ${e instanceof Error ? e.message : String(e)}`);
+    return NextResponse.json({ status: "error", message: "The deal store could not be read (see server log).", storage: storageInfo() }, { status: 502, headers });
+  }
 }

@@ -13,9 +13,11 @@ const noStore = { "cache-control": "no-store" };
 
 export async function GET(req: Request) {
   const q = new URL(req.url).searchParams;
+  const status = q.get("status");
+  if (status !== null && status !== "open" && status !== "all") return NextResponse.json({ status: "error", message: "status must be open or all" }, { status: 400, headers: noStore });
   const store = await loadExceptionStore();
   if (q.get("count") === "1") return NextResponse.json({ open: store.openCount() }, { headers: noStore });
-  const { items, runs } = store.list({ status: q.get("status") === "open" ? "open" : "all", runId: q.get("run") ?? undefined });
+  const { items, runs } = store.list({ status: status === "open" ? "open" : "all", runId: q.get("run") ?? undefined });
   const body: ExceptionsResponse = { storage: store.storage(), open: store.openCount(), items, runs };
   return NextResponse.json(body, { headers: noStore });
 }
@@ -25,12 +27,17 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ status: "error", message: "body must be JSON: { item: { kind, key, title, reason, evidence } }" }, { status: 400 });
+    return NextResponse.json({ status: "error", message: "body must be JSON: { item: { kind, key, title, reason, evidence } }" }, { status: 400, headers: noStore });
   }
   const parsed = parseRaise((body as { item?: unknown } | null)?.item);
-  if (!parsed.ok) return NextResponse.json({ status: "error", message: parsed.message }, { status: 400 });
-  const store = await loadExceptionStore();
-  const item = store.raiseException(parsed.input);
-  await store.flush();
-  return NextResponse.json({ status: "ok", item, open: store.openCount() }, { headers: noStore });
+  if (!parsed.ok) return NextResponse.json({ status: "error", message: parsed.message }, { status: 400, headers: noStore });
+  try {
+    const store = await loadExceptionStore();
+    const item = store.raiseException(parsed.input);
+    await store.flush();
+    return NextResponse.json({ status: "ok", item, open: store.openCount() }, { headers: noStore });
+  } catch (e) {
+    console.error(`[exceptions] raise failed: ${e instanceof Error ? e.message : String(e)}`);
+    return NextResponse.json({ status: "error", message: "Could not save the item (see server log)." }, { status: 500, headers: noStore });
+  }
 }

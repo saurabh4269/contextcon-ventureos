@@ -29,7 +29,8 @@ function stream(q: unknown, signal: AbortSignal) {
       try {
         client = liveCrustdataClient();
       } catch (e) {
-        if (!(e instanceof NotConnectedError)) throw e;
+        // no key: the run proceeds and reports each step as not connected; any other construction failure is an error event
+        if (!(e instanceof NotConnectedError)) emit({ type: "error", kind: "upstream", message: e instanceof Error ? e.message : String(e) });
       }
       const rows = new Map<number, { name: string; domain?: string }>();
       const fullRows = new Map<number, AgentRow>();
@@ -74,10 +75,14 @@ function stream(q: unknown, signal: AbortSignal) {
         emit({ type: "step", step: { id: "memory", label: "Save to firm memory", tool: "memory", endpoint: "memory store", status: mem.status === "ok" ? "done" : "skipped", startedAt: new Date().toISOString(), ms: 0, detail: mem.status === "ok" ? "recorded as agent.run" : "reason" in mem ? mem.reason : mem.message } });
       }
       closed = true;
-      controller.close();
+      try { controller.close(); } catch { /* client already cancelled */ }
     },
   });
 }
+
+const MAX_Q = 2000;
+const invalidQ = (q: unknown) => (typeof q !== "string" || !q.trim() ? "q (non-empty string) is required" : q.length > MAX_Q ? `q must be at most ${MAX_Q} characters` : null);
+const bad = (message: string) => NextResponse.json({ status: "error", message }, { status: 400, headers: { "cache-control": "no-store" } });
 
 const headers = { "content-type": "application/x-ndjson; charset=utf-8", "cache-control": "no-store", "x-accel-buffering": "no" };
 
@@ -86,14 +91,17 @@ export async function POST(req: Request) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ status: "error", message: "body must be JSON: { \"q\": \"…\" }" }, { status: 400 });
+    return bad('body must be JSON: { "q": "…" }');
   }
   const q = body && typeof body === "object" ? (body as { q?: unknown }).q : undefined;
-  if (typeof q !== "string") return NextResponse.json({ status: "error", message: "q (string) is required" }, { status: 400 });
+  const why = invalidQ(q);
+  if (why) return bad(why);
   return new Response(stream(q, req.signal), { headers });
 }
 
 export async function GET(req: Request) {
-  const q = new URL(req.url).searchParams.get("q") ?? "";
+  const q = new URL(req.url).searchParams.get("q");
+  const why = invalidQ(q);
+  if (why) return bad(why);
   return new Response(stream(q, req.signal), { headers });
 }

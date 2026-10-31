@@ -7,6 +7,8 @@ import type { LiveFailure } from "./types";
 
 export { failureFrom, NotConnectedError };
 
+const NO_STORE = { "cache-control": "no-store" };
+
 const g = globalThis as unknown as { __dealdeskCrustdata?: { key: string; drill?: boolean; client: CrustdataClient } };
 
 /**
@@ -33,10 +35,10 @@ export function liveCrustdataClient(): CrustdataClient {
 
 /** HTTP status for a failure body: 503 not connected, 502 upstream error. */
 export function failureResponse(f: LiveFailure) {
-  return NextResponse.json(f, { status: f.status === "not_connected" ? 503 : 502 });
+  return NextResponse.json(f, { status: f.status === "not_connected" ? 503 : 502, headers: NO_STORE });
 }
 
 /** 400 body; `suggestion` (e.g. "strpe.com" for "strpe..com") is offered, never applied. */
 export function badRequest(message: string, suggestion?: string) {
-  return NextResponse.json({ status: "error", message, ...(suggestion ? { suggestion } : {}) }, { status: 400 });
+  return NextResponse.json({ status: "error", message, ...(suggestion ? { suggestion } : {}) }, { status: 400, headers: NO_STORE });
 }

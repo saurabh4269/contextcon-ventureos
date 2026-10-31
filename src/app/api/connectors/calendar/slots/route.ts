@@ -11,7 +11,7 @@ export async function GET(req: Request) {
   const q = new URL(req.url).searchParams;
   const num = (k: string, d: number, lo: number, hi: number) => { const v = q.get(k) == null ? d : Number(q.get(k)); return Number.isInteger(v) && v >= lo && v <= hi ? v : null; };
   const minutes = num("minutes", 30, 15, 120), count = num("count", 3, 1, 10), days = num("days", 5, 1, 14);
-  if (minutes == null || count == null || days == null) return NextResponse.json({ status: "error", message: "minutes 15..120, count 1..10, days 1..14 (integers)" }, { status: 400 });
+  if (minutes == null || count == null || days == null) return NextResponse.json({ status: "error", message: "minutes 15..120, count 1..10, days 1..14 (integers)" }, { status: 400, headers: NO_STORE });
   return withGoogle(async (cfg) => {
     const now = new Date(), to = new Date(now.getTime() + days * 86_400_000);
     const busy = await busyIntervals(cfg, now, to);

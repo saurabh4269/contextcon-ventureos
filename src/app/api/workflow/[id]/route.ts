@@ -9,7 +9,7 @@ import { sendMessage } from "@/lib/google/gmail";
 import { insertEvent } from "@/lib/google/calendar";
 import { workflowStore } from "@/lib/workflow/store";
 import { isRunningHere, runInBackground } from "@/lib/workflow/server";
-import { applyAction, type Action } from "@/lib/workflow/actions";
+import { applyAction, invalidAction, type Action } from "@/lib/workflow/actions";
 import { toPublicDeal } from "@/lib/workflow/public";
 import { isRunningNow } from "@/lib/workflow/types";
 
@@ -18,25 +18,28 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 const NO_STORE = { "cache-control": "no-store" };
 
+
 export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const d = await workflowStore.get((await ctx.params).id);
-  if (!d) return NextResponse.json({ status: "error", message: "no such deal" }, { status: 404 });
+  if (!d) return NextResponse.json({ status: "error", message: "no such deal" }, { status: 404, headers: NO_STORE });
   return NextResponse.json({ ...toPublicDeal(d), running: isRunningHere(d.id) || isRunningNow(d), storage: workflowStore.info() }, { headers: NO_STORE });
 }
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const id = (await ctx.params).id;
   const d = await workflowStore.get(id);
-  if (!d) return NextResponse.json({ status: "error", message: "no such deal" }, { status: 404 });
-  if (isRunningHere(id) || isRunningNow(d)) return NextResponse.json({ status: "error", message: "The deal is still running; try again when it stops." }, { status: 409 });
+  if (!d) return NextResponse.json({ status: "error", message: "no such deal" }, { status: 404, headers: NO_STORE });
+  if (isRunningHere(id) || isRunningNow(d)) return NextResponse.json({ status: "error", message: "The deal is still running; try again when it stops." }, { status: 409, headers: NO_STORE });
   const a = (await req.json().catch(() => null)) as Action | null;
-  if (!a || typeof a !== "object") return NextResponse.json({ status: "error", message: "body must be {action, …}" }, { status: 400 });
+  if (!a || typeof a !== "object" || Array.isArray(a) || typeof a.action !== "string") return NextResponse.json({ status: "error", message: "body must be {action, …}" }, { status: 400, headers: NO_STORE });
+  const invalid = invalidAction(a);
+  if (invalid) return NextResponse.json({ status: "error", message: invalid }, { status: 400, headers: NO_STORE });
   const g = googleConfig();
   try {
     const r = await applyAction(d, a, { sendMessage: g ? (m) => sendMessage(g, m) : undefined, insertEvent: g ? (e) => insertEvent(g, e) : undefined }, new Date());
-    if (!r.ok) return NextResponse.json({ status: "error", message: r.message }, { status: 400 });
+    if (!r.ok) return NextResponse.json({ status: "error", message: r.message }, { status: 400, headers: NO_STORE });
   } catch (e) {
-    return NextResponse.json({ status: "error", message: e instanceof Error ? e.message : String(e) }, { status: 502 });
+    return NextResponse.json({ status: "error", message: e instanceof Error ? e.message : String(e) }, { status: 502, headers: NO_STORE });
   }
   d.running = false; // a stale run (its instance died) no longer counts
   d.updatedAt = new Date().toISOString();

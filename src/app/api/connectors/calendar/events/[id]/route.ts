@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 
 export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
   const id = (await ctx.params).id;
-  if (!/^[a-zA-Z0-9_-]{1,1024}$/.test(id)) return NextResponse.json({ status: "error", message: "invalid event id" }, { status: 400 });
+  if (!/^[a-zA-Z0-9_-]{1,1024}$/.test(id)) return NextResponse.json({ status: "error", message: "invalid event id" }, { status: 400, headers: NO_STORE });
   return withGoogle(async (cfg) => {
     const status = await deleteEvent(cfg, id);
     if (status === 404) return NextResponse.json({ status: "error", code: "not_found", message: "No calendar event with that id" }, { status: 404, headers: NO_STORE });

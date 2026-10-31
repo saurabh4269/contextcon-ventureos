@@ -13,6 +13,8 @@ import { enforceCited } from "@/lib/provenance";
 import { companyFields } from "./company-fields";
 import { liveDealNumbers, liveDealValuation, type DealNumbers, type DealValuation } from "./deal-numbers";
 
+const NO_STORE = { "cache-control": "no-store" };
+
 /**
  * Deal id → numbers. In this build a deal id is the company's domain (e.g. "e2b.dev"); numbers come from the cached
  * Crustdata research run. The builder backend uses its own deal ids — swapping means replacing this resolver.
@@ -25,12 +27,12 @@ export async function resolveDealNumbers(
   const domain = normalizeDomainInput(id);
   if (!domain) {
     const shown = id.length > 80 ? `${id.slice(0, 80)}…` : id;
-    return { ok: false, response: NextResponse.json({ status: "error", message: `A deal id is the company domain (e.g. e2b.dev); ${JSON.stringify(shown)} is not one.` }, { status: 404 }) };
+    return { ok: false, response: NextResponse.json({ status: "error", message: `A deal id is the company domain (e.g. e2b.dev); ${JSON.stringify(shown)} is not one.` }, { status: 404, headers: NO_STORE }) };
   }
   try {
     const client = liveCrustdataClient();
     const r = await researchCompany(client, domain);
-    if (r.status === "no_match") return { ok: false, response: NextResponse.json({ status: "no_match", domain, message: `No Crustdata match for ${domain}.` }, { status: 404 }) };
+    if (r.status === "no_match") return { ok: false, response: NextResponse.json({ status: "no_match", domain, message: `No Crustdata match for ${domain}.` }, { status: 404, headers: NO_STORE }) };
     if (r.status !== "ok") return { ok: false, response: failureResponse(r) };
     // every ok decision/number must carry a source; anything that does not is withheld (unavailable), never shown bare
     // local decisions: firm mandate (Settings) × this research × live peers × firm memory (review queue)

@@ -18,11 +18,11 @@ export async function PUT(req: Request) {
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ status: "error", message: "body must be JSON" }, { status: 400 });
+    return NextResponse.json({ status: "error", message: "body must be JSON" }, { status: 400, headers: NO_STORE });
   }
   const parsed = parseMandate(body);
-  if (!parsed.ok) return NextResponse.json({ status: "error", message: parsed.message }, { status: 400 });
+  if (!parsed.ok) return NextResponse.json({ status: "error", message: parsed.message }, { status: 400, headers: NO_STORE });
   const r = await mandateStore().set(parsed.mandate);
-  if (!r.ok) return NextResponse.json({ status: "error", message: r.message }, { status: r.status });
+  if (!r.ok) return NextResponse.json({ status: "error", message: r.message }, { status: r.status, headers: NO_STORE });
   return NextResponse.json({ mandate: r.mandate, unset: unsetMandateFields(r.mandate), source: r.source }, { headers: NO_STORE });
 }

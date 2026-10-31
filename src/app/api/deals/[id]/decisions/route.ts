@@ -12,7 +12,13 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const store = await loadExceptionStore();
+  let store: Awaited<ReturnType<typeof loadExceptionStore>>;
+  try {
+    store = await loadExceptionStore();
+  } catch (e) {
+    console.error(`[decisions] review store unavailable: ${e instanceof Error ? e.message : String(e)}`);
+    return NextResponse.json({ status: "error", message: "The review store could not be read (see server log)." }, { status: 500, headers: { "cache-control": "no-store" } });
+  }
   const r = await resolveDealNumbers((await ctx.params).id, { history: store.list({ status: "all" }).items });
   if (!r.ok) return r.response;
   const decided = await withBuilder(localDecisions(r.id, r.fields, r.explainable, r.screenerVerdict));

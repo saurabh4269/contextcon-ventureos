@@ -105,7 +105,7 @@ match, missing or conflicting data, a credit threshold, low confidence, an incom
 (`.cache/exceptions.json`, or `EXCEPTIONS_FILE`; `EXCEPTIONS_FILE=memory` for memory only) because `DATABASE_URL` is
 unset; the response's `storage.note` says so.
 
-- `GET /api/exceptions[?status=open|all][&run=<runId>]` → `{ storage, open, items, runs }`; `?count=1` → `{ open }` (nav badge)
+- `GET /api/exceptions[?status=open|all][&run=<runId>]` → `{ storage, open, items, runs }` (any other `status` is 400); `?count=1` → `{ open }` (nav badge)
 - `POST /api/exceptions { item: { kind, key, title, reason, evidence[], subject?, proposed?, runId?, target? } }` → raise one
   item (idempotent per open `key`; 400 on an unknown kind)
 - `POST /api/exceptions/:id { action: "approve"|"reject"|"edit", note?, value? }` → `{ status:"ok", item, run, open }`;
@@ -263,12 +263,13 @@ Code: `src/lib/workflow/` (run.ts orchestrator, actions.ts person actions, publi
 
 ## Memory (organizational memory)
 
-Postgres table `dealdesk_memory_events` (created on first use) when `DATABASE_URL` is set; otherwise every memory route
-answers **503** `{status:"unavailable", reason:"memory store not configured (DATABASE_URL)"}` — no in-memory fallback.
+Postgres table `dealdesk_memory_events` (created on first use) when `DATABASE_URL` is set; otherwise the durable store's
+documents (files, labelled `storage.durable:false`; see `GET /api/storage`). A store read/write failure is **502**
+`{status:"error", message}`.
 
 * `POST /api/memory/events` `{kind, actor:{type:"user"|"agent"|"system", id?, name?}, subject?:{type,id,label?}, summary, data?, source}`
   → 201 `{status:"ok", event}`; 400 on invalid input (`kind` is a dotted verb, `data` ≤ 8 KB).
-* `GET /api/memory/events?since=<id>&limit=<1..200>` → `{status:"ok", events: MemoryEvent[], cursor}` (oldest first;
+* `GET /api/memory/events?since=<id>&limit=<1..500>` → `{status:"ok", events: MemoryEvent[], cursor}` (oldest first;
   without `since`, the latest `limit`). `MemoryEvent = input + {id, at (UTC ISO)}`.
 * `GET /api/memory/stream?since=<id>` → SSE, `event: memory` per new event (server polls every 2 s).
 
@@ -335,7 +336,7 @@ Code: `src/app/api/sourcing/run/route.ts`, `src/lib/sourcing/{parse,run,export,e
 `/ask` offers a one-tap fallback to this agent at `/agent?q=`.)
 
 * `POST /api/sourcing/run {q: string}` (also `GET ?q=`) → `application/x-ndjson`, one `AgentEvent` per line
-  (`src/lib/sourcing/run.ts`). 400 when the body is not JSON or `q` is not a string.
+  (`src/lib/sourcing/run.ts`). 400 (JSON `{status:"error", message}`, no stream) when the body is not JSON or `q` is missing, blank or over 2000 characters.
   - `{type:"plan", runId, startedAt, parse}`: `parse.kind` is `search` (plan with `interpretation[]` chips
     `{key,label,phrase,kind:"filter"|"query"|"output"|"default"|"assumption"|"correction"}` and `ignored[]` phrases),
     `company` or `refuse`.

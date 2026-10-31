@@ -25,7 +25,7 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const b = (await req.json().catch(() => null)) as { from?: string; messageId?: string; domain?: string; name?: string } | null;
-  const bad = (message: string) => NextResponse.json({ status: "error", message }, { status: 400 });
+  const bad = (message: string) => NextResponse.json({ status: "error", message }, { status: 400, headers: NO_STORE });
   let trigger: Trigger;
   if (b?.from === "gmail" && typeof b.messageId === "string" && /^[A-Za-z0-9_-]{6,64}$/.test(b.messageId)) trigger = { type: "gmail", messageId: b.messageId, query: INBOX_QUERY };
   else if (b?.from === "ask" && typeof b.domain === "string") {
@@ -36,7 +36,12 @@ export async function POST(req: Request) {
   const now = new Date().toISOString();
   const by = trigger.type === "gmail" ? "Inbox agent" : personName();
   const deal: Deal = { id: randomUUID().slice(0, 8), createdAt: now, updatedAt: now, trigger, company: trigger.type === "ask" ? { domain: trigger.domain, name: trigger.name } : {}, stage: "sourced", stageHistory: [{ stage: "sourced", at: now, by }], steps: newSteps() };
-  await workflowStore.save(deal);
+  try {
+    await workflowStore.save(deal);
+  } catch (e) {
+    console.error(`[workflow] could not save deal ${deal.id}: ${e instanceof Error ? e.message : String(e)}`);
+    return NextResponse.json({ status: "error", message: "The deal could not be saved to the store (see server log)." }, { status: 502, headers: NO_STORE });
+  }
   // a person started it from a domain: the deal is Sourced and theirs (a Gmail start gets its domain at intake)
   if (trigger.type === "ask") await moveStage({ domain: trigger.domain, name: trigger.name, stage: "sourced", by, actor: "user", workflowId: deal.id }).catch(() => undefined);
   runInBackground(deal);

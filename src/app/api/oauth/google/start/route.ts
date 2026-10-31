@@ -14,7 +14,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const clientId = process.env.GOOGLE_CLIENT_ID?.trim();
   if (!clientId || !process.env.GOOGLE_CLIENT_SECRET?.trim())
-    return NextResponse.json({ status: "not_configured", message: "Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env.local, then restart the app." }, { status: 503 });
+    return NextResponse.json({ status: "not_configured", message: "Set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET in .env.local, then restart the app." }, { status: 503, headers: { "cache-control": "no-store" } });
   const state = randomBytes(16).toString("base64url");
   const redirect = redirectUri(url.origin);
   const auth = buildAuthUrl({ clientId, redirectUri: redirect, state, loginHint: process.env.GOOGLE_LOGIN_HINT?.trim() || undefined });
