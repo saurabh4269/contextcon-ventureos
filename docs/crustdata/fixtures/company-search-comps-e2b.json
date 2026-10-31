@@ -1,0 +1,27 @@
+{
+  "companies": [
+    {
+      "crustdata_company_id": 61386718,
+      "basic_info": {
+        "name": "Isola",
+        "primary_domain": "isola.run"
+      }
+    },
+    {
+      "crustdata_company_id": 25168503,
+      "basic_info": {
+        "name": "This Machine",
+        "primary_domain": "thismachine.ai"
+      }
+    },
+    {
+      "crustdata_company_id": 3177946,
+      "basic_info": {
+        "name": "GRiPO",
+        "primary_domain": "gripo.io"
+      }
+    }
+  ],
+  "next_cursor": "eyJzZXNzaW9uIjoiNDRkODQ0YjZkMjY2NGMzYWIyODViZGQzOTg5ZDAzODIiLCJvZmZzZXQiOjMsInF1ZXJ5IjoiMGQ2Y2I4Y2FmZGY4NTAxODljNjFjM2VjZDdhY2RhZDQyNmRmMWNmMDg4ODNhMmFmNmFhNTk4ODE4ZjVmMTU0MyIsInRhaWxfaGFzaCI6bnVsbH0:1xN1XO:yopwrUF-eXG7OUMOHLPjsOJt4Xl_JyAM9wVO2INBrXw",
+  "total_count": null
+}

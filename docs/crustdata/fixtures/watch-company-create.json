@@ -1,0 +1,60 @@
+{
+  "id": 56147,
+  "kind": "entity",
+  "dataset": "company",
+  "api_version": "2025-11-01",
+  "config_version": "2025-11-01",
+  "status": "active",
+  "entities": {
+    "crustdata_company_ids": [
+      1083252
+    ]
+  },
+  "track": {
+    "op": "or",
+    "conditions": [
+      {
+        "field": "headcount.total",
+        "type": "changed"
+      },
+      {
+        "field": "funding.last_round_type",
+        "type": "changed"
+      },
+      {
+        "field": "news",
+        "type": "added"
+      }
+    ]
+  },
+  "fields": [
+    "basic_info",
+    "headcount",
+    "funding"
+  ],
+  "config": {
+    "trigger": {
+      "type": "interval",
+      "every_hours": 24
+    },
+    "max_results_per_run": 5,
+    "expires_at": null,
+    "preferred_hour": null,
+    "refresh_frequency_days": 30,
+    "payload_delivery_type": "inline"
+  },
+  "notifications": [
+    {
+      "type": "webhook",
+      "url": "https://example.com/webhooks/crustdata"
+    }
+  ],
+  "created_at": "2026-10-31T04:49:08.739376Z",
+  "last_run_at": null,
+  "notifications_count": 0,
+  "credits_consumed": 0,
+  "credits": {
+    "per_notification": 5.0
+  },
+  "last_notified_at": null
+}

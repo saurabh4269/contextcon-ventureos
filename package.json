@@ -6,7 +6,13 @@
     "dev": "next dev -p 3240",
     "build": "next build",
     "start": "next start -p 3240",
-    "shots": "node scripts/shots.mjs"
+    "shots": "node scripts/shots.mjs",
+    "typecheck": "tsc --noEmit -p .",
+    "test": "vitest run",
+    "crustdata:extract-openapi": "node scripts/crustdata-extract-openapi.mjs",
+    "crustdata:codegen": "node scripts/crustdata-codegen.mjs",
+    "crustdata:smoke": "tsx scripts/crustdata-smoke.ts",
+    "crustdata:test:live": "CRUSTDATA_LIVE=1 vitest run src/lib/crustdata/live.contract.test.ts"
   },
   "dependencies": {
     "@fontsource-variable/newsreader": "^5.2.5",
@@ -25,9 +31,12 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "openapi-typescript": "^7.13.0",
     "playwright": "^1.56.0",
     "tailwindcss": "^4",
     "tsx": "^4.23.15",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7",
+    "yaml": "^2.9.1"
   }
 }

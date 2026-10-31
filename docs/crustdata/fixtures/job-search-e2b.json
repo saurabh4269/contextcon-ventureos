@@ -1,0 +1,461 @@
+{
+  "job_listings": [
+    {
+      "company": {
+        "basic_info": {
+          "crustdata_company_id": 1083252,
+          "industries": [
+            "Technology, Information and Internet",
+            "Technology, Information and Media"
+          ],
+          "name": "E2B",
+          "primary_domain": "e2b.dev",
+          "professional_network_id": "96484695",
+          "website": "https://e2b.dev"
+        },
+        "competitors": {
+          "websites": []
+        },
+        "followers": {
+          "count": 6664
+        },
+        "funding": {
+          "investors": [
+            "Decibel Partners",
+            "Edward Lando",
+            "Insight Partners",
+            "Jakub Jurovych",
+            "Juraj Masar",
+            "KAYA",
+            "Liu Jiang",
+            "Matej Turek",
+            "Pareto Holdings",
+            "Scott Johnston"
+          ],
+          "last_fundraise_date": "2025-07-28T00:00:00",
+          "last_round_type": "series_a",
+          "num_funding_rounds": 3,
+          "total_investment_usd": 35000000.0,
+          "valuation_usd": 0.0
+        },
+        "headcount": {
+          "largest_headcount_country": "USA",
+          "range": "51-200",
+          "total": 52
+        },
+        "locations": {
+          "city": null,
+          "country": "United States",
+          "state": "California",
+          "street_address": "Market St, San Francisco, California"
+        },
+        "revenue": {
+          "acquisition_status": null,
+          "estimated": {
+            "lower_bound_usd": 500000,
+            "upper_bound_usd": 1000000
+          },
+          "public_markets": {
+            "fiscal_year_end": "",
+            "stock_symbols": [
+              "E2B"
+            ]
+          }
+        }
+      },
+      "content": {
+        "description": "About E2B E2B is a fast-growing Series A startup with over $37M in funding and 8-figure revenue. We are building the Agent Cloud and power the infrastructure behind AI labs and some of the most widely used consumer and enterprise agents, including Manus, Genspark, Lindy, Groq, and Artificial Analysis. Our team includes original authors of Firecracker, the AWS microVM technology powering Lambda, along with alumni of Cognition, JetBrains, Zapier, and Wish. ABOUT THE ROLE Our customers are engineering teams building AI agents, and when they write to support the question is technical: a sandbox that did not resume, a template build that fails, a network rule that blocks the wrong traffic, an invoice that does not match usage. You answer with evidence, not a script. You will join a small support team that runs much of its work through its own AI agent harness. Agents read threads, pull logs and traces, and draft replies. You decide what is true, what goes out, and what has to change so the same question does not come back. Based in Europe, you own the queue during European hours and hand off to the US. Your job will be: 1. Owning technical support threads from developers and enterprise customers, from first reply to resolution 2. Debugging issues across our SDKs (Python, JS/TS), CLI, API and the platform underneath, using logs, traces and metrics and reading our source code 3. Reproducing problems against live E2B and turning them into bug reports engineering can act on 4. Handling account operations: limits, beta access, billing and usage questions 5. Fixing the docs when a customer got stuck on something they should have been able to do alone 6. Building the support tooling itself (skills, knowledge and automations for our AI agents) so the team handles more without growing at the same rate 7. Bringing what customers ask for back to product and engineering WHO WE'RE LOOKING FOR • You want to learn, and you learn fast. You pick up a new SDK, tool or concept in days, and you enjoy it • You follow what is happening in AI because you are curious, not because someone asked: new models, agent frameworks, coding agents • You are comfortable when things change under you. Our product, processes and tools get rebuilt often, and you help rebuild them • You already use AI tools (Claude Code, Codex, Cursor or similar) in your work and want to push how far they go • You own a problem until it is resolved, and you ask for help early when you are stuck • Clear, warm, accurate written English, and the honesty to say \"I don't know yet, here is what I'm checking\" THE HARD SKILLS We will teach you E2B. These are the basics we expect on day one: • Comfortable on Linux and the command line, and able to read logs to find what failed • Can read and write some Python or TypeScript/JavaScript, enough to reproduce a bug • Basic networking (DNS, HTTP, ports) and a sense of how containers or VMs run • Experience in technical support or another developer-facing role helps BONUS POINTS FOR • Experience at a hosting or cloud provider • Go, or familiarity with Firecracker, KVM, Kubernetes or Nomad • Observability tooling: Grafana, Loki, Tempo, Prometheus • Contributions to technical docs or open source • Czech or Slovak (not required, all customer communication is in English) What it’s like to work at E2B We’re a fast-growing startup with in-person (4 days on-site, 1 day WFH) offices in San Francisco and Prague, Czech Republic . We already generate 8-figure revenue and work directly with top-tier AI companies like Manus, Genspark, Lindy, Groq, Artificial Analysis and other exciting teams pushing the frontier of AI. We offer healthcare, vision, and dental insurance, unlimited PTO, 401k, and a variety of perks for in-office employees."
+      },
+      "crustdata_job_id": 4973816736260060,
+      "job_details": {
+        "category": "Engineering",
+        "employment_type": "full_time",
+        "job_id": 4973816736260060,
+        "number_of_openings": null,
+        "reposted_job": null,
+        "source": "ashby",
+        "title": "Support Engineer",
+        "url": "https://jobs.ashbyhq.com/e2b/4779efbf-7f43-4b8d-97df-85c9f3b1db99",
+        "workplace_type": "On-site"
+      },
+      "location": {
+        "city": "Prague",
+        "country": "Czechia",
+        "district": null,
+        "pincode": null,
+        "raw": "Prague, Czech Republic",
+        "state": "Prague"
+      },
+      "metadata": {
+        "date_added": "2026-10-13T00:00:00",
+        "date_updated": null
+      }
+    },
+    {
+      "company": {
+        "basic_info": {
+          "crustdata_company_id": 1083252,
+          "industries": [
+            "Technology, Information and Internet",
+            "Technology, Information and Media"
+          ],
+          "name": "E2B",
+          "primary_domain": "e2b.dev",
+          "professional_network_id": "96484695",
+          "website": "https://e2b.dev"
+        },
+        "competitors": {
+          "websites": []
+        },
+        "followers": {
+          "count": 6664
+        },
+        "funding": {
+          "investors": [
+            "Decibel Partners",
+            "Edward Lando",
+            "Insight Partners",
+            "Jakub Jurovych",
+            "Juraj Masar",
+            "KAYA",
+            "Liu Jiang",
+            "Matej Turek",
+            "Pareto Holdings",
+            "Scott Johnston"
+          ],
+          "last_fundraise_date": "2025-07-28T00:00:00",
+          "last_round_type": "series_a",
+          "num_funding_rounds": 3,
+          "total_investment_usd": 35000000.0,
+          "valuation_usd": 0.0
+        },
+        "headcount": {
+          "largest_headcount_country": "USA",
+          "range": "51-200",
+          "total": 52
+        },
+        "locations": {
+          "city": null,
+          "country": "United States",
+          "state": "California",
+          "street_address": "Market St, San Francisco, California"
+        },
+        "revenue": {
+          "acquisition_status": null,
+          "estimated": {
+            "lower_bound_usd": 500000,
+            "upper_bound_usd": 1000000
+          },
+          "public_markets": {
+            "fiscal_year_end": "",
+            "stock_symbols": [
+              "E2B"
+            ]
+          }
+        }
+      },
+      "content": {
+        "description": "About E2B E2B is a fast-growing Series A startup with over $37M in funding and 8-figure revenue. We are building the Agent Cloud and power the infrastructure behind AI labs and some of the most widely used consumer and enterprise agents, including Manus, Genspark, Lindy, Groq, and Artificial Analysis. Our team includes original authors of Firecracker, the AWS microVM technology powering Lambda, along with alumni of Cognition, JetBrains, Zapier, and Wish. About the Role We’re looking for a Senior Data Engineer to build the data foundation that helps us understand our business and make better decisions. You’ll turn data across our infrastructure, billing, and business systems into reliable pipelines and clearly defined datasets. You’ll join the engineering team, report to our Head of Engineering, and work closely with our Head of Finance as your primary partner initially. Over time, your work will support Growth, GTM, and other teams across E2B. We have data and pieces of the foundation in place. You’ll help bring them together, establish the missing building blocks, and own the quality and usefulness of what we deliver. You’ll have direct access to the people using your work and substantial ownership over how E2B’s data foundation develops. Your work will help teams answer important questions independently, spend less time reconciling numbers, and make decisions with confidence. Responsibilities include: Build and operate pipelines that bring operational and business data into our warehouse, including sandbox usage, cloud infrastructure, billing, and accounting data. Create data models and shared metric definitions that teams can understand and use consistently. Establish testing, monitoring, reconciliation, and alerting to catch missing data, inconsistencies, and unexpected changes. Partner with Finance to turn business questions into dependable datasets, starting with usage, revenue, costs, and margins. Make data accessible for self-service analysis, reporting, and AI-assisted querying through clear structure and documentation. Work with engineering teams to improve source data quality and resolve issues from ingestion through downstream consumption. Make practical decisions about architecture and tooling, balancing immediate business needs with maintainability. What We’re Looking For Experience building and owning production data pipelines and warehouse models, including establishing foundations where systems were incomplete or fragmented. Strong SQL and Python skills, with sound software engineering practices around testing, version control, deployment, and monitoring. Experience with a cloud data warehouse such as BigQuery, Snowflake, or Redshift, and tools for data transformation and orchestration. A track record of working directly with business stakeholders, clarifying ambiguous requirements, and connecting technical work to business outcomes. The ability to investigate discrepancies, understand their root causes, and make the underlying systems more reliable. Strong ownership: you can identify what needs to happen, prioritize it, and carry it through without detailed instructions. We expect this experience will often come from around six or more years of relevant work, but the depth of your ownership and what you’ve built matter more than a specific number. Bonus Points For: Building data foundations at a startup or on a small team. Supporting Finance, Revenue Operations, Growth, or GTM. Working with usage-based products, billing data, or cloud infrastructure costs. Building well-documented datasets that support self-service analytics and AI tools. Finance domain expertise is helpful, but it isn’t required. We’re looking for an engineer who is curious about the business, learns quickly, and takes responsibility for delivering data people can trust. What it’s like to work at E2B We’re a fast-growing startup with in-person (4 days on-site, 1 day WFH) offices in San Francisco and Prague, Czech Republic . We already generate 8-figure revenue and work directly with top-tier AI companies like Manus, Genspark, Lindy, Groq, Artificial Analysis and other exciting teams pushing the frontier of AI. We offer healthcare, vision, and dental insurance, unlimited PTO, 401k, and a variety of perks for in-office employees."
+      },
+      "crustdata_job_id": 968310702425525,
+      "job_details": {
+        "category": "Engineering",
+        "employment_type": "full_time",
+        "job_id": 968310702425525,
+        "number_of_openings": null,
+        "reposted_job": null,
+        "source": "ashby",
+        "title": "Senior Data Engineer",
+        "url": "https://jobs.ashbyhq.com/e2b/64fe2979-3abe-4a32-8a24-ec5b8582c1a1",
+        "workplace_type": "On-site"
+      },
+      "location": {
+        "city": "San Francisco",
+        "country": "United States",
+        "district": null,
+        "pincode": null,
+        "raw": "San Francisco",
+        "state": "California"
+      },
+      "metadata": {
+        "date_added": "2026-10-06T00:00:00",
+        "date_updated": null
+      }
+    },
+    {
+      "company": {
+        "basic_info": {
+          "crustdata_company_id": 1083252,
+          "industries": [
+            "Technology, Information and Internet",
+            "Technology, Information and Media"
+          ],
+          "name": "E2B",
+          "primary_domain": "e2b.dev",
+          "professional_network_id": "96484695",
+          "website": "https://e2b.dev"
+        },
+        "competitors": {
+          "websites": []
+        },
+        "followers": {
+          "count": 6664
+        },
+        "funding": {
+          "investors": [
+            "Decibel Partners",
+            "Edward Lando",
+            "Insight Partners",
+            "Jakub Jurovych",
+            "Juraj Masar",
+            "KAYA",
+            "Liu Jiang",
+            "Matej Turek",
+            "Pareto Holdings",
+            "Scott Johnston"
+          ],
+          "last_fundraise_date": "2025-07-28T00:00:00",
+          "last_round_type": "series_a",
+          "num_funding_rounds": 3,
+          "total_investment_usd": 35000000.0,
+          "valuation_usd": 0.0
+        },
+        "headcount": {
+          "largest_headcount_country": "USA",
+          "range": "51-200",
+          "total": 52
+        },
+        "locations": {
+          "city": null,
+          "country": "United States",
+          "state": "California",
+          "street_address": "Market St, San Francisco, California"
+        },
+        "revenue": {
+          "acquisition_status": null,
+          "estimated": {
+            "lower_bound_usd": 500000,
+            "upper_bound_usd": 1000000
+          },
+          "public_markets": {
+            "fiscal_year_end": "",
+            "stock_symbols": [
+              "E2B"
+            ]
+          }
+        }
+      },
+      "content": {
+        "description": "About E2B E2B is a fast-growing Series A startup with over $37M in funding and 8-figure revenue. We are building the Agent Cloud and power the infrastructure behind AI labs and some of the most widely used consumer and enterprise agents, including Manus, Genspark, Lindy, Groq, and Artificial Analysis. Our team includes original authors of Firecracker, the AWS microVM technology powering Lambda, along with alumni of Cognition, JetBrains, Zapier, and Wish. Why this role, why now E2B is the sandbox runtime behind Manus, Genspark, Lindy, Groq, Hugging Face, and a long list of AI labs and enterprise agent teams. We're a Series A company with over $37M raised, 8-figure revenue, and more than a billion sandboxes started. Almost all of it came from word of mouth. We have no content, no positioning beyond what the founders say on sales calls, and no launch process. Developers find us because someone they trust told them to. That works until it doesn't, and we'd rather build the machine while growth is strong than after it stalls. You'll be the first product marketer, and you'll decide how E2B explains itself to the world. You'll join before our next funding round, with equity priced accordingly. What you'll own Positioning and messaging. What E2B is, who it's for, why it wins, and how that changes as the agent market changes. This is the foundation everything else in marketing sits on, and it doesn't exist yet. Launches. Every product release goes through you: the narrative, the assets, the sequencing, the distribution. You set the launch cadence and hold engineering to it. The content engine. Technical articles, comparison and migration pages, customer stories, launch content, the website. You write the first flagship pieces yourself, and you run the technical writer and video producer who scale it from there. Pricing, packaging, and competitive. Usage-based pricing for infrastructure is a product marketing problem. You own the packaging story and the competitive positioning that sales and self-serve both rely on. Sales enablement for the enterprise motion. Decks, one-pagers, objection handling, proof points. Built once, used everywhere. A budget. Paid programs, sponsorships, tooling, freelancers. You propose it, you own it. The function. You're the first person in it and we expect you to grow it as E2B grows. What's already in place Two growth engineers and a data scientist who own instrumentation, attribution, and the self-serve funnel, so what you ship will be measurable. A customer base that includes the companies most developers in this space want to learn from, and case-study material we've never written up. A community and ecosystem lead being hired alongside you. What we've learned so far Our buyers are engineers who trust benchmarks and code over adjectives. Comparison pages and docs-adjacent content convert better than anything else we've tried. Increasingly, developers find tools through LLM answers rather than search, and we think content should be built with that in mind. Treat these as inputs, not a plan; the plan is yours. First 90 days Write the positioning doc, with input from founders, sales, and the ten customers who know us best. Ship two customer stories and two flagship technical pieces. Run one launch end to end. Give us a content and launch calendar for the following two quarters with a clear argument for why it's the right one. How we'll judge year one Whether E2B can be explained in a sentence by someone who isn't us. Launch cadence and reach. Growth in content-attributed signups and enterprise pipeline that cites something we published. Whether the writer and video producer are shipping work you're proud of. Who you are 5+ years in product or developer marketing for a technical product, with at least one stretch where you were the only marketer and it worked. You write. Not \"manage writers.\" Your portfolio has technical pieces you drafted yourself for a developer audience, and you can read code well enough to write about sandboxing, isolation, and runtime security without a ghostwriter. You've done positioning from scratch and launched products that engineers adopted. You understand usage-based pricing for infrastructure, or you've done pricing work somewhere close enough to learn fast. You've been the number two on a product marketing team and want to be the one deciding. You're comfortable being measured. Traffic isn't the deliverable; signups and pipeline are. Nice to have Experience with agent frameworks, model infrastructure, or sandboxes. Familiarity with answer-engine or SEO programs. A track record tying content to pipeline at a high-growth startup. What it’s like to work at E2B We’re a fast-growing startup with in-person (4 days on-site, 1 day WFH) offices in San Francisco and Prague, Czech Republic . We already generate 8-figure revenue and work directly with top-tier AI companies like Manus, Genspark, Lindy, Groq, Artificial Analysis and other exciting teams pushing the frontier of AI. We offer healthcare, vision, and dental insurance, unlimited PTO, 401k, and a variety of perks for in-office employees."
+      },
+      "crustdata_job_id": 4766661675473910,
+      "job_details": {
+        "category": "Marketing",
+        "employment_type": "full_time",
+        "job_id": 4766661675473910,
+        "number_of_openings": null,
+        "reposted_job": null,
+        "source": "ashby",
+        "title": "Founding Product  Marketing Lead",
+        "url": "https://jobs.ashbyhq.com/e2b/d07e3421-9d5f-4145-8b54-cf6f4ac2cb45",
+        "workplace_type": "On-site"
+      },
+      "location": {
+        "city": "San Francisco",
+        "country": "United States",
+        "district": null,
+        "pincode": null,
+        "raw": "San Francisco",
+        "state": "California"
+      },
+      "metadata": {
+        "date_added": "2026-09-30T00:00:00",
+        "date_updated": null
+      }
+    },
+    {
+      "company": {
+        "basic_info": {
+          "crustdata_company_id": 1083252,
+          "industries": [
+            "Technology, Information and Internet",
+            "Technology, Information and Media"
+          ],
+          "name": "E2B",
+          "primary_domain": "e2b.dev",
+          "professional_network_id": "96484695",
+          "website": "https://e2b.dev"
+        },
+        "competitors": {
+          "websites": []
+        },
+        "followers": {
+          "count": 6664
+        },
+        "funding": {
+          "investors": [
+            "Decibel Partners",
+            "Edward Lando",
+            "Insight Partners",
+            "Jakub Jurovych",
+            "Juraj Masar",
+            "KAYA",
+            "Liu Jiang",
+            "Matej Turek",
+            "Pareto Holdings",
+            "Scott Johnston"
+          ],
+          "last_fundraise_date": "2025-07-28T00:00:00",
+          "last_round_type": "series_a",
+          "num_funding_rounds": 3,
+          "total_investment_usd": 35000000.0,
+          "valuation_usd": 0.0
+        },
+        "headcount": {
+          "largest_headcount_country": "USA",
+          "range": "51-200",
+          "total": 52
+        },
+        "locations": {
+          "city": null,
+          "country": "United States",
+          "state": "California",
+          "street_address": "Market St, San Francisco, California"
+        },
+        "revenue": {
+          "acquisition_status": null,
+          "estimated": {
+            "lower_bound_usd": 500000,
+            "upper_bound_usd": 1000000
+          },
+          "public_markets": {
+            "fiscal_year_end": "",
+            "stock_symbols": [
+              "E2B"
+            ]
+          }
+        }
+      },
+      "content": {
+        "description": "About E2B E2B is a fast-growing Series A startup with over $37M in funding and 8-figure revenue. We are building the Agent Cloud and power the infrastructure behind AI labs and some of the most widely used consumer and enterprise agents, including Manus, Genspark, Lindy, Groq, and Artificial Analysis. Our team includes original authors of Firecracker, the AWS microVM technology powering Lambda, along with alumni of Cognition, JetBrains, Zapier, and Wish. About the role We’re looking for a videographer and video editor to bring our product, people, and customer stories to life. You’ll own videos from the initial idea through filming and the final edit, helping people see what developers are building with E2B and why it matters. You’ll work with our team in San Francisco to create product launch videos, customer stories, founder interviews, event coverage, and content for social channels. You should be equally comfortable setting up a shoot and shaping the footage into a compelling story. This is a hands-on creative role with room to develop E2B’s video style. We’re especially interested in people who have worked in-house at technology companies or at agencies and production studios serving tech clients. What you’ll do Develop concepts, scripts, interview questions, and shot lists with clear audiences and goals. Film founders, engineers, customers, product launches, and events, managing camera, lighting, and audio. Direct interviews and help people feel natural and confident on camera. Edit videos from raw footage through final delivery, including sound, color correction, captions, music, and basic motion graphics. Combine live footage, screen recordings, and graphics to explain software and demonstrate what AI agents can do. Create both polished longer videos and short clips tailored to LinkedIn, X, YouTube, and other channels. Manage production schedules, feedback, footage backups, and an organized library of reusable assets. Collaborate with technical teammates to keep product storytelling accurate, and use audience feedback and performance data to improve future videos. What we’re looking for 3+ years of professional filming and editing experience, or an exceptional portfolio demonstrating equivalent ability. A portfolio showing work you personally both shot and edited. Ability to independently run a shoot, including camera operation, lighting, and clean audio capture. Strong editing skills in Premiere Pro, DaVinci Resolve, Final Cut Pro, or a comparable professional tool. Excellent judgment around story, pacing, composition, and sound. Ability to learn unfamiliar technical topics and turn them into clear, engaging videos. Strong organization and communication, with the ability to manage multiple projects and incorporate feedback. Based in the San Francisco Bay Area, or willing to relocate, and available to work with the team and film in person. Especially relevant experience Work at a technology company or an agency serving technology clients. B2B software, AI, developer tools, or infrastructure storytelling. Product demos, customer testimonials, founder interviews, and launch campaigns. Motion graphics and animation that make complex ideas easier to understand. What it’s like to work at E2B We’re a fast-growing startup with in-person (4 days on-site, 1 day WFH) offices in San Francisco and Prague, Czech Republic . We already generate 8-figure revenue and work directly with top-tier AI companies like Manus, Genspark, Lindy, Groq, Artificial Analysis and other exciting teams pushing the frontier of AI. We offer healthcare, vision, and dental insurance, unlimited PTO, 401k, and a variety of perks for in-office employees."
+      },
+      "crustdata_job_id": 4528370208451552,
+      "job_details": {
+        "category": "Marketing",
+        "employment_type": "full_time",
+        "job_id": 4528370208451552,
+        "number_of_openings": null,
+        "reposted_job": null,
+        "source": "ashby",
+        "title": "Videographer & Video Editor",
+        "url": "https://jobs.ashbyhq.com/e2b/8807b7c1-3dc4-4f4c-bb20-634fcef4634c",
+        "workplace_type": "On-site"
+      },
+      "location": {
+        "city": "San Francisco",
+        "country": "United States",
+        "district": null,
+        "pincode": null,
+        "raw": "San Francisco",
+        "state": "California"
+      },
+      "metadata": {
+        "date_added": "2026-09-23T00:00:00",
+        "date_updated": null
+      }
+    },
+    {
+      "company": {
+        "basic_info": {
+          "crustdata_company_id": 1083252,
+          "industries": [
+            "Technology, Information and Internet",
+            "Technology, Information and Media"
+          ],
+          "name": "E2B",
+          "primary_domain": "e2b.dev",
+          "professional_network_id": "96484695",
+          "website": "https://e2b.dev"
+        },
+        "competitors": {
+          "websites": []
+        },
+        "followers": {
+          "count": 6664
+        },
+        "funding": {
+          "investors": [
+            "Decibel Partners",
+            "Edward Lando",
+            "Insight Partners",
+            "Jakub Jurovych",
+            "Juraj Masar",
+            "KAYA",
+            "Liu Jiang",
+            "Matej Turek",
+            "Pareto Holdings",
+            "Scott Johnston"
+          ],
+          "last_fundraise_date": "2025-07-28T00:00:00",
+          "last_round_type": "series_a",
+          "num_funding_rounds": 3,
+          "total_investment_usd": 35000000.0,
+          "valuation_usd": 0.0
+        },
+        "headcount": {
+          "largest_headcount_country": "USA",
+          "range": "51-200",
+          "total": 52
+        },
+        "locations": {
+          "city": null,
+          "country": "United States",
+          "state": "California",
+          "street_address": "Market St, San Francisco, California"
+        },
+        "revenue": {
+          "acquisition_status": null,
+          "estimated": {
+            "lower_bound_usd": 500000,
+            "upper_bound_usd": 1000000
+          },
+          "public_markets": {
+            "fiscal_year_end": "",
+            "stock_symbols": [
+              "E2B"
+            ]
+          }
+        }
+      },
+      "content": {
+        "description": "About E2B E2B is a fast-growing Series A startup with over $37M in funding and 8-figure revenue. We are building the Agent Cloud and power the infrastructure behind AI labs and some of the most widely used consumer and enterprise agents, including Manus, Genspark, Lindy, Groq, and Artificial Analysis. Our team includes original authors of Firecracker, the AWS microVM technology powering Lambda, along with alumni of Cognition, JetBrains, Zapier, and Wish. About the role Your job is to own billing at E2B — everything that touches how we charge customers, collect revenue, and capture the data behind it. The metering pipeline, the Stripe integration, invoicing, collections, and the billing surfaces developers see in the dashboard. Your code will be responsible for collecting data metrics, creating and sending invoices and reconciliation of payments for our customers across the globe. We have a billing system. Your job is to take it over end to end and redesign it. Engineering, finance, and customers all depend on the system and the data it produces, and you'll work across all three. When a customer asks why their invoice looks the way it does, you're the person who can answer. Responsibilities include: Owning the services behind billing end-to-end — usage metering, charge calculation, invoicing, payments, and the data models underneath them Owning the Stripe integration end-to-end: subscriptions, Billing Meters, and enterprise invoicing edge cases Building billing automation: failed-payment recovery, collections, proration and plan changes, credits, refunds, and disputes Working with engineers across Core, Platform, and Dashboard to get the data billing depends on, and defining the contracts for it Partnering with finance on reconciliation, revenue reporting, and audit-readiness Making architectural decisions around observability, testing, and security What we're looking for Understanding of metric collection, metered usage, Pay-as-you-go, billing cycles - being able to understand finance requirements and translate them into well tested code Backend engineer with 5+ years billing systems experience, with deep expertise in Go Strong API design — REST/RPC, contracts and versioning Solid with PostgreSQL: schema design, query optimization, migrations, and reasoning about data at scale Backend fundamentals: authentication/authorization, server-side performance, and building real-time data flows (WebSockets, SSE) Experienced with charging logic, collections, billing automation, and billing-related data flows Comfortable with complex invoicing, SKUs, usage-/contract-based billing, and third-party payment platforms Strong cross-functional communication skills, especially with finance Comfortable owning a system end-to-end with high autonomy Able to work through ambiguity and figure things out independently What it’s like to work at E2B We’re a fast-growing startup with in-person (4 days on-site, 1 day WFH) offices in San Francisco and Prague, Czech Republic . We already generate 8-figure revenue and work directly with top-tier AI companies like Manus, Genspark, Lindy, Groq, Artificial Analysis and other exciting teams pushing the frontier of AI. We offer healthcare, vision, and dental insurance, unlimited PTO, 401k, and a variety of perks for in-office employees."
+      },
+      "crustdata_job_id": 5116864500555740,
+      "job_details": {
+        "category": "Engineering",
+        "employment_type": "full_time",
+        "job_id": 5116864500555740,
+        "number_of_openings": null,
+        "reposted_job": null,
+        "source": "ashby",
+        "title": "Billing Engineer",
+        "url": "https://jobs.ashbyhq.com/e2b/efc5fc81-83b7-40f6-8c00-a5a8bf508fe5",
+        "workplace_type": "On-site"
+      },
+      "location": {
+        "city": "Prague",
+        "country": "Czechia",
+        "district": null,
+        "pincode": null,
+        "raw": "Prague, Czech Republic",
+        "state": "Prague"
+      },
+      "metadata": {
+        "date_added": "2026-09-21T00:00:00",
+        "date_updated": null
+      }
+    }
+  ],
+  "next_cursor": "H4sIAB1z5WoC_xWMSQrDMBAEvyJ09mG0zKJ8JQQjjSx8CBHxcgghf49cl4amur_2fS7bZ17zvtqbsaJJYyjaYBCppcX76hlaUc0qxJk8UKsUmnfKI0urqCyBRQDZTsbufTvG192xpBRHfTEZdI6EIgIgIkd4DPXoR37O2s_XtQj-9wfW84QfkAAAAA==",
+  "total_count": 32
+}
