@@ -20,7 +20,7 @@ export type AgentOptions = {
 };
 
 export const DEFAULT_MAX_STEPS = 14;
-export const DEFAULT_CREDIT_CAP = 40;
+export const DEFAULT_CREDIT_CAP = 60;
 
 const CITED = {
   type: "object",
@@ -98,7 +98,7 @@ How to work:
 5. Before each tool call, say in one sentence what you are doing and why. After results, say in one sentence what you learned (counts, gaps) and what's next.
 6. Finish by calling ${SUBMIT_TOOL} once. Rank rows by fit to the ask (strongest signal first). For every value give {value, ref, path}: ref is the tool call ref (c1, c2 …) and path is the JSON path inside that call's "response" (e.g. companies[0].basic_info.year_founded, profiles[2].experience.employment_details.past[0].title). The server checks every citation; uncited values are dropped. If data is missing, use value null — never guess. In filters, mark each requirement applied "server" (Crustdata filter), "client" (you checked the returned data) or "unavailable" (could not be checked), with the field and detail.
 
-Notes: headcount.growth_percent.* values are percentages (50 means +50%). "Grew by half" = +50%. locations.country accepts ISO alpha-3 (IND, USA, GBR, DEU …). Growth fields are filterable but not sortable. Budget: at most ${creditCap} Crustdata credits and ${maxSteps} turns for the whole request — be frugal (cap people lookups to the requested count).`;
+Notes: headcount.growth_percent.* values are percentages (50 means +50%). "Grew by half" = +50%. locations.country accepts ISO alpha-3 (IND, USA, GBR, DEU …). Growth fields are filterable but not sortable. Budget: at most ${creditCap} Crustdata credits and ${maxSteps} turns for the whole request; every tool result reports credits used and remaining. Company search costs about 0.03 credits/row plus ~0.2/row for each of headcount, funding, locations and 0.1/row for taxonomy (≈0.5/row with the usual groups), so request only the fields you need, keep limit ≤ 25, and reserve credits for people lookups (≈0.23/row with experience). Cap people lookups to about 3 per requested company.`;
 }
 
 type Cited = { value?: unknown; ref?: string; path?: string } | null | undefined;
