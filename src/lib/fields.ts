@@ -8,6 +8,8 @@
  * Every number the integrated UI shows travels in this shape. Element types of `inputs`/`citations` are kept
  * permissive (extra keys allowed) so the builder's richer objects drop in without changes.
  */
+import { fmtDateTime } from "@/lib/format";
+
 export type FieldInput = { name: string; value: unknown; [k: string]: unknown };
 export type Citation = {
   source: string; // e.g. "Crustdata"
@@ -40,7 +42,7 @@ export function explain(f: ComputedField<unknown> | undefined | null): string {
   if (!f) return "Unavailable: not provided by the API";
   if (f.status !== "ok") return `Unavailable: ${f.reason}`;
   const cites = f.citations
-    .map((c) => [c.source, c.endpoint, c.path].filter(Boolean).join(" · ") + (c.retrievedAt ? ` · retrieved ${String(c.retrievedAt).slice(0, 16).replace("T", " ")}Z` : ""))
+    .map((c) => [c.source, c.endpoint, c.path].filter(Boolean).join(" · ") + (c.retrievedAt ? ` · retrieved ${fmtDateTime(String(c.retrievedAt))}` : ""))
     .join("\n");
   return [f.reasoning, `Method: ${f.method}`, cites].filter(Boolean).join("\n");
 }
