@@ -139,6 +139,29 @@ Read it deep, slow and calm. A pause is part of the read. One-word lines are rea
 
 ---
 
+## Demo-part style references
+
+The founder picked two Google Workspace launch films as the feel for the story demo: fun, light and easy to follow.
+
+- **A.** "The best of Google AI is now part of Workspace" (Google Workspace, vertical short): https://youtube.com/shorts/f33R-x0n89Y
+- **B.** "Introducing Google Vids" (Google Workspace): https://youtu.be/4SCjXcBeW1E
+
+**What we borrow**
+- **Bright, airy stages.** White or very pale gradient backgrounds, with product colour carried only by the UI and the icons. On our side that means cream with soft tints and the sienna accent.
+- **Oversized UI fragments, not screens.** One control or card fills a third of the frame (B's giant "Play" pill with a hand cursor, its avatar pill). Crop to the one element that matters and scale it 1.7–2.5×.
+- **A big, friendly cursor.** About 64–80 px at 1080p, clicking with a quick squash (100% → 88% → 100% over about 200 ms). Use it as the "actor" that moves the story along.
+- **Floating icons as a cast.** A shows the tool icons orbiting a centre mark that blooms into the product. We do the same with Gmail, Slack, Calendar and Crustdata marks around the Deal Desk orb, and we never invent our own logos.
+- **One idea per beat, cut on the music.** Beats of about 1.5–4 s, a hard cut or a fast push on each downbeat, with no cross-dissolves inside the demo.
+- **Short, plain captions.** 2–6 words, bold sans at 84–130 px, words springing in about 100 ms apart, with one highlighted word per line. Upbeat music sits under the captions, and there is no voice.
+- **Problem, then product, then the smile.** A relatable mess, then a few quick "it just does it" moments, then a happy payoff and the wordmark.
+
+**What we don't borrow**
+- None of their footage, music, icons or brand marks. The references are for feel only and never appear in a render.
+- No stock actors or presenter cameos. Our "people" are the founder and the firm, shown through real app moments.
+- No invented metrics. Any number on screen comes from the product moment shown.
+
+---
+
 ## 7. Visual language and motion
 
 | Element | Cold open | Story demo |
