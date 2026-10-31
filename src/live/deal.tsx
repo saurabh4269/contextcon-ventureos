@@ -16,7 +16,6 @@ import type { DecisionsResponse } from "@/lib/numbers/decisions";
 import type { DealSection } from "@port/types";
 import { useLiveCoverage } from "@/components/datamode";
 import { failureMessage, useLiveJson } from "./useLiveJson";
-import { useLiveCoverage } from "@/components/datamode";
 import { recordEvent } from "./memory";
 
 /** Unavailable decisions wait in the review queue; say so where the "—" is shown. */
@@ -33,7 +32,6 @@ export function LiveDeal({ shell, domain, tab }: { shell: ShellData; domain: str
 }
 
 function LiveDealFor({ shell, domain, tab }: { shell: ShellData; domain: string; tab?: string }) {
-  useLiveCoverage("Live · Crustdata");
   const router = useRouter();
   const res = useLiveJson<Ok | NoMatch>(`/api/live/research?domain=${encodeURIComponent(domain)}`);
   const ok = res.state === "ok" && res.data.status === "ok" ? res.data : null;
