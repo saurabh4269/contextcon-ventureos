@@ -5,6 +5,7 @@ import { crustdataFetch, RateLimiter, CRUSTDATA_BASE_URL, CRUSTDATA_API_VERSION 
 import { cacheKey, type ResponseCache } from "./cache";
 import { staleFallback } from "./stale";
 import { CircuitBreaker } from "@/lib/resilience/breaker";
+import { remainingMs } from "@/lib/resilience/deadline";
 import type {
   CompanyEnrichRequest,
   CompanyEnrichResponse,
@@ -93,7 +94,7 @@ export class CrustdataClient {
         path,
         { method, ...(body === undefined ? {} : { body: JSON.stringify(body) }) },
         this.limiter,
-        { timeoutMs, retries, fetchImpl: this.fetchImpl, breaker: this.breaker, sleep: this.sleep },
+        { timeoutMs, retries, fetchImpl: this.fetchImpl, breaker: this.breaker, sleep: this.sleep, deadlineMs: remainingMs() },
       );
       const latencyMs = Date.now() - t0;
       this.onLiveCall?.({ method, path, status: "ok", creditsUsed, latencyMs });

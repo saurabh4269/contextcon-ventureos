@@ -271,3 +271,28 @@ describe("stale-cache fallback (CrustdataClient)", () => {
     expect(outageReason(new Error("bug"))).toBeNull();
   });
 });
+
+describe("request-scoped deadline", () => {
+  it("bounds every call made inside withDeadline, then serves stale or fails honestly", async () => {
+    const { withDeadline, remainingMs } = await import("@/lib/resilience/deadline");
+    expect(remainingMs()).toBeUndefined();
+    const { f, calls } = scripted(["hang"]);
+    const client = createCrustdataClient({ apiKey: "test-key", fetchImpl: f, sleep: noSleep });
+    const t0 = Date.now();
+    const e = await withDeadline(60, () => client.identifyCompany({ domains: ["e2b.dev"] })).catch((x) => x);
+    expect(Date.now() - t0).toBeLessThan(1_000);
+    expect(e).toBeInstanceOf(CrustdataTransportError);
+    expect(calls).toHaveLength(1); // no retry fits in the remaining budget
+
+    const cache = new MemoryResponseCache(0);
+    await cache.set(cacheKey("POST", "/company/identify", { domains: ["e2b.dev"] }), { data: IDENTIFY_E2B, creditsUsed: "0", requestId: null, latencyMs: 1, storedAt: Date.now() - 1_000 });
+    const cachedClient = createCrustdataClient({ apiKey: "test-key", fetchImpl: scripted(["hang"]).f, cache, sleep: noSleep });
+    const r = await withDeadline(60, () => cachedClient.identifyCompany({ domains: ["e2b.dev"] }));
+    expect(r.meta.staleNote).toMatch(/timed out.*cached at .* IST$/);
+  });
+
+  it("nested deadlines only shrink", async () => {
+    const { withDeadline, remainingMs } = await import("@/lib/resilience/deadline");
+    await withDeadline(100, () => withDeadline(10_000, async () => expect(remainingMs()!).toBeLessThanOrEqual(100)));
+  });
+});

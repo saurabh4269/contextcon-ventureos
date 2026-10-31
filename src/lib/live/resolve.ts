@@ -100,6 +100,7 @@ const call = <T>(body: unknown, meta: CrustdataCallMeta, status: LiveCall["statu
   cached: meta.cached,
   retrievedAt: meta.retrievedAt,
   creditsUsed: meta.creditsUsed,
+  ...(meta.stale ? { stale: true, note: meta.staleNote } : {}),
   ...(data === undefined ? {} : { data }),
 });
 
@@ -107,6 +108,31 @@ const ok = (c: Suggestion, via: "domain" | "name", identify: LiveCall): Resolved
 const identifyData = (c: Suggestion): IdentifyData => ({ id: c.companyId, name: c.name ?? c.domain ?? String(c.companyId), confidence: c.confidence });
 const didYouMean = (s: Suggestion[]) =>
   s.length ? ` Did you mean ${s.map((x) => (x.domain ? `${x.name ?? x.domain} (${x.domain})` : x.name ?? `#${x.companyId}`)).join(", ")}?` : "";
+
+/**
+ * "Did you mean" for a domain with no identify match: identify the first label as a name (0 credits). Suggestions
+ * only, never auto-picked. Best effort — if this lookup fails, the honest no_match still stands (the call says why).
+ */
+export async function suggestForDomain(client: CrustdataClient, domain: string): Promise<{ suggestions: Suggestion[]; message: string; suggest: LiveCall }> {
+  const sBody = { names: [domain.split(".")[0]!], exact_match: false };
+  const t0 = Date.now();
+  try {
+    const sRes = await client.identifyCompany(sBody);
+    const suggestions = candidates(sRes.data).slice(0, MAX_SUGGESTIONS);
+    return {
+      suggestions,
+      message: `No company found for the domain ${domain}.${didYouMean(suggestions)}`,
+      suggest: call(sBody, sRes.meta, suggestions.length ? "ok" : "no_match", suggestions.length ? suggestions : undefined),
+    };
+  } catch (e) {
+    const error = e instanceof Error ? e.message : String(e);
+    return {
+      suggestions: [],
+      message: `No company found for the domain ${domain}.`,
+      suggest: { id: "identify", method: "POST", path: "/company/identify", body: sBody, status: "error", ms: Date.now() - t0, cached: false, retrievedAt: null, creditsUsed: null, error },
+    };
+  }
+}
 
 /** Resolve a parsed reference to a crustdata_company_id. Throws on Crustdata errors (never turned into no_match). */
 export async function resolveCompany(client: CrustdataClient, ref: CompanyRef): Promise<Resolution> {
@@ -118,18 +144,8 @@ export async function resolveCompany(client: CrustdataClient, ref: CompanyRef): 
     const match = candidates(res.data)[0];
     if (match) return ok(match, "domain", call(body, res.meta, "ok", identifyData(match)));
     const identify = call(body, res.meta, "no_match");
-    // "did you mean": identify by the first label as a name (0 credits); suggestions only, never auto-picked
-    const label = ref.domain.split(".")[0]!;
-    const sBody = { names: [label], exact_match: false };
-    const sRes = await client.identifyCompany(sBody);
-    const suggestions = candidates(sRes.data).slice(0, MAX_SUGGESTIONS);
-    return {
-      status: "no_match",
-      input: ref.domain,
-      message: `No company found for the domain ${ref.domain}.${didYouMean(suggestions)}`,
-      suggestions,
-      calls: { identify, suggest: call(sBody, sRes.meta, suggestions.length ? "ok" : "no_match", suggestions.length ? suggestions : undefined) },
-    };
+    const { suggestions, message, suggest } = await suggestForDomain(client, ref.domain);
+    return { status: "no_match", input: ref.domain, message, suggestions, calls: { identify, suggest } };
   }
 
   const body = { names: [ref.name], exact_match: false };
