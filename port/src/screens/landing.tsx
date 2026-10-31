@@ -28,6 +28,8 @@ export interface LandingScreenProps extends ScreenStatus {
   /** show the closing band's "request sent" state with this email */
   requested?: string;
   onRequestAccess?: (email: string) => void | Promise<void>;
+  /** sections rendered between the hero and the product fragments (the value story) */
+  story?: ReactNode;
 }
 
 const ease = [0.22, 1, 0.36, 1] as const;
@@ -585,6 +587,7 @@ export function LandingScreen(p: LandingScreenProps) {
           </>}
         </div>
       </header>
+      {ready && p.story}
       {ready && (status === "empty" || !d.features.items.length
         ? <div className="mx-auto mt-16 max-w-[560px] px-4 max-sm:mt-8"><EmptyState title="See it on real data" body="There is no recorded product tour. Open the app and research any company live on Crustdata." action={<button type="button" onClick={openDemo} className="inline-flex h-10 items-center gap-2 rounded-full bg-ink px-4 text-[13px] font-medium text-white"><Video className="size-4" />{d.hero.demo}</button>} /></div>
         : <Features d={d.features} moving={moving} show={show} />)}
