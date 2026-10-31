@@ -2,11 +2,12 @@
 // src/app/api/deals/[id]/decisions): { dealId, companyDomain, decisions, endpoints, fields }, every decision a ComputedField.
 //
 // Two sources, never a fixture:
-//   · this build: the deal's Crustdata-backed numbers and valuation (resolveDealNumbers); decisions that need the
-//     builder's pipeline (screener, data room, pricing, IC memo) are unavailable with the reason;
-//   · the builder backend, only when DEALDESK_BUILDER_URL is set: its ok decisions replace ours after their citations
-//     are re-anchored to the call we made (endpoint + JSON path + retrieval time). Fields citing fixture/sample/demo
-//     sources, or with no citations, are dropped. Any builder failure falls back to this build's honest values.
+//   · this build: decisions computed locally (src/lib/numbers/local.ts: firm mandate × live Crustdata research × peers
+//     × firm memory, via resolveDealNumbers); anything an input is missing for is unavailable with the reason;
+//   · the builder backend, only when DEALDESK_BUILDER_URL is set (an optional override): its ok decisions replace ours
+//     after their citations are re-anchored to the call we made (endpoint + JSON path + retrieval time). Fields citing
+//     fixture/sample/demo sources, or with no citations, are dropped and the local value stays. Any builder failure
+//     falls back to the local values.
 import { isOk, ok, unavailable, type Citation, type ComputedField, type FieldInput } from "@/lib/fields";
 import { enforceCited } from "@/lib/provenance";
 import { isMoney, fmtMoney } from "@/lib/format";
@@ -44,8 +45,7 @@ export type DecisionsResponse = {
   review?: { runId: string; href: string; open: { id: string; key: string; kind: string }[]; resolved: { id: string; key: string; status: string }[] };
 };
 
-const SCREENER =
-  "The screener verdict needs the firm thesis gates and an inbound pitch (builder backend: screener + firm mandate); not available in this build.";
+const SCREENER = "The screener verdict is computed from the fit score against the firm mandate; it was not computed for this deal.";
 
 const moneyText = (v: unknown) => (isMoney(v) ? fmtMoney(v) : String(v));
 
@@ -58,10 +58,10 @@ function rangeField(low: ComputedField<unknown>, high: ComputedField<unknown>): 
   ]);
 }
 
-export function localDecisions(domain: string, numbers: DealNumbers, valuation: DealValuation): DecisionsResponse {
+export function localDecisions(domain: string, numbers: DealNumbers, valuation: DealValuation, screener?: ComputedField<unknown>): DecisionsResponse {
   const fields: DecisionFields = {
     ...numbers,
-    screenerVerdict: unavailable(SCREENER),
+    screenerVerdict: screener ?? unavailable(SCREENER),
     valuationRange: rangeField(valuation.low, valuation.high),
     valuationLow: valuation.low,
     valuationHigh: valuation.high,
@@ -128,8 +128,7 @@ export async function withBuilder(local: DecisionsResponse, opts: { baseUrl?: st
     const fields = { ...local.fields } as Record<string, ComputedField<unknown>>;
     let used = 0;
     for (const k of DECISION_KEYS) {
-      if (isOk(fields[k])) continue; // never overwrite a value this build computed from Crustdata
-      const f = fromBuilderField(k, src[k], call);
+      const f = fromBuilderField(k, src[k], call); // a trusted builder decision overrides the local one
       if (f) { fields[k] = f; used++; }
     }
     if (!used) return { ...local, builder: { status: "unavailable", reason: "Builder backend returned no cited decisions for this deal." } };

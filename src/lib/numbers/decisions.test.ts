@@ -28,7 +28,7 @@ describe("GET /api/deals/:id/decisions (builder contract)", () => {
     expect(uncitedOk(d)).toEqual([]);
   });
 
-  it("this build never invents a decision: pipeline decisions unavailable with reasons, Crustdata numbers still live", async () => {
+  it("never invents a decision: without local inputs (mandate, peers) decisions are unavailable with reasons, Crustdata numbers still live", async () => {
     const d = await local();
     for (const k of DECISION_KEYS) {
       expect(d.decisions[k].status).toBe("unavailable");
@@ -76,7 +76,7 @@ describe("GET /api/deals/:id/decisions (builder contract)", () => {
 });
 
 describe("deal page from decisions", () => {
-  it("valuation section shows decision stats, all '—' with reasons in this build", async () => {
+  it("valuation section shows decision stats, all '—' with reasons when nothing was computed", async () => {
     const s = toValuationSection((await local()).fields);
     if (s.kind !== "valuation") throw new Error(s.kind);
     expect(s.stats.map((x) => x.id)).toEqual(["fit", "screener", "diligence", "low", "high", "ask", "rml", "rmh", "comps"]);
@@ -91,6 +91,6 @@ describe("deal page from decisions", () => {
     expect(scored.signals!.fit).toMatchObject({ base: { value: 78 }, unscored: undefined, recommendation: { label: "Advance" } });
     const un = withDecisionFit(deal, (await local()).decisions);
     expect(un.header.fit).toBeUndefined();
-    expect(un.signals!.fit.unscored!.reason).toMatch(/firm thesis/);
+    expect(un.signals!.fit.unscored!.reason).toMatch(/firm mandate/);
   });
 });

@@ -10,11 +10,12 @@ import { founderPersonSearchBody, linkedInPersonEnrichBody } from "@/lib/crustda
 import type { CompanyEnrichData, CrustdataCallMeta, PersonEnrichData } from "@/lib/crustdata/types";
 import { CrustdataMalformedResponseError } from "@/lib/crustdata/http";
 import { firstMatch, normalizeComps, normalizeCompany, normalizeJobs, normalizeNews, normalizePerson } from "./normalize";
+import type { Peer } from "@/lib/numbers/local";
 import type { CompanyLookup, IdentifyData, LiveCall, LiveComp, LiveCompany, LiveJobs, LiveNews, LivePerson, PersonLookup, ResearchResult } from "./types";
 
-type CallSpec = Pick<LiveCall, "id" | "method" | "path" | "body">;
+export type CallSpec = Pick<LiveCall, "id" | "method" | "path" | "body">;
 
-const fromMeta = <T>(spec: CallSpec, meta: CrustdataCallMeta, status: LiveCall["status"], data?: T): LiveCall<T> => ({
+export const fromMeta = <T>(spec: CallSpec, meta: CrustdataCallMeta, status: LiveCall["status"], data?: T): LiveCall<T> => ({
   ...spec,
   status,
   ms: meta.latencyMs,
@@ -31,7 +32,7 @@ function errorCall<T>(spec: CallSpec, e: unknown, ms: number): LiveCall<T> {
 }
 
 /** Run one call; failures become an error LiveCall instead of rejecting the whole research. */
-async function attempt<T>(spec: CallSpec, run: () => Promise<LiveCall<T>>): Promise<LiveCall<T>> {
+export async function attempt<T>(spec: CallSpec, run: () => Promise<LiveCall<T>>): Promise<LiveCall<T>> {
   const t0 = Date.now();
   try {
     return await run();
@@ -131,4 +132,67 @@ export async function researchCompany(client: CrustdataClient, domain: string): 
   ]);
   const base = { status: "ok" as const, domain, requestedAt, company: c, calls: { identify: looked.identify, enrich: looked.enrich, founders, jobs, news, comps } };
   return { ...base, fields: companyFields({ ...base, fields: {} }) };
+}
+
+type PeerRow = {
+  crustdata_company_id?: number;
+  basic_info?: { name?: string; primary_domain?: string; crustdata_company_id?: number };
+  funding?: { last_round_type?: string | null; last_round_amount_usd?: number | null; last_fundraise_date?: string | null; total_investment_usd?: number | null } | null;
+  revenue?: { estimated?: { lower_bound_usd?: number | null; upper_bound_usd?: number | null } | null } | null;
+  locations?: { country?: string | null } | null;
+};
+const PEER_FIELDS = [
+  "crustdata_company_id",
+  "basic_info.name",
+  "basic_info.primary_domain",
+  "funding.last_round_type",
+  "funding.last_round_amount_usd",
+  "funding.last_fundraise_date",
+  "funding.total_investment_usd",
+  "revenue.estimated.lower_bound_usd",
+  "revenue.estimated.upper_bound_usd",
+  "locations.country",
+];
+const fin = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : undefined);
+
+/**
+ * Peers for valuation comps: live /company/search on the company's primary industry, last round type and country,
+ * with funding and estimated revenue. When fewer than `want` peers come back, geography then stage are relaxed
+ * (the result says which constraints it kept).
+ */
+export async function searchPeers(
+  client: CrustdataClient,
+  company: Pick<LiveCompany, "id" | "industries" | "country" | "funding">,
+  opts: { limit?: number; want?: number } = {},
+): Promise<{ call: LiveCall<Peer[]>; matched: ("sector" | "stage" | "geo")[] }> {
+  const industry = company.industries[0];
+  const base: CallSpec = { id: "peers", method: "POST", path: "/company/search", body: null };
+  if (!industry) return { call: { ...base, status: "skipped", ms: 0, cached: false, retrievedAt: null, creditsUsed: null, note: "Crustdata returned no industry for the company, so peers cannot be matched on sector.", data: [] }, matched: [] };
+  const limit = opts.limit ?? 10, want = opts.want ?? 3;
+  const stage = company.funding.lastRoundType, country = company.country;
+  const plans: ("sector" | "stage" | "geo")[][] = [["sector", "stage", "geo"], ["sector", "stage"], ["sector", "geo"], ["sector"]].filter(
+    (p) => (!p.includes("stage") || stage) && (!p.includes("geo") || country),
+  ) as ("sector" | "stage" | "geo")[][];
+  let last: { call: LiveCall<Peer[]>; matched: ("sector" | "stage" | "geo")[] } | undefined;
+  for (const matched of plans) {
+    const conds: Record<string, unknown>[] = [{ field: "taxonomy.professional_network_industry", type: "=", value: industry }];
+    if (matched.includes("stage")) conds.push({ field: "funding.last_round_type", type: "=", value: stage });
+    if (matched.includes("geo")) conds.push({ field: "locations.country", type: "=", value: country });
+    conds.push({ field: "funding.last_round_amount_usd", type: "=>", value: 1 });
+    const body = { filters: { op: "and", conditions: conds }, fields: PEER_FIELDS, sorts: [{ field: "funding.last_fundraise_date", order: "desc" }], limit: limit + 1 };
+    const spec: CallSpec = { ...base, body };
+    const call = await attempt<Peer[]>(spec, async () => {
+      const { data, meta } = await client.searchCompanies(body as never);
+      const rows = ((data as { companies?: PeerRow[] }).companies ?? []).flatMap((c): Peer[] => {
+        const id = c.crustdata_company_id ?? c.basic_info?.crustdata_company_id;
+        const name = c.basic_info?.name?.trim();
+        if (id == null || id === company.id || !name) return [];
+        return [{ id, name, domain: c.basic_info?.primary_domain ?? undefined, country: c.locations?.country ?? undefined, lastRoundType: c.funding?.last_round_type ?? undefined, lastRoundUsd: fin(c.funding?.last_round_amount_usd), lastDate: c.funding?.last_fundraise_date ?? undefined, totalUsd: fin(c.funding?.total_investment_usd), revenueLowUsd: fin(c.revenue?.estimated?.lower_bound_usd), revenueHighUsd: fin(c.revenue?.estimated?.upper_bound_usd) }];
+      });
+      return fromMeta(spec, meta, "ok", rows.slice(0, limit));
+    });
+    last = { call, matched };
+    if (call.status === "error" || (call.data?.length ?? 0) >= want) return last;
+  }
+  return last!;
 }

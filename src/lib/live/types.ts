@@ -33,6 +33,8 @@ export type LiveCompany = {
     lastDate?: string; // funding.last_fundraise_date
     investors: string[]; // funding.investors
   };
+  /** revenue.estimated.* (Crustdata's estimated annual revenue range, USD) */
+  revenue?: { lowUsd?: number; highUsd?: number };
   web: {
     domain?: string;
     monthlyVisitors?: number; // web_traffic.domain_traffic[domain].monthly_visitors
@@ -81,7 +83,7 @@ export type LiveComp = {
 
 /** One upstream call as the UI shows it in the signal graph. */
 export type LiveCall<T = unknown> = {
-  id: "identify" | "enrich" | "founders" | "jobs" | "news" | "comps" | "person";
+  id: "identify" | "enrich" | "founders" | "jobs" | "news" | "comps" | "person" | "peers";
   method: "GET" | "POST";
   path: string;
   body: unknown;

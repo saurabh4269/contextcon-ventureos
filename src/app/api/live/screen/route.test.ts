@@ -4,7 +4,7 @@ vi.mock("server-only", () => ({}));
 
 import { POST } from "./route";
 
-const KEYS = ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CRUSTDATA_API_KEY"] as const;
+const KEYS = ["OPENAI_API_KEY", "ANTHROPIC_API_KEY", "CRUSTDATA_API_KEY", "CRUSTDATA_API_KEY_BACKUP"] as const;
 let saved: Record<string, string | undefined>;
 
 beforeEach(() => {
