@@ -33,7 +33,7 @@ export function createServer(http = new DealDeskHttp()): McpServer {
   }, async (a) => asContent(await getDecisions(http, a.domain, { review: a.review })));
 
   server.registerTool("run_deal_workflow", {
-    description: "Start or advance the deal workflow for a domain: research → decisions → review → outreach. Outreach returns a draft that needs a person's approval; nothing is ever sent.",
+    description: "Run a four-step read of a domain: research → decisions → open review items → outreach preview. Stateless: it does not start the ten-step workflow (use deal_workflow_start). Decisions may raise review items. Outreach only previews a draft that needs a person's approval; nothing is ever sent.",
     inputSchema: {
       domain,
       until: z.enum(WORKFLOW_STEPS as [string, ...string[]]).optional().describe("Stop after this step (default review, or outreach when a draft is given)"),

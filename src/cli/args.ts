@@ -40,7 +40,9 @@ export function parseArgs(argv: string[]): Parsed {
     const a = argv[i];
     if (a === "-h" || a === "--help") flags.set("--help", true);
     else if (a.startsWith("--")) {
-      const [k, v] = a.split("=", 2);
+      const eq = a.indexOf("=");
+      const k = eq < 0 ? a : a.slice(0, eq);
+      const v = eq < 0 ? undefined : a.slice(eq + 1);
       if (valued.has(k)) { const val = v ?? argv[++i]; if (val === undefined) return { ok: false, message: `${k} needs a value` }; flags.set(k, val); }
       else flags.set(k, true);
     } else pos.push(a);

@@ -52,9 +52,9 @@ export async function screenCompanies(http: DealDeskHttp, request: string, onEve
   if (!query || query.length > 2000) return bad("screen_companies", "request must be 1..2000 characters of plain English");
   const r = await http.ndjson("/api/live/screen", { query }, onEvent);
   const final = r.events.find((e) => e.type === "final") as { result?: unknown } | undefined;
-  const failure = r.events.find((e) => e.type === "error" || e.type === "model_unavailable");
+  const failure = r.events.find((e) => e.type === "error" || e.type === "model_unavailable") ?? r.events.find((e) => typeof e.message === "string");
   if (final?.result) return { ok: true, tool: "screen_companies", status: r.status, data: final.result, sources: collectSources(final.result) };
-  return { ok: false, tool: "screen_companies", status: r.status, data: failure ?? { type: "error", message: "the research agent returned no final result" }, sources: [],
+  return { ok: false, tool: "screen_companies", status: r.status, data: failure ?? { type: "error", message: `the research agent returned no final result (HTTP ${r.status})` }, sources: [],
     note: failure?.type === "model_unavailable" ? "No model key on the server: the deterministic Sourcing agent (/agent) is the fallback." : undefined };
 }
 
@@ -112,13 +112,14 @@ export type WorkflowStep = { id: "research" | "decisions" | "review" | "outreach
 export const WORKFLOW_STEPS: WorkflowStep["id"][] = ["research", "decisions", "review", "outreach"];
 
 /** run_deal_workflow: research → decisions (raises review items) → open review items for the deal → outreach draft.
- *  `until` stops after that step (default "review"). The outreach step only asks the server for a preview
+ *  It does NOT start the ten-step workflow (deal_workflow_start does). `until` stops after that step (default "review"). The outreach step only asks the server for a preview
  *  (POST /api/outbound/email action "draft", which is dry-run unless the server is live); it never sends, and it
  *  always comes back as needs_approval. */
 export async function runDealWorkflow(http: DealDeskHttp, domain: string, opts: { until?: WorkflowStep["id"]; outreach?: { to: string[]; subject: string; body: string } } = {}): Promise<ToolResult> {
   const d = normalizeDomain(domain);
   if (!d) return bad("run_deal_workflow", "domain must be a company domain, e.g. e2b.dev");
-  const until = opts.until && WORKFLOW_STEPS.includes(opts.until) ? opts.until : opts.outreach ? "outreach" : "review";
+  if (opts.until !== undefined && !WORKFLOW_STEPS.includes(opts.until)) return bad("run_deal_workflow", `until must be one of ${WORKFLOW_STEPS.join(", ")}`);
+  const until = opts.until ?? (opts.outreach ? "outreach" : "review");
   const stop = WORKFLOW_STEPS.indexOf(until);
   const steps: WorkflowStep[] = [];
   const data: Record<string, unknown> = {};
@@ -136,7 +137,7 @@ export async function runDealWorkflow(http: DealDeskHttp, domain: string, opts: 
     data.decisions = (r.data as { summary?: unknown })?.summary ?? r.data; sources.push(...r.sources);
     const sum = (r.data as { summary?: Record<string, { status: string }> })?.summary ?? {};
     const okN = Object.values(sum).filter((s) => s.status === "ok").length;
-    steps.push({ id: "decisions", endpoint: `GET /api/deals/${d}/decisions`, status: r.ok ? "done" : "failed", detail: r.ok ? `${okN}/${Object.keys(sum).length} decisions cited, the rest unavailable with reasons` : `HTTP ${r.status}` });
+    steps.push({ id: "decisions", endpoint: `GET /api/deals/${d}/decisions`, status: r.ok && Object.keys(sum).length ? "done" : "failed", detail: r.ok && Object.keys(sum).length ? `${okN}/${Object.keys(sum).length} decisions cited, the rest unavailable with reasons` : r.ok ? "the route returned no decisions" : `HTTP ${r.status}` });
   }
   if (run(2)) {
     const r = await listReviewQueue(http, { status: "open", run: `deal:${d}:decisions` });
@@ -208,7 +209,7 @@ export async function actOnDealWorkflow(
       return { ok: deal.ok, tool: "deal_workflow_act", status: deal.status, data: { dryRun: true, reason: !a.confirm ? "dry run (pass confirm to approve)" : "DEALDESK_ALLOW_APPROVE=1 is not set for this process", draft }, sources: [] };
     }
   }
-  if (a.action === "transcript" && !a.text?.trim()) return bad("deal_workflow_act", "transcript needs text");
+  if (a.action === "transcript" && (typeof a.text !== "string" || !a.text.trim())) return bad("deal_workflow_act", "transcript needs text");
   if (a.action === "decide" && a.verdict !== "invest" && a.verdict !== "pass") return bad("deal_workflow_act", 'decide needs verdict "invest" or "pass"');
   const body = { action: a.action, ...(a.step ? { step: a.step } : {}), ...(a.text ? { text: a.text, source: "paste" } : {}), ...(a.verdict ? { verdict: a.verdict } : {}), ...(a.note ? { note: a.note } : {}) };
   return result("deal_workflow_act", await http.json("POST", `/api/workflow/${encodeURIComponent(id)}`, body));

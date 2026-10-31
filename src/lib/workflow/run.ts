@@ -9,7 +9,7 @@ import type { DecisionsResponse } from "@/lib/numbers/decisions";
 import type { ModelClient } from "@/lib/agent/model";
 import type { MemoryEvent, MemoryEventInput } from "@/lib/memory/types";
 import { blockedRecipients } from "@/lib/outbound";
-import { fmtDateTime, fmtMoney, isMoney } from "@/lib/format";
+import { fmtDateTime, fmtMoney, isMoney, money } from "@/lib/format";
 import { firmMandate, unsetMandateFields, type Mandate } from "@/lib/settings/mandate";
 import { companyDomainFrom, extractClaims, type Claim } from "./extract";
 import { criterionCheckSize, criterionGeo, criterionSector, criterionStage } from "@/lib/numbers/local";
@@ -69,7 +69,9 @@ const gmailCite = (deal: Deal): Citation | undefined =>
   deal.email ? { source: "Gmail", endpoint: "GET gmail/v1/users/me/messages/{id}", path: `messages/${deal.email.messageId}`, url: `https://mail.google.com/mail/u/0/#all/${deal.email.messageId}`, retrievedAt: deal.updatedAt } : undefined;
 
 const pct = (v: number | undefined) => (v === undefined ? "unknown" : `${Math.round(v * 10) / 10}%`);
-const usd = (v: number | undefined) => (v === undefined ? "unknown" : v === 0 ? "$0 (none reported)" : v >= 1e6 ? `$${(v / 1e6).toFixed(1)}M` : `$${Math.round(v / 1e3)}K`);
+const usd = (v: number | undefined) => (v === undefined ? "unknown" : fmtMoney(money(v, "USD")));
+/** Why a research result is not usable: a Crustdata error is not "no match". */
+const researchWhy = (r: ResearchResult | undefined, domain?: string) => !r ? "No company domain." : r.status === "no_match" ? `No Crustdata match for ${domain}.` : r.status === "ok" ? "" : `Crustdata failed: ${"message" in r ? r.message : "unknown error"}`;
 
 const companyOf = (c: Ctx): LiveCompany | undefined => (c.research?.status === "ok" ? c.research.company : undefined);
 
@@ -111,7 +113,9 @@ type Gate = { label: string; result: "pass" | "fail" | "unknown"; value: string;
 export function gates(r: ResearchResult | undefined, m: Mandate): Gate[] {
   if (!r || r.status !== "ok") return [{ label: "Company found in Crustdata", result: "unknown", value: "no data" }];
   const crits: [string, ComputedField<unknown>][] = [["Sector", criterionSector(r, m)], ["Stage", criterionStage(r, m)], ["Geography", criterionGeo(r, m)], ["Check size", criterionCheckSize(r, m)]];
-  return crits.map(([label, f]) => f.status === "ok"
+  return crits.map(([label, f]) => f.status === "ok" && !f.citations[0]
+    ? { label, result: "unknown" as const, value: "unavailable", note: "the value carries no citation, so it is not shown" }
+    : f.status === "ok"
     ? { label, result: f.value === "met" ? "pass" : "fail", value: `${f.value} — ${f.reasoning}`, citation: f.citations[0], note: f.method }
     : { label, result: "unknown", value: "unavailable", note: f.reason });
 }
@@ -120,15 +124,17 @@ async function screen(c: Ctx): Promise<Outcome> {
   const { deal, deps, m } = c;
   await setStage(c, "screening", "Screener", iso(deps));
   const r = await ensureResearch(c);
-  if (!r || r.status !== "ok") return { status: "unavailable", transport: "live", summary: r ? (r.status === "no_match" ? `No Crustdata match for ${deal.company.domain}.` : `Crustdata failed: ${"message" in r ? r.message : "unknown error"}`) : "No company domain." };
+  if (!r || r.status !== "ok") return { status: "unavailable", transport: "live", summary: researchWhy(r, deal.company.domain) };
   const co = r.company;
   deal.company = { ...deal.company, name: deal.company.name ?? co.name };
   if (!mandateConfigured(m)) return { status: "unavailable", transport: "live", summary: `Screening ${NO_MANDATE}.`, facts: [{ label: "Firm mandate", value: "not configured", status: "unknown", note: NO_MANDATE }] };
   const gs = gates(r, m);
   const facts: Fact[] = gs.map((g) => ({ label: g.label, value: g.value, status: g.result, citation: g.citation, note: g.note }));
-  const past = (await deps.memory.list(200)).filter((e) => e.kind === "workflow.decision" && e.subject?.id !== deal.company.domain);
+  let memErr: string | null = null;
+  const past = (await Promise.resolve().then(() => deps.memory.list(200)).catch((e) => { memErr = e instanceof Error ? e.message : String(e); return []; })).filter((e) => e.kind === "workflow.decision" && e.subject?.id !== deal.company.domain);
   for (const e of past.slice(-3).reverse()) facts.push({ label: `Precedent: ${e.subject?.label ?? e.subject?.id}`, value: e.summary, status: "info", citation: { source: `Firm memory (${deps.memory.label})`, path: `events/${e.id}`, retrievedAt: e.at } });
-  if (!past.length) facts.push({ label: "Precedents", value: "none yet in firm memory", status: "info", note: deps.memory.label });
+  if (memErr) facts.push({ label: "Precedents", value: "unavailable", status: "unknown", note: `Firm memory could not be read: ${memErr}` });
+  else if (!past.length) facts.push({ label: "Precedents", value: "none yet in firm memory", status: "info", note: deps.memory.label });
   const { credits, cached } = billedCredits(r);
   const failed = gs.filter((g) => g.result === "fail");
   const summary = `${co.name} vs the firm mandate: ${gs.filter((g) => g.result === "pass").length} pass, ${failed.length} fail, ${gs.filter((g) => g.result === "unknown").length} unknown.`;
@@ -196,7 +202,7 @@ async function research(c: Ctx): Promise<Outcome> {
   const { deal, deps } = c;
   await setStage(c, "diligence", "Research agent", iso(deps));
   const r = await ensureResearch(c);
-  if (!r || r.status !== "ok") return { status: "unavailable", transport: "live", summary: "Crustdata research is unavailable for this company." };
+  if (!r || r.status !== "ok") return { status: "unavailable", transport: "live", summary: `Crustdata research is unavailable: ${researchWhy(r, deal.company.domain)}` };
   const co = r.company;
   const claims = deal.email ? extractClaims(`${deal.email.subject}\n${deal.email.body}`) : [];
   const checks = checkClaims(claims, co);
@@ -297,6 +303,7 @@ async function valuation(c: Ctx): Promise<Outcome> {
   const facts: Fact[] = VAL_KEYS.map((k) => {
     const f = d.decisions[k] as ComputedField<unknown> | undefined;
     if (!f) return { label: VAL_LABEL[k], value: "not computed", status: "unknown" };
+    if (f.status === "ok" && !f.citations[0]) return { label: VAL_LABEL[k], value: "unavailable", status: "unknown", note: "the value carries no citation, so it is not shown" };
     return f.status === "ok" ? { label: VAL_LABEL[k], value: `${valueText(f.value)}${/Multiple/.test(k) && typeof f.value === "number" ? "×" : ""}`, status: "info", citation: f.citations[0], note: f.method } : { label: VAL_LABEL[k], value: "unavailable", status: "unknown", note: f.reason };
   });
   const okN = facts.filter((f) => f.status === "info").length;
@@ -378,7 +385,7 @@ async function pipeline(c: Ctx): Promise<Outcome> {
   await setStage(c, "ic", "Pipeline", iso(deps));
   if (!deal.decision) return { status: "waiting", needs: "ic_decision", transport: "person", summary: "At IC. Waiting for Invest or Pass." };
   await setStage(c, deal.decision.verdict === "invest" ? "portfolio" : "passed", deal.decision.by, deal.decision.at, "user");
-  return { status: "done", transport: "person", summary: `${deal.decision.verdict === "invest" ? "Invested → Portfolio" : "Passed"} by ${deal.decision.by}.${deal.decision.note ? ` Note: ${deal.decision.note}` : ""}`, facts: deal.stageHistory.map((h) => ({ label: h.stage, value: `${h.at} by ${h.by}`, status: "info" })) };
+  return { status: "done", transport: "person", summary: `${deal.decision.verdict === "invest" ? "Invested → Portfolio" : "Passed"} by ${deal.decision.by}.${deal.decision.note ? ` Note: ${deal.decision.note}` : ""}`, facts: deal.stageHistory.map((h) => ({ label: h.stage, value: `${fmtDateTime(h.at)} by ${h.by}`, status: "info" })) };
 }
 
 // ---------- step 10: memory ----------

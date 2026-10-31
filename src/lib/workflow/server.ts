@@ -27,7 +27,8 @@ import type { Deal } from "./types";
 /** Firm memory for the workflow: the one memory store (Postgres, or the durable store's documents), with its label. */
 function firmMemory(): WorkflowDeps["memory"] {
   const m = memoryStore();
-  if (m.status !== "ok") throw new Error(m.reason);
+  // not configured: every use fails with the reason (the steps that need memory show it) instead of the whole run dying
+  if (m.status !== "ok") { const fail = () => Promise.reject(new Error(m.reason)); return { label: "unavailable", append: fail, list: fail }; }
   return { label: m.storage.label, append: (e) => m.store.append(e), list: (limit) => m.store.list({ limit }) };
 }
 
@@ -66,7 +67,8 @@ export function runInBackground(deal: Deal) {
   if (inFlight.has(deal.id)) return;
   inFlight.add(deal.id);
   const task = () =>
-    advance(deal, serverDeps())
+    Promise.resolve()
+      .then(() => advance(deal, serverDeps()))
       .catch((e) => console.error(`[workflow] ${deal.id} advance failed: ${e instanceof Error ? e.message : String(e)}`))
       .finally(() => inFlight.delete(deal.id));
   try {

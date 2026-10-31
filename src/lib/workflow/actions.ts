@@ -17,14 +17,25 @@ export type Action =
   | { action: "resume" }
   | { action: "regenerate_memo" };
 
+/** Field-type check before applyAction touches the deal (a wrong type there would surface as a 502). */
+export function invalidAction(a: { action: string } & Record<string, unknown>): string | null {
+  if (a.action === "approve" && a.step !== "dataroom" && a.step !== "schedule") return 'step must be "dataroom" or "schedule"';
+  if (a.action === "transcript" && typeof a.text !== "string") return "text must be a string";
+  if (a.action === "transcript" && a.name != null && typeof a.name !== "string") return "name must be a string";
+  if (a.action === "decide" && a.note != null && typeof a.note !== "string") return "note must be a string";
+  return null;
+}
+
 /** Who clicked: DEALDESK_USER_NAME, else "Partner (you)" (no sign-in in this build). */
 export const personName = (env: Record<string, string | undefined> = process.env) => userName(env) ?? "Partner (you)";
 
 export async function applyAction(deal: Deal, a: Action, send: Senders, now: Date, env: Record<string, string | undefined> = process.env): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (!a || typeof a !== "object") return { ok: false, message: "body must be {action, …}" };
   const at = now.toISOString();
   const BY = personName(env);
   switch (a.action) {
     case "approve": {
+      if (a.step !== "dataroom" && a.step !== "schedule") return { ok: false, message: 'approve needs step "dataroom" or "schedule"' };
       const step = stepOf(deal, a.step);
       const d = step.draft;
       if (!d) return { ok: false, message: `No ${a.step} draft yet.` };
@@ -55,7 +66,7 @@ export async function applyAction(deal: Deal, a: Action, send: Senders, now: Dat
       return { ok: true };
     }
     case "transcript": {
-      const text = a.text?.trim();
+      const text = typeof a.text === "string" ? a.text.trim() : "";
       if (!text) return { ok: false, message: "transcript text is empty" };
       deal.transcript = { text: text.slice(0, 200_000), source: a.source === "upload" ? "upload" : "paste", name: a.name?.slice(0, 200), at };
       const s = stepOf(deal, "transcript");
@@ -88,7 +99,9 @@ export async function applyAction(deal: Deal, a: Action, send: Senders, now: Dat
       return { ok: true };
     }
     case "resume":
-      for (const s of deal.steps) if (s.status === "error" || s.status === "running") s.status = "pending";
+      // error / stale running steps retry; an "unavailable" step (a failed Crustdata or Gmail call) retries too, except
+      // one a person chose to skip
+      for (const s of deal.steps) if (s.status === "error" || s.status === "running" || (s.status === "unavailable" && s.transport !== "person")) s.status = "pending";
       return { ok: true };
     default:
       return { ok: false, message: "unknown action" };

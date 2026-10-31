@@ -206,3 +206,33 @@ describe("ten-step deal workflow tools", () => {
     expect(calls.at(-1)).toMatchObject({ method: "POST", body: { action: "approve", step: "dataroom" } });
   });
 });
+
+describe("failure handling", () => {
+  it("run_deal_workflow rejects an unknown until instead of silently running the default", async () => {
+    const { http, calls } = mockHttp({});
+    const r = await runDealWorkflow(http, "e2b.dev", { until: "bogus" as never });
+    expect(r.ok).toBe(false);
+    expect(calls).toHaveLength(0);
+  });
+  it("run_deal_workflow marks decisions failed when the route returns none", async () => {
+    const { http } = mockHttp({
+      "GET /api/live/research": () => json({ status: "ok", domain: "e2b.dev" }),
+      "GET /api/deals/e2b.dev/decisions": () => json({ dealId: "e2b.dev" }),
+    });
+    const r = await runDealWorkflow(http, "e2b.dev", { until: "decisions" });
+    expect(r.ok).toBe(false);
+    expect((r.data as { steps: { id: string; status: string }[] }).steps[1]).toMatchObject({ id: "decisions", status: "failed" });
+  });
+  it("screen_companies keeps the server's own error message from a non-NDJSON failure", async () => {
+    const { http } = mockHttp({ "POST /api/live/screen": () => json({ status: "error", message: "bad query" }, 400) });
+    const r = await screenCompanies(http, "seed fintech");
+    expect(r.ok).toBe(false);
+    expect(JSON.stringify(r.data)).toContain("bad query");
+  });
+  it("deal_workflow_act transcript with no text is rejected before any request", async () => {
+    const { http, calls } = mockHttp({});
+    const r = await actOnDealWorkflow(http, "abcd1234", { action: "transcript", text: 5 as never });
+    expect(r.ok).toBe(false);
+    expect(calls).toHaveLength(0);
+  });
+});

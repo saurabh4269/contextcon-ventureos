@@ -97,4 +97,4 @@ async function main(argv: string[]): Promise<number> {
   return r.ok ? 0 : 1;
 }
 
-if (process.argv[1] && /cli[\\/]index\.(ts|js)$|dealdesk$/.test(process.argv[1])) main(process.argv.slice(2)).then((code) => process.exit(code));
+if (process.argv[1] && /cli[\\/]index\.(ts|js)$|dealdesk$/.test(process.argv[1])) main(process.argv.slice(2)).then((code) => process.exit(code), (e) => { console.error(`dealdesk: ${e instanceof Error ? e.message : String(e)}`); process.exit(1); });

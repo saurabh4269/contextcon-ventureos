@@ -43,3 +43,9 @@ describe("dealdesk render", () => {
     expect(render({ ok: false, tool: "research_company", status: 0, data: { status: "unreachable", message: "ECONNREFUSED" }, sources: [] })).toMatch(/✗ research_company failed \(HTTP 0\): ECONNREFUSED/);
   });
 });
+
+describe("dealdesk parseArgs values", () => {
+  it("keeps '=' inside a --flag=value value", () => {
+    expect(parseArgs(["deal", "act", "abcd1234", "transcript", "--text=a=b c"])).toMatchObject({ command: { text: "a=b c" } });
+  });
+});
