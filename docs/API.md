@@ -122,15 +122,16 @@ returnMultipleHigh, compsMedianMultiple, growthYoY, headcountLatest, lastFunding
 icMemoValuation, icMemoCompsLine`.
 
 * id = company domain: `headcountLatest`, `growthYoY`, `lastFundingUsdM` are computed from Crustdata as above; every
-  other key is `unavailable` with the reason (builder pipeline: data-room ingest, firm mandate, pricing/LLM).
-  Comparable-company *multiples* are unavailable because Crustdata has no revenue/valuation multiples.
+  other key is computed locally from the firm mandate, live Crustdata research and peers (see **Local decision
+  computation** below), or is `unavailable` with the specific missing input.
 * 404 for an id that does not exist in the current mode (`{status:"error"}`) or an unknown domain (`{status:"no_match"}`);
   503/502 as above.
 
 ### `GET /api/deals/:id/valuation`
 
 `{ id, source, explainable: { low, high, cap, ask, returnMultipleLow, returnMultipleHigh, compsMedianMultiple } }`
-(each a `ComputedField`). Live: all unavailable (needs verified revenue + pricing model).
+(each a `ComputedField`). `low`/`high`/`returnMultiple*`/`compsMedianMultiple` are computed locally (below); `cap` and
+`ask` are unavailable (they come from a term sheet / pitch, which this build does not ingest).
 
 ### `GET /api/deals/:id/decisions`
 
@@ -141,11 +142,11 @@ diligenceVerdict, icMemoArrUsedM, icMemoValuation, icMemoCompsLine`; `endpoints[
 `fields` = every `/numbers` key + the decisions + `valuationLow/High/Cap, founderAsk`. Used by the deal page (fit tile,
 Decision · valuation section) and `/memo`.
 
-* id = company domain. This build computes the Crustdata-backed numbers; pipeline decisions are `unavailable` with the
-  reason unless the builder backend is configured.
-* `DEALDESK_BUILDER_URL` (optional): base URL of the builder deployment. Its decisions fill keys that are not already
-  `ok` here, only when `ok` with citations; any field whose citations/inputs/method mention fixture/sample/demo/seed/mock
-  data is dropped. Citations are re-anchored to `GET /api/deals/:id/decisions` + `fields.<key>.citations[i]` + our
+* id = company domain. Every decision is computed locally (see **Local decision computation**); one whose input is
+  missing is `unavailable` with that reason. `screenerVerdict` comes from the same computation.
+* `DEALDESK_BUILDER_URL` (optional override): base URL of the builder deployment. Its decisions replace the local ones,
+  only when `ok` with citations; any field whose citations/inputs/method mention fixture/sample/demo/seed/mock
+  data is dropped and the local value stays. Citations are re-anchored to `GET /api/deals/:id/decisions` + `fields.<key>.citations[i]` + our
   retrieval time, then `enforceCited` runs. `builder.status`: `used` | `not_configured` | `unavailable` (+ reason).
   8 s timeout; on any error the local result is returned.
 * Review queue: `fitScore, screenerVerdict, valuationRange, diligenceVerdict, icMemoArrUsedM, icMemoValuation,
@@ -155,6 +156,52 @@ Decision · valuation section) and `/memo`.
   endpoint: "POST /api/exceptions/<id>", path: "resolution.value", retrievedAt }`; rejecting a low-confidence decision
   withholds it. `review: { runId, href, open[], resolved[] }` is on the response; `?review=0` reads without recording.
   The deal page's fit and screener stats open the sources panel with each mandate criterion (`whyFromDecision`).
+
+### Local decision computation (`src/lib/numbers/local.ts`, wired in `src/lib/numbers/resolve.ts`)
+
+Per deal: `researchCompany` (identify + enrich + founders/jobs/news/comps), `searchPeers` (below), the firm mandate
+(`GET /api/settings/mandate`) and firm memory (review-queue items on the domain). No fixtures, no built-in numbers.
+
+| Key | Computation | Unavailable when |
+| --- | --- | --- |
+| `criterionSector` | a mandate sector appears in the company's Crustdata industries/categories/description | no mandate sectors; no taxonomy |
+| `criterionStage` | `funding.last_round_type` ∈ mandate stages | no stages; no round type |
+| `criterionGeo` | country or HQ matches a mandate geo (ISO3 like `IND` or a name) | no geos; no HQ/country |
+| `criterionCheckSize` | met when last round ≥ the firm's max (else min) check | no check size; no round amount |
+| `criterionMemory` | past resolved review items on the domain; not met if most were rejected; neutral (not scored) with no history | — |
+| `fitScore` | 100 × met ÷ scored criteria (unset/unavailable criteria are named, not scored) | nothing scorable (e.g. no mandate) |
+| `screenerVerdict` | Decline if sector/stage/geo not met; Review if any other criterion not met; else Advance | no fit score |
+| `compsMedianMultiple` | median over peers of (last round ÷ dilution-prior midpoint) ÷ revenue-estimate midpoint (two decimals below 1×) | no dilution prior; < 2 peers with round + revenue; peer search error |
+| `valuationLow/High`, `valuationRange` | company revenue estimate (low/high) × peer median; fallback last round ÷ dilution prior (high/low) | no prior; no revenue and no round |
+| `returnMultipleLow/High` | the firm's target-return prior — an **assumption**, labelled as such | prior unset |
+| `diligenceVerdict` | Do not proceed if screener Decline; else Proceed with flags (no founders found, headcount down YoY, last round > 2 years) or Proceed to diligence | no screener verdict |
+| `icMemoArrUsedM` | midpoint of Crustdata `revenue.estimated`, USD M (an estimate, not reported ARR) | no revenue estimate |
+| `icMemoValuation` | the valuation range | range unavailable |
+| `icMemoCompsLine` | peer list + median multiple | no peers; peer search error |
+
+Firm priors are cited `{ source: "Firm mandate (entered in Settings)", endpoint: "GET /api/settings/mandate", path:
+"priors.…", note: "Assumption: …" }`; Crustdata inputs cite the call and JSON path.
+
+`searchPeers` (`src/lib/live/research.ts`): live `POST /company/search` with `taxonomy.professional_network_industry =
+<first industry>`, `funding.last_round_type = <stage>`, `locations.country = <country>`, `funding.last_round_amount_usd
+=> 1`, sorted by last fundraise date, limit 11. If fewer than 3 peers come back it relaxes geography, then stage
+(`matched` says which constraints held). Up to 4 searches per deal.
+
+### `GET /api/settings/mandate` · `PUT /api/settings/mandate`
+
+The firm mandate and priors (UI: `/settings/mandate`). Stored as JSON in `.cache/mandate.json` (`MANDATE_FILE` overrides
+the path; `MANDATE_FILE=memory` keeps it in process, for tests). Nothing has a default: unset fields stay unset and
+every decision that needs them says so.
+
+```json
+{ "sectors": ["Fintech"], "stages": ["seed", "series_a"], "geos": ["India", "IND"],
+  "checkSizeUsd": { "min": 250000, "max": 2000000 },
+  "priors": { "dilutionPct": { "low": 15, "high": 25 }, "returnMultiple": { "low": 3, "high": 10 } } }
+```
+
+* `GET` → `{ mandate: {…, updatedAt}, unset: ["sectors" | "stages" | "geographies" | "check size"] }`.
+* `PUT` (full replace) → same shape. Lists accept arrays or comma strings (trimmed, deduped, max 30); numbers must be
+  positive; ranges need both ends with low ≤ high; dilution ≤ 100. Invalid body → 400 `{ status: "error", message }`.
 
 ### `GET /api/integrations/connectors[?fresh=1]`
 

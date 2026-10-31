@@ -10,7 +10,7 @@ import { EMPTY_MANDATE, parseMandate, type Mandate } from "@/lib/settings/mandat
 import { computeLocalDeal, criterionMemory, type Peer, type PeerSearch } from "./local";
 import { liveDealNumbers, liveDealValuation } from "./deal-numbers";
 import { companyFields } from "./company-fields";
-import { localDecisions } from "./decisions";
+import { localDecisions, withBuilder } from "./decisions";
 
 const e2b = async () => {
   const r = await researchCompany(fixtureClient(), "e2b.dev");
@@ -125,6 +125,18 @@ describe("computeLocalDeal", () => {
     expect(val(d.decisions.screenerVerdict)).toBe("Advance");
     expect(val(d.decisions.valuationRange)).toBe("$2.5M–$5M");
     expect(uncitedOk(d)).toEqual([]);
+  });
+
+  it("DEALDESK_BUILDER_URL overrides a local decision only with a trusted, cited builder value", async () => {
+    const r = await e2b();
+    const local = computeLocalDeal(r, mandate(), peerCall(PEERS), [], "run");
+    const d = localDecisions("e2b.dev", { ...liveDealNumbers(companyFields(r)), ...local.numbers }, { ...liveDealValuation(), ...local.valuation }, local.screenerVerdict);
+    const builder = { fitScore: { status: "ok", value: 64, method: "builder scoring", reasoning: "r", citations: [{ source: "crustdata", ref: "industries[0]" }], inputs: [] }, screenerVerdict: { status: "ok", value: "Review", method: "demo seed", reasoning: "r", citations: [{ source: "crustdata" }] } };
+    const fetchImpl = (async () => new Response(JSON.stringify({ decisions: builder }), { status: 200 })) as unknown as typeof fetch;
+    const b = await withBuilder(d, { baseUrl: "https://builder.example", fetchImpl });
+    expect(b.builder).toEqual({ status: "used" });
+    expect(val(b.decisions.fitScore)).toBe(64);
+    expect(val(b.decisions.screenerVerdict)).toBe("Advance"); // builder value cites demo data → dropped, local stays
   });
 });
 
