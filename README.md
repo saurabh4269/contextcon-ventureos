@@ -11,7 +11,7 @@ ContextCon @ IIT Bombay (Techfest), 31 Oct 2026 · Theme: **Investing** · Team:
 
 ## Quick start
 
-Full local setup on Windows, Mac or Linux (one command, keys checked before start): [SETUP_LOCAL.md](SETUP_LOCAL.md). Project context for contributors and judges: [docs/context/](docs/context/README.md).
+Full local setup on Windows, Mac or Linux (one command, keys checked before start): [SETUP_LOCAL.md](SETUP_LOCAL.md) (OAuth demo on **port 3000** via `npm run dev:demo`; day-to-day dev on **port 3240** via `npm run dev`). Project context for contributors and judges: [docs/context/](docs/context/README.md).
 
 ```bash
 npm ci
@@ -29,7 +29,7 @@ npm run dev                    # http://localhost:3240
 | `/settings` → Connectors | Real health checks (Crustdata `GET /account/credits`, ElevenLabs, Gmail, Calendar) |
 | `/today` | Gmail + Calendar read, spoken greeting (ElevenLabs) |
 
-`npm test` (vitest, no network; 664 passing, 5 skipped that need a live key or Postgres) · `npm run typecheck` · Details for contributors: [AGENTS.md](AGENTS.md) · state of play: [docs/HANDOFF.md](docs/HANDOFF.md).
+`npm test` (vitest, no network; 711 passing, 5 skipped that need a live key or Postgres) · `npm run typecheck` · Details for contributors: [AGENTS.md](AGENTS.md) · state of play: [docs/HANDOFF.md](docs/HANDOFF.md).
 
 ---
 
