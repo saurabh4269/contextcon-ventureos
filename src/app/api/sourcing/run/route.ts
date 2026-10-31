@@ -1,10 +1,10 @@
-// POST /api/agent/run  { "q": "<free-text request>" }  →  application/x-ndjson stream of AgentEvent lines
-// (src/lib/agent/run.ts): plan → step (running/done/failed, with endpoint, ms, credits, cache hits, count) → row
+// POST /api/sourcing/run  { "q": "<free-text request>" }  →  application/x-ndjson stream of AgentEvent lines
+// (src/lib/sourcing/run.ts): plan → step (running/done/failed, with endpoint, ms, credits, cache hits, count) → row
 // (upserted by id as founders arrive) → dropped → done (summary) | refuse | redirect | error.
 // Also accepts GET ?q= for quick checks. Each finished run is appended to organizational memory ("agent.run");
 // without DATABASE_URL the store is unavailable and the run still completes.
 import { NextResponse } from "next/server";
-import { runAgent, type AgentEvent, type RunSummary } from "@/lib/agent/run";
+import { runAgent, type AgentEvent, type RunSummary } from "@/lib/sourcing/run";
 import { liveCrustdataClient, NotConnectedError } from "@/lib/live/server";
 import { recordMemory } from "@/lib/memory/store";
 import type { CrustdataClient } from "@/lib/crustdata";
@@ -50,7 +50,7 @@ function stream(q: unknown, signal: AbortSignal) {
           subject: null,
           summary: `Sourcing agent: “${summary.request.slice(0, 160)}” → ${summary.returned}/${summary.requested} companies (${summary.credits} credits)`,
           data: { runId: summary.runId, request: summary.request.slice(0, 500), returned: summary.returned, requested: summary.requested, credits: summary.credits, relaxed: summary.relaxed, companies },
-          source: "api:/api/agent/run",
+          source: "api:/api/sourcing/run",
         }).catch((e: unknown) => ({ status: "error" as const, message: e instanceof Error ? e.message : String(e) }));
         emit({ type: "step", step: { id: "memory", label: "Save to firm memory", tool: "memory", endpoint: "memory store", status: mem.status === "ok" ? "done" : "skipped", startedAt: new Date().toISOString(), ms: 0, detail: mem.status === "ok" ? "recorded as agent.run" : "reason" in mem ? mem.reason : mem.message } });
       }

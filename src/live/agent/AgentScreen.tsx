@@ -1,17 +1,17 @@
 "use client";
 // /agent — the Sourcing agent. A free-text request → what was understood (chips, with the phrase each came from) →
 // a live step trace (endpoint, time, credits) → verified, cited rows → memo / CSV. Everything shown comes from the
-// NDJSON stream of POST /api/agent/run; nothing here is sample data.
+// NDJSON stream of POST /api/sourcing/run; nothing here is sample data.
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowUp, Check, CircleAlert, CircleDashed, Copy, Download, Loader2, Square, Volume2, X, ArrowUpRight } from "lucide-react";
 import { Page, TopBar } from "@port/components/shell";
 import { CompanyLogo, cx } from "@port/components/ui";
-import { AGENT_EXAMPLES } from "@/lib/agent/examples";
-import { toCsv, toMarkdown, fmtFunding } from "@/lib/agent/export";
-import { WINDOW_MONTHS, type Interpretation } from "@/lib/agent/parse";
-import type { AgentRow, AgentStep, Founder } from "@/lib/agent/run";
+import { AGENT_EXAMPLES } from "@/lib/sourcing/examples";
+import { toCsv, toMarkdown, fmtFunding } from "@/lib/sourcing/export";
+import { WINDOW_MONTHS, type Interpretation } from "@/lib/sourcing/parse";
+import type { AgentRow, AgentStep, Founder } from "@/lib/sourcing/run";
 import { fmtMoney } from "@/lib/format";
 import { liveShell } from "../shell";
 import { MicButton } from "../voice/MicButton";

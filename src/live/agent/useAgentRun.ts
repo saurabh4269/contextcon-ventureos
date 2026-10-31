@@ -1,8 +1,8 @@
 "use client";
-// Client side of POST /api/agent/run: reads the NDJSON stream and folds events into one state object.
+// Client side of POST /api/sourcing/run: reads the NDJSON stream and folds events into one state object.
 import { useCallback, useRef, useState } from "react";
-import type { AgentEvent, AgentRow, AgentStep, Dropped, RunSummary } from "@/lib/agent/run";
-import type { ParseResult } from "@/lib/agent/parse";
+import type { AgentEvent, AgentRow, AgentStep, Dropped, RunSummary } from "@/lib/sourcing/run";
+import type { ParseResult } from "@/lib/sourcing/parse";
 
 export type RunState = {
   status: "idle" | "running" | "done" | "refused" | "redirect" | "error" | "stopped";
@@ -54,7 +54,7 @@ export function useAgentRun(onFinish?: (s: RunState) => void) {
     setState(cur);
     const apply = (e: AgentEvent) => { cur = reduce(cur, e); setState(cur); };
     try {
-      const res = await fetch("/api/agent/run", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q }), signal: ac.signal });
+      const res = await fetch("/api/sourcing/run", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ q }), signal: ac.signal });
       if (!res.ok || !res.body) {
         const body = await res.json().catch(() => null) as { message?: string } | null;
         apply({ type: "error", kind: "upstream", message: body?.message ?? `The agent endpoint answered ${res.status}.` });

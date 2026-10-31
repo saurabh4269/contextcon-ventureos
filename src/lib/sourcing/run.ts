@@ -15,7 +15,7 @@ import { clean, normalizeCompany, normalizePerson } from "@/lib/live/normalize";
 import type { LiveEmployment, LivePerson } from "@/lib/live/types";
 import { canRelax, describeRelaxation, parseRequest, RELAX_ORDER, toSearchBody, WINDOW_MONTHS, type GrowthWindow, type ParseResult, type Relaxation, type SearchPlan } from "./parse";
 
-/* ───────────── event contract (NDJSON lines of POST /api/agent/run) ───────────── */
+/* ───────────── event contract (NDJSON lines of POST /api/sourcing/run) ───────────── */
 
 export type StepStatus = "running" | "done" | "failed" | "skipped";
 export type AgentStep = {
