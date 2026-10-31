@@ -882,6 +882,8 @@ export interface SignalGraphData {
   calls: SignalCall[];
   fit: {
     label: string;
+    /** No score can be computed (e.g. no firm thesis/scoring model): the tile shows "—" and this reason, never a number. */
+    unscored?: { reason: string };
     base: { label: string; value: number };
     threshold: { value: number; label: string };
     /** Band names by fitBand(score), the same as Today’s fit pill. */
@@ -1146,7 +1148,7 @@ export interface AgentsListData {
 
 /* ---------------- v4 · Deal page (round 1): header metrics, diligence alert, sections ---------------- */
 /** One quiet metric in the deal header (label over value, S2_B). */
-export interface DealMetric { id: ID; label: string; value: string; sub?: string; tone?: "rust" | "ok" }
+export interface DealMetric { id: ID; label: string; value: string; sub?: string; tone?: "rust" | "ok"; /** hover: how the number was computed and where it came from */ hint?: string }
 export interface DealHeader {
   metrics?: DealMetric[];
   /** Same fit score + Crustdata signals as Today's work list. */
@@ -1169,16 +1171,16 @@ export interface DiligenceAlert {
 /** Evidence "doc" items can carry the page text around the highlighted claim, and a link into the data room. */
 export interface EvidencePage { title: string; before: string[]; after: string[] }
 export interface DealSectionBase { id: ID; eyebrow: string; headline: Headline; source?: SourceRef; note?: string }
-export interface DealKpi { id: ID; label: string; value: string; sub: string; verified: boolean; trend?: number[] }
+export interface DealKpi { id: ID; label: string; value: string; sub: string; verified: boolean; trend?: number[]; /** hover explanation */ hint?: string }
 export interface DealEvent { id: ID; at: string; label: string; detail?: string; by: "agent" | "person"; who?: string; tone?: "rust" | "ok" }
-export interface TeamPerson { id: ID; name: string; initials: string; role: string; prev: string; tenure: string; check: { label: string; ok: boolean }; href?: string; founder?: boolean }
+export interface TeamPerson { id: ID; name: string; initials: string; role: string; prev: string; tenure: string; check: { label: string; ok: boolean }; href?: string; founder?: boolean; /** hover on the check pill: where the profile came from */ hint?: string }
 export interface CustomerRow { id: ID; company: CompanyRef; plant: string; since: string; mrr: number; share: number; status: { label: string; tone: "ok" | "warn" | "neutral" | "rust" }; source: SourceRef }
 export interface MarketSize { id: ID; label: string; value: number; display: string; note: string }
 export interface CompRow { id: ID; company: CompanyRef; stage: string; raised: string; multiple: string; note: string; us?: boolean }
 export interface CapRow { id: ID; holder: string; kind: "founder" | "esop" | "angel" | "safe" | "new"; pre: number; post: number; note?: string; us?: boolean }
 export type DealSection =
   | (DealSectionBase & { kind: "overview"; kpis: DealKpi[]; facts: { k: string; v: string }[]; thesis: { id: ID; label: string; ok: boolean }[]; timeline: DealEvent[] })
-  | (DealSectionBase & { kind: "team"; stats: { id: ID; label: string; value: string }[]; people: TeamPerson[]; hiring: { months: string[]; series: { id: ID; label: string; values: number[] }[] } })
+  | (DealSectionBase & { kind: "team"; stats: { id: ID; label: string; value: string; hint?: string }[]; people: TeamPerson[]; hiring: { months: string[]; series: { id: ID; label: string; values: number[] }[] } })
   | (DealSectionBase & { kind: "customers"; stats: { id: ID; label: string; value: string }[]; plants: { months: string[]; values: number[] }; rows: CustomerRow[]; unit: "K" })
   | (DealSectionBase & { kind: "market"; sizes: MarketSize[]; comps: CompRow[] })
   | (DealSectionBase & { kind: "cap"; round: { label: string; value: string }[]; rows: CapRow[] })

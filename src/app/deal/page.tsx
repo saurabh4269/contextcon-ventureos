@@ -7,8 +7,11 @@ import type { LoadStatus } from "@port/types";
 import { AssistantHost } from "@port/components/askctx";
 import { AssistantDock } from "@port/components/assistant";
 import { LiveRail } from "@port/components/liverail";
-export default function Deal({ searchParams }: { searchParams: Promise<{ team?: string; restricted?: string; pin?: string; id?: string; ask?: string; tab?: string; t?: string; graph?: string; sg?: string; alert?: string; reviewer?: string; status?: string }> }) {
+import { useDataMode } from "@/components/datamode";
+import { LiveDeal } from "@/live/deal";
+export default function Deal({ searchParams }: { searchParams: Promise<{ team?: string; restricted?: string; pin?: string; id?: string; ask?: string; tab?: string; t?: string; graph?: string; sg?: string; alert?: string; reviewer?: string; status?: string; domain?: string; company?: string }> }) {
   const q = use(searchParams);
+  const mode = useDataMode();
   // v4 · Signals (Crustdata signal graph): ?tab=signals · freeze with ?t=<ms> or ?graph=<frame 0..5> · state ?sg=loading|empty|error
   const sigFrames = helioDealSignals.signals!.frames;
   const signalsAt = q.t != null ? Number(q.t) : q.graph != null ? sigFrames[Math.min(sigFrames.length - 1, Number(q.graph))] : undefined;
@@ -21,6 +24,9 @@ export default function Deal({ searchParams }: { searchParams: Promise<{ team?: 
   // v4 · diligence alert frames: ?alert=sheet (draft open) | saved | requested | done (both) · ?reviewer=1 · ?status=loading|error
   const alertInit = q.alert ? { sheet: q.alert === "sheet", saved: q.alert === "saved" || q.alert === "done", requested: q.alert === "requested" || q.alert === "done" } : undefined;
   const status = q.status === "loading" || q.status === "error" ? q.status : undefined;
+  // Live mode: ?domain=e2b.dev (or ?company=) researches the company on Crustdata; fixture deals (?id=helio, ?restricted)
+  // still render, badged as demo data by the layout.
+  if (mode === "live" && !q.id && !q.restricted) return <LiveDeal shell={shellInvest} domain={q.domain ?? q.company} tab={q.tab} />;
   if (q.restricted) return <RestrictedDealScreen shell={shellInvest} data={restrictedDeal} channel="#deal-falcon" />;
   // v3.2: ?ask=1..6 opens the docked assistant at that frame (empty → thinking → answer → follow-ups). ⌘K opens it at frame 1.
   if (q.id === "helio") return (
