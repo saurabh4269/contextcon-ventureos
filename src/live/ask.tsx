@@ -3,7 +3,7 @@
 // Crustdata call stream in live; the answer is a ranked, cited table (cards on mobile). No sample data: before the
 // first ask the page is just the input; a missing model or a failed run says so.
 import { ArrowUp, Square } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Page, TopBar } from "@port/components/shell";
 import { Orb } from "@port/components/assistant";
 import { cx } from "@port/components/ui";
@@ -14,17 +14,25 @@ import type { ScreenState } from "./screen/state";
 
 export function AskInput({ running, onAsk, onStop, hero, initial = "" }: { running: boolean; onAsk: (q: string) => void; onStop: () => void; hero?: boolean; initial?: string }) {
   const [q, setQ] = useState(initial);
+  // Stop replaces Run in the same spot: ignore it briefly so a double-click / quick re-tap on Run doesn't cancel.
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    setArmed(false);
+    if (!running) return;
+    const t = setTimeout(() => setArmed(true), 400);
+    return () => clearTimeout(t);
+  }, [running]);
   const submit = () => { if (q.trim() && !running) onAsk(q.trim()); };
   return (
     <form onSubmit={(e) => { e.preventDefault(); submit(); }} data-testid="ask-input"
       className={cx("border border-zinc-200/90 bg-white transition-shadow focus-within:border-zinc-300", hero ? "rounded-[22px] p-3.5 shadow-[0_1px_2px_rgba(9,9,11,.04),0_0_0_5px_rgba(244,240,235,.9),0_24px_48px_-28px_rgba(120,60,20,.35)]" : "rounded-[20px] p-3 shadow-[0_1px_2px_rgba(9,9,11,.04),0_18px_40px_-26px_rgba(9,9,11,.3)]")}>
       <textarea name="q" rows={hero ? 3 : 2} value={q} onChange={(e) => setQ(e.target.value)} aria-label="Ask Deal Desk"
-        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); submit(); } }}
+        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) { e.preventDefault(); submit(); } }}
         placeholder="Describe the companies or people you want — filters, counts, what to report"
         className={cx("block w-full resize-none bg-transparent px-1.5 leading-relaxed outline-none placeholder:text-zinc-400", hero ? "text-[15px]" : "text-[13.5px]")} />
       <div className="mt-1.5 flex justify-end">
         {running
-          ? <button type="button" onClick={onStop} aria-label="Stop" title="Stop" className="relative grid size-9 place-items-center rounded-full bg-ink text-white hover:bg-zinc-800"><span className="absolute -inset-[3px] rounded-full border-2 border-rust/25 border-t-rust motion-safe:animate-spin" /><Square className="size-3 fill-current" /></button>
+          ? <button type="button" onClick={() => armed && onStop()} aria-label="Stop" title="Stop" className="relative grid size-9 place-items-center rounded-full bg-ink text-white hover:bg-zinc-800"><span className="absolute -inset-[3px] rounded-full border-2 border-rust/25 border-t-rust motion-safe:animate-spin" /><Square className="size-3 fill-current" /></button>
           : <button type="submit" aria-label="Run" title="Run" disabled={!q.trim()} className="grid size-9 place-items-center rounded-full bg-ink text-white transition-colors hover:bg-zinc-800 disabled:opacity-40"><ArrowUp className="size-4" /></button>}
       </div>
     </form>
@@ -67,7 +75,7 @@ export function LiveAsk({ shell }: { shell: ShellData }) {
     </span>
   );
   return (
-    <Page active="assistant" shell={shell} top={<TopBar crumbs={[{ label: "Assistant" }]} pill={false} ask={false} lead={lead} />}>
+    <Page active="assistant" shell={shell} responsive top={<TopBar crumbs={[{ label: "Assistant" }]} pill={false} ask={false} lead={lead} />}>
       <AskBody state={state} onAsk={ask} onStop={stop} />
     </Page>
   );

@@ -147,7 +147,7 @@ export function SidePanel({ title, sub, children, w = 480, foot, onClose }: { ti
 const DOCK_BLANK: AssistantData = { title: "Ask Deal Desk", context: "All deals", placeholder: "Ask anything…", messages: [], suggestions: [] };
 
 /** App frame. Fluid width; designed at 1440–1600, min 1280. */
-export function Page({ active, children, top, mode, overlay, shell, dock, tone = "warm" }: { active: Nav; children: ReactNode; top: ReactNode; mode?: Mode; overlay?: ReactNode; shell: ShellData; /** v3.2: docked right panel (assistant). */ dock?: ReactNode; /** v3.2: "mono" renders the near-monochrome comparison variant. */ tone?: Tone2 }) {
+export function Page({ active, children, top, mode, overlay, shell, dock, tone = "warm", responsive }: { active: Nav; children: ReactNode; top: ReactNode; mode?: Mode; overlay?: ReactNode; shell: ShellData; /** v3.2: docked right panel (assistant). */ dock?: ReactNode; /** v3.2: "mono" renders the near-monochrome comparison variant. */ tone?: Tone2; /** phone-friendly: no fixed desktop width, sidebar and dock hidden below md */ responsive?: boolean }) {
   const host = useAsk();
   const [localOpen, setLocalOpen] = useState(!!dock);
   const open = host ? host.open : localOpen;
@@ -162,13 +162,13 @@ export function Page({ active, children, top, mode, overlay, shell, dock, tone =
   return (
     <MeContext.Provider value={shell.user}>
     <AskContext.Provider value={{ ...ctx, open, setOpen, toggle: () => setOpen(!open) }}>
-      <div data-dock={open ? "open" : "closed"} className={cx("group/page flex min-h-screen w-full min-w-[1280px]", tone === "mono" && "mono")}>
-        <Sidebar active={active} mode={mode} shell={shell} />
+      <div data-dock={open ? "open" : "closed"} className={cx("group/page flex min-h-screen w-full", responsive ? "md:min-w-[1280px]" : "min-w-[1280px]", tone === "mono" && "mono")}>
+        {responsive ? <div className="hidden md:contents"><Sidebar active={active} mode={mode} shell={shell} /></div> : <Sidebar active={active} mode={mode} shell={shell} />}
         <main className="@container/main flex min-w-0 flex-1 flex-col">
           {top}
           {children}
         </main>
-        {open && <aside aria-label="Assistant" className="sticky top-0 flex h-screen w-[360px] shrink-0 flex-col border-l border-zinc-200/70 bg-white">{content}</aside>}
+        {open && <aside aria-label="Assistant" className={cx(responsive && "max-md:hidden", "sticky top-0 flex h-screen w-[360px] shrink-0 flex-col border-l border-zinc-200/70 bg-white")}>{content}</aside>}
         {overlay}
       </div>
     </AskContext.Provider>

@@ -45,6 +45,7 @@ export function reduceScreen(s: ScreenState, e: ScreenEvent): ScreenState {
     case "verify":
       return { ...s, thinking: null, timeline: [...s.timeline, { kind: "verify", text: e.text, stats: e.stats }] };
     case "final":
+      if (!isResult(e.result)) return { ...s, phase: "error", thinking: null, message: "The agent returned a malformed result." };
       return { ...s, phase: "done", thinking: null, result: e.result, calls: e.result.calls };
     case "model_unavailable":
       return { ...s, phase: "model_unavailable", thinking: null, message: e.message };
@@ -54,6 +55,11 @@ export function reduceScreen(s: ScreenState, e: ScreenEvent): ScreenState {
       return s;
   }
 }
+
+const isResult = (r: unknown): r is ScreenResult => {
+  const o = r as Partial<ScreenResult> | null;
+  return !!o && Array.isArray(o.rows) && Array.isArray(o.columns) && Array.isArray(o.filters) && Array.isArray(o.caveats) && Array.isArray(o.calls) && !!o.citationStats && !!o.credits && !!o.timings && !!o.model;
+};
 
 const TERMINAL = new Set<ScreenEvent["type"]>(["final", "model_unavailable", "error"]);
 
