@@ -128,3 +128,46 @@ Not matched by design: `/ask?q=` and `/agent?q=` (a streamed run grows step by s
   mandate edits and memory are per Vercel instance. Approving `DATABASE_URL` (Neon via the Vercel Marketplace) remains the one blocker.
 - Not changed, found by the audit: `DELETE /api/connectors/calendar/events/:id` deletes even in dry-run (contacts nobody, `sendUpdates=none`);
   `/api/live/screen` keeps running after the client leaves; Today's mic button has no handler; the pipeline board toggle does nothing in live mode.
+
+## Logic fixes (t330)
+
+Each fix below has a vitest test that failed on the old code (most are in `*audit.test.ts`, `claims.test.ts`, `logic.test.ts`,
+`concurrency.test.ts`, `parse.test.ts`). Bug → fix.
+
+**Workflow state machine (`src/lib/workflow`)**
+- Two clicks on Approve could both send a live email → one atomic step per deal (in-process lock + `DocStore.update`, atomic in the memory, file and Postgres stores); a second request sees the first's result. A deal that is running refuses actions (409).
+- A send that worked followed by a failed save could be sent again → approve is two-phase (mark `sending`, send, record `approved`). A mark is never retried on its own; `resolve_send` (`confirm_sent` / `discard_send`) clears it. Only a 4xx from Google clears the mark by itself.
+- A whole-deal save from a slow run could overwrite an action (lost update) → deals carry a `rev`; a stale copy cannot save.
+- A retried earlier step moved a Passed or IC deal back to Diligence → stages only move forward; Passed and Portfolio are final, in the deal and in the stage store. A failed stage mirror is recorded and retried.
+- Illegal actions changed state (decide twice, transcript after the decision, skip after a transcript, override when the screen passed, resume while running, approve with no recipient or a slot in the past) → each is refused with a message and changes nothing.
+- A re-run that ended unavailable kept the old run's facts and memo → the new outcome replaces them.
+- Gmail not connected: the run went on and drafted to nobody → it stops at intake. A screen where no criterion could be checked said "done" → unavailable. No free meeting slot used a clashing weekend slot → unavailable. Unknown headcount growth was shown as a cited fact → an uncited unknown. A retried memory step wrote the decision twice → it reuses the event.
+
+**Scoring and valuation**
+- Sector "AI" matched "retail" → whole words only. Mandate "US" did not match "USA", "IN" not "India" → country aliases.
+- ARR under $1M rounded to 0 and $0.75M to 0.8 → two decimals below $1M. Peers with a negative round or revenue gave a negative multiple → ignored. A swapped revenue range gave a valuation low above high → ordered.
+- Check sizes "1.5M", "$2,000,000", "2,00,000", "250k" were rejected → read as USD; booleans and objects rejected. Mandate lists "AI, ai" counted twice → deduped.
+- A Review value of "abc" or "150" for a fit score was stored, and resolved decision items are never raised again → refused when entered (400), the item stays open; fit score is 0–100, ARR a positive USD amount.
+- The memo showed "~$2500M" while the deal page showed "$2.5B" → one money format.
+
+**Claim checks**
+- "~60", "60+", "over 60", "50-60" were read as exactly 60 → qualifiers (approximate, minimum, maximum, range) with matching tolerance. "12 engineers" counted as headcount → removed. Number words, "1,200", "60-person team" now parse.
+- Tolerance was relative to the claim only (54 vs 60 differed from 60 vs 54) → symmetric, inclusive, with an absolute floor. A zero headcount contradicted any claim → unverifiable.
+- A "5% MoM revenue growth" claim was "verified" by headcount growth, and a MoM claim by a 6-month figure → only a team claim in the window it names is checked; the rest is unverifiable with the reason.
+- A "$12M Series A" was compared with total raised → compared with the last round (type-matched). ₹, lakh, crore, € and £ were read as USD or dropped → kept with their currency and unverifiable (no cited FX rate). ARR claims were dropped → shown as unverifiable.
+- Company domain: `acme.co.uk` became `acme.co`; calendar, Zoom and mail-provider senders could become the company; "Hi.Thanks" was a domain → fixed. Gmail: the company was taken from the investor's own reply; HTML-only mail fused words and dropped links; a thread with no time was dated 1970 → dropped.
+
+**Review queue, stages, counts**
+- Two people resolving different items of one run left the run "waiting" for ever, and concurrent raises lost items → a run's items and status are recomputed from its items; resolves and raises run one at a time.
+- Today said "N deals have no fit score" counting Portfolio and Passed deals → only deals on the page.
+- Pipeline "+N this week" counted deals touched this week as new → counts deals first seen this week. "Passed this year" and the Firm brain's months used the UTC calendar → IST.
+- "59m 40s ago" read "60m ago" and "36h" read "2d ago" → whole units, rounded down.
+- The Today greeting follows the viewer's time zone (IST when unknown or invalid; never the server's UTC hour).
+
+**Sourcing parser**: "fewer than 50" included 50 and "more than 200" included 200 → exclusive bounds. "growth under 10%" became "growth of 10% or more" → upper bounds are left unread (shown as not used).
+
+**Inputs**: a bare public suffix ("co.uk") was a company domain; a LinkedIn sub-page link (`/details/experience`) was rejected → fixed.
+
+**From the open list**: `DELETE /api/connectors/calendar/events/:id` respects dry-run (200 `dry_run`, nothing deleted). `/api/live/screen` stops the agent between model turns and before each Crustdata call when the client leaves. The Pipeline Board option is an inert, labelled control in live mode (it linked back to the same table). The mic button is unchanged.
+
+**Still open**: the file store is atomic within one process only (Postgres uses a transaction); an in-process lock does not span serverless instances without a database. A growth claim with no stated subject ("grew 50% in 6 months") is unverifiable (a product choice). "Doubled" with no window is not extracted. The check-size criterion counts "met" when the last round is at least the firm's maximum check, which looks wrong but is a product rule. A memo regenerated after a transcript writes a new `memo.drafted` event each time.

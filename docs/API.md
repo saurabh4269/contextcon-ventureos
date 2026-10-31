@@ -109,7 +109,9 @@ unset; the response's `storage.note` says so.
 - `POST /api/exceptions { item: { kind, key, title, reason, evidence[], subject?, proposed?, runId?, target? } }` → raise one
   item (idempotent per open `key`; 400 on an unknown kind)
 - `POST /api/exceptions/:id { action: "approve"|"reject"|"edit", note?, value? }` → `{ status:"ok", item, run, open }`;
-  404 unknown id, 409 already resolved, 400 bad action / empty edit. The last open item of a run finishes the run.
+  404 unknown id, 409 already resolved, 400 bad action / empty edit / a value the decision cannot use (a fit score that is not
+  0..100, ARR that is not a positive USD amount): the item stays open. The last open item of a run finishes the run; a run's
+  item list and status are recomputed from its items on every load.
 - In-process seams: `raiseException()` / `exceptionStore().recordRun()` (src/lib/exceptions/store.ts), item builders
   `ambiguousMatch`, `missingData`, `conflictingData`, `creditThreshold`, `outboundSend` (src/lib/exceptions/raise.ts), and
   run rules `fromSourcingRun` (wired into `/api/sourcing/run`) and `fromScreenResult` (for the LLM screening loop).
@@ -246,6 +248,11 @@ Code: `src/lib/workflow/` (run.ts orchestrator, actions.ts person actions, publi
   `override_screen`, `decide {verdict:"invest"|"pass", note?}`, `regenerate_memo`, `resume`. Every action resumes the run.
   `approve` sends (Gmail send / Calendar insert on the primary calendar, no attendees, sendUpdates=none) only when
   `outboundMode()==="live"` AND every recipient is on `DEMO_RECIPIENT_ALLOWLIST`; otherwise it records the dry run.
+  A live approve is two-phase and at-most-once: it persists `draft.sending`, sends, then records `approved`. A request that sees
+  `sending` answers 409 and sends nothing. After a send that failed with a 4xx the mark clears; after any other error (timeout,
+  5xx) the outcome is unknown and the mark stays until `resolve_send {step, resolution:"confirm_sent"|"discard_send"}`.
+  Actions are serialised per deal: a deal that is running answers 409; an action that is not legal in the deal's state (decide
+  twice, transcript after the decision, anything but `resolve_send`/`resume` on a Passed or Portfolio deal) answers 400.
 - Stage moves are mirrored to the deal-stage store (`GET /api/pipeline/deals` rows carry `stage`, `owner`, `workflowId`).
 - Claims ("team of 60", "grew 50% in 6 months", founded, raised) are verified against Crustdata within a tolerance
   (`CLAIM_TOLERANCE`: headcount and raised 10%, growth 25%); outside it they are contradicted, with the Crustdata citation.
