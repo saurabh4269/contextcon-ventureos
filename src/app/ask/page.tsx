@@ -1,7 +1,8 @@
 "use client";
-// Assistant: no AI model is wired into the assistant in this build → unavailable state with the AI model's real status.
-import { UnavailablePage } from "@/live/unavailable";
+// Assistant: natural-language research on Crustdata via the screening agent (POST /api/live/screen). See src/live/ask.tsx.
+import { LiveAsk } from "@/live/ask";
+import { liveShell } from "@/live/shell";
 
 export default function Ask() {
-  return <UnavailablePage screen="ask" active="assistant" />;
+  return <LiveAsk shell={liveShell} />;
 }
