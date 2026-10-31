@@ -50,7 +50,10 @@ describe("toLiveMemo", () => {
     expect(m.recommendation.valuation.cap).toBeNaN();
     expect(m.recommendation.valuation.ask).toBeUndefined();
     expect(m.recommendation.valuation.capRationale).toMatch(/term sheet/);
-    expect(m.recommendation.verifiedArr.value).toBe("~$0.8M");
+    expect(m.recommendation.verifiedArr.value).toBe("~$800K"); // the same compact money format as the deal page
+    // large figures read like the rest of the app, not "~$2500M"
+    expect(toLiveMemo("alpha.test", resp({ icMemoArrUsedM: ok(2500, "m", "r", [crust("revenue")]) }), null).recommendation.verifiedArr.value).toBe("~$2.5B");
+    expect(toLiveMemo("alpha.test", resp({ icMemoArrUsedM: ok(12.4, "m", "r", [crust("revenue")]) }), null).recommendation.verifiedArr.value).toBe("~$12.4M");
     // a Crustdata estimate is never captioned "verified"
     expect(m.recommendation.verifiedArr.label).toBe("Est. revenue (Crustdata)");
     expect(m.conditions.map((c) => c.text)).toEqual(["Fit score: approve, reject or enter it in Review"]);

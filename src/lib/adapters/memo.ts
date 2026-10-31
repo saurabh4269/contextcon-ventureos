@@ -6,7 +6,7 @@
 // with the API's reason; no ARR bridge or deck-vs-bank growth figure; no analyst disagreement.
 import type { FlagLevel, MemoData, OutlineItem, SourceRef, SrcKind, StepState, Valuation } from "@port/types";
 import { isOk, type Citation, type ComputedField } from "@/lib/fields";
-import { fmtDate, fmtTime, isMoney } from "@/lib/format";
+import { fmtDate, fmtMoney, fmtTime, isMoney, money } from "@/lib/format";
 import type { DecisionsResponse } from "@/lib/numbers/decisions";
 import type { ResearchResult } from "@/lib/live/types";
 
@@ -114,7 +114,7 @@ export function toLiveMemo(domain: string, d: DecisionsResponse, research: Resea
       valuationCite: citeOf("valuationLow"),
       // Crustdata's estimated revenue midpoint, not founder-provided or checked: never labelled "verified". "~" marks
       // the estimate; the cite gives its source.
-      verifiedArr: { value: arrM != null ? `~$${arrM}M` : "—", cite: citeOf("icMemoArrUsedM"), label: REVENUE_LABEL },
+      verifiedArr: { value: arrM != null ? `~${fmtMoney(money(arrM * 1e6, "USD"))}` : "—", cite: citeOf("icMemoArrUsedM"), label: REVENUE_LABEL },
       flags: riskFlags(verdict),
     },
     // Before close: every decision the review queue holds for a person.

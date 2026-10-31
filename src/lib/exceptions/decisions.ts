@@ -21,6 +21,11 @@ const LABEL: Record<string, string> = {
 
 export const decisionRunId = (domain: string) => `deal:${domain.toLowerCase()}:decisions`;
 export const decisionItemKey = (domain: string, key: string) => `${decisionRunId(domain)}:${key}`;
+/** The decision key a review item stands for ("fitScore"), or null for any other item. */
+export const decisionKeyOf = (item: ExceptionItem): DecisionKey | null => {
+  const m = /^deal:[^:]+:decisions:(.+)$/.exec(item.key);
+  return m && (REVIEWED_DECISIONS as readonly string[]).includes(m[1]!) ? (m[1] as DecisionKey) : null;
+};
 const keyOf = (item: ExceptionItem, domain: string) => {
   const p = `${decisionRunId(domain)}:`;
   return item.key.startsWith(p) ? item.key.slice(p.length) : null;

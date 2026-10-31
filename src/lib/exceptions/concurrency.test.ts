@@ -53,3 +53,23 @@ describe("review queue under concurrent resolves", () => {
     expect((await loadExceptionStore(docs)).get(ids[0]!)?.status).toBe("approved");
   });
 });
+
+describe("a garbage value for a decision is refused when it is entered", () => {
+  it("fit score 'abc' answers 400 and leaves the item open, so the person can enter a real value", async () => {
+    const { decisionItemKey } = await import("./decisions");
+    const { resolveOnce } = await import("./resolve");
+    const { ExceptionError } = await import("./store");
+    const docs = createMemoryDocStore();
+    const s = await loadExceptionStore(docs);
+    const { items } = s.recordRun({ id: "deal:acme.test:decisions", source: "deal", request: "decisions", autoCompleted: 0 }, [
+      { ...missingData({ name: "Acme", domain: "acme.test" }, "Fit score", "no fit score", { runId: "deal:acme.test:decisions" }), key: decisionItemKey("acme.test", "fitScore") },
+    ]);
+    await s.flush();
+    const id = items[0]!.id;
+    await expect(resolveOnce(id, "edit", { value: "abc" }, docs)).rejects.toMatchObject({ status: 400 });
+    await expect(resolveOnce(id, "edit", { value: "abc" }, docs)).rejects.toBeInstanceOf(ExceptionError);
+    expect((await loadExceptionStore(docs)).get(id)?.status).toBe("open");
+    const ok = await resolveOnce(id, "edit", { value: "85" }, docs);
+    expect(ok.item.status).toBe("edited");
+  });
+});
