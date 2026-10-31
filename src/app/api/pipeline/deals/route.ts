@@ -1,10 +1,14 @@
-// GET /api/pipeline/deals → live companies from Gmail inbound + organizational memory.
-// No deal store and no demo rows: a company appears only if an inbox thread names its domain or memory recorded research.
+// GET /api/pipeline/deals → live companies from Gmail inbound, organizational memory and the deal-stage store.
+// No demo rows: a company appears only if an inbox thread names its domain, memory recorded research, or a person or
+// the deal workflow moved it to a stage. Inbox rows are rebuilt from Gmail on every call, so a cold server instance
+// still lists them; stages come from the durable store (`sources.stages.storage` says whether it is durable).
 import { NextResponse } from "next/server";
 import { listInboxThreads } from "@/lib/google/gmail";
 import { mergePipelineDeals } from "@/lib/inbox/pipeline";
 import { googleConfig } from "@/lib/google/oauth";
 import { memoryStore } from "@/lib/memory/store";
+import { listStages } from "@/lib/deals/stages";
+import { storageInfo } from "@/lib/store/docs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,11 +19,12 @@ const MEMORY_LIMIT = 50;
 export async function GET() {
   const inbox = await readInbox();
   const memory = await readMemory();
-  const deals = mergePipelineDeals(inbox.threads, memory.events);
+  const stages = await listStages().then((s) => ({ records: s, source: { status: "ok" as const, storage: storageInfo() } }), (e: unknown) => ({ records: [], source: { status: "error" as const, message: e instanceof Error ? e.message : String(e), storage: storageInfo() } }));
+  const deals = mergePipelineDeals(inbox.threads, memory.events, stages.records);
   return NextResponse.json({
     status: "ok",
     deals,
-    sources: { inbox: inbox.source, memory: memory.source },
+    sources: { inbox: inbox.source, memory: memory.source, stages: stages.source },
   }, { headers: NO_STORE });
 }
 

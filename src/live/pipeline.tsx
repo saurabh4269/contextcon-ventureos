@@ -13,6 +13,7 @@ const SOURCE_LABEL: Record<PipelineDealRow["source"], string> = {
   inbound: "Inbound",
   opened: "Opened",
   researched: "Researched",
+  tracked: "Tracked",
 };
 
 type PipelineDealsResponse = {

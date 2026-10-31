@@ -3,6 +3,7 @@
 import { NextResponse } from "next/server";
 import { loadExceptionStore, ExceptionError } from "@/lib/exceptions/store";
 import type { ResolveResponse } from "@/lib/exceptions/types";
+import { moveStage, userName } from "@/lib/deals/stages";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,6 +31,9 @@ export async function POST(req: Request, ctx: { params: Promise<{ id: string }> 
   try {
     const { item, run } = store.resolveException(id, action as "approve" | "reject" | "edit", { note: str(body?.note), value: str(body?.value) });
     await store.flush();
+    // A person approved (or entered) a value for this deal: a Sourced deal moves to Screening, owned by that person.
+    const domain = item.subject?.domain;
+    if (domain && action !== "reject") await moveStage({ domain, name: item.subject?.name, stage: "screening", by: userName() ?? "you", actor: "user", forwardOnly: true, note: `Approved in Review: ${item.title}` }).catch((e: unknown) => console.error(`[stages] ${domain}: ${e instanceof Error ? e.message : String(e)}`));
     return NextResponse.json({ status: "ok", item, run, open: store.openCount() } satisfies ResolveResponse, { headers: { "cache-control": "no-store" } });
   } catch (e) {
     if (e instanceof ExceptionError) return NextResponse.json({ status: "error", message: e.message } satisfies ResolveResponse, { status: e.status });

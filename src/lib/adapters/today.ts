@@ -18,6 +18,7 @@ import type { Meeting } from "@/lib/google/calendar";
 import type { DecisionsResponse } from "@/lib/numbers/decisions";
 import type { ResearchResult } from "@/lib/live/types";
 import type { PipelineDealRow } from "@/lib/inbox/pipeline";
+import { isClosed, type DealStage } from "@/lib/deals/stages";
 
 type F = ComputedField<unknown>;
 type ResearchOk = Extract<ResearchResult, { status: "ok" }>;
@@ -81,7 +82,15 @@ export const decisionFit = (d: DecisionsResponse | null | undefined): { score: n
   return isOk(f) && Number.isFinite(Number(f.value)) ? { score: Math.round(Number(f.value)), reasoning: f.reasoning } : null;
 };
 
-export function toWorkRow(k: KnownDeal, now: Date = new Date()): WorkRow {
+/** The store's deal stage → Today's work-row stage (closed deals are not work rows). */
+const WORK_STAGE: Record<Exclude<DealStage, "portfolio" | "passed">, WorkRow["stage"]> = { sourced: "new", screening: "screening", diligence: "diligence", ic: "ic" };
+const workStage = (s: DealStage | undefined): WorkRow["stage"] => (s && !isClosed(s) ? WORK_STAGE[s as keyof typeof WORK_STAGE] : "new");
+
+/** Stage, owner and workflow per domain, from the /api/pipeline/deals rows (the deal-stage store). */
+export type StageInfo = { stage?: DealStage; owner?: string | null; workflowId?: string };
+export const stagesFrom = (rows: PipelineDealRow[]): Map<string, StageInfo> => new Map(rows.filter((r) => r.stage || r.workflowId).map((r) => [r.domain, { stage: r.stage, owner: r.owner, workflowId: r.workflowId }]));
+
+export function toWorkRow(k: KnownDeal, now: Date = new Date(), st: StageInfo = {}): WorkRow {
   const fit = decisionFit(k.decisions);
   const c = k.research?.company;
   const name = c?.name ?? k.domain;
@@ -93,38 +102,40 @@ export function toWorkRow(k: KnownDeal, now: Date = new Date()): WorkRow {
   return {
     id: k.domain,
     company: { id: k.domain, name, initial: name[0]!.toUpperCase(), sector, ...(c?.logoUrl ? { logoUrl: c.logoUrl } : {}) },
-    // No pipeline stage is recorded anywhere in this build: every known deal is shown as New.
-    stage: "new",
+    // From the deal-stage store; a deal nobody moved yet is New.
+    stage: workStage(st.stage),
     fit: { score: fit?.score ?? NaN, why, signals: k.decisions ? fitSignals(k.decisions.fields as unknown as Record<string, F>) : [] },
     action,
-    href: action.kind === "review" && k.open ? "/review" : action.kind === "memo" ? `/memo?id=${encodeURIComponent(k.domain)}` : `/deal?domain=${encodeURIComponent(k.domain)}`,
+    href: action.kind === "review" && k.open ? "/review" : st.workflowId ? `/workflow?id=${encodeURIComponent(st.workflowId)}` : action.kind === "memo" ? `/memo?id=${encodeURIComponent(k.domain)}` : `/deal?domain=${encodeURIComponent(k.domain)}`,
     when: whenLabel(k.lastAt, now),
   };
 }
 
 /** Pipeline companies fit to show: researched/opened ones, and inbound ones whose subject-derived name reads like a pitch. */
-export const realPipelineDeals = (deals: PipelineDealRow[]): PipelineDealRow[] => deals.filter((d) => d.source !== "inbound" || PITCH_LIKE.test(d.name));
+export const realPipelineDeals = (deals: PipelineDealRow[]): PipelineDealRow[] => deals.filter((d) => d.source !== "inbound" || !!d.stage || PITCH_LIKE.test(d.name));
 
 /** A pipeline company with no decisions run here: shown by its domain, fit "—", opening the live deal page. */
 export function pipelineWorkRow(d: PipelineDealRow, now: Date = new Date()): WorkRow {
   return {
     id: d.domain,
-    company: { id: d.domain, name: d.domain, initial: d.domain[0]!.toUpperCase(), sector: "—", domain: d.domain },
-    stage: "new",
-    fit: { score: NaN, why: d.source === "inbound" ? "Pitch-like email in your inbox names this domain" : "Researched on Deal Desk; no decisions run yet" },
+    company: { id: d.domain, name: d.source === "tracked" && d.name ? d.name : d.domain, initial: (d.source === "tracked" && d.name ? d.name : d.domain)[0]!.toUpperCase(), sector: "—", domain: d.domain },
+    stage: workStage(d.stage),
+    fit: { score: NaN, why: d.source === "inbound" ? "Pitch-like email in your inbox names this domain" : d.source === "tracked" ? "In the deal workflow; no decisions read on this page" : "Researched on Deal Desk; no decisions run yet" },
     action: { kind: "claim", label: "Open deal", recommended: true },
     href: d.href,
     when: whenLabel(d.at, now),
   };
 }
 
-export type LiveRow = { row: WorkRow; at: string; source: "worked" | PipelineDealRow["source"]; deal?: KnownDeal };
-/** Known deals first (newest activity first), then pipeline companies not already known. */
+export type LiveRow = { row: WorkRow; at: string; source: "worked" | PipelineDealRow["source"]; deal?: KnownDeal; stage: DealStage; owner: string | null };
+/** Known deals first (newest activity first), then pipeline companies not already known. Each carries its stored
+ *  stage (Sourced when nobody moved it) and owner (null = Unassigned). */
 export function liveRows(deals: KnownDeal[], pipeline: PipelineDealRow[], now: Date): LiveRow[] {
   const known = new Set(deals.map((k) => k.domain));
+  const stages = stagesFrom(pipeline);
   return [
-    ...deals.map((k) => ({ row: toWorkRow(k, now), at: k.lastAt, source: "worked" as const, deal: k })),
-    ...pipeline.filter((d) => !known.has(d.domain)).map((d) => ({ row: pipelineWorkRow(d, now), at: d.at, source: d.source })),
+    ...deals.map((k) => { const st = stages.get(k.domain) ?? {}; return { row: toWorkRow(k, now, st), at: k.lastAt, source: "worked" as const, deal: k, stage: st.stage ?? "sourced", owner: st.owner ?? null }; }),
+    ...pipeline.filter((d) => !known.has(d.domain)).map((d) => ({ row: pipelineWorkRow(d, now), at: d.at, source: d.source, stage: d.stage ?? "sourced", owner: d.owner ?? null })),
   ];
 }
 
@@ -222,7 +233,8 @@ const WAITING: WaitingItem[] = [
 ];
 
 export function toTodaySummary(x: TodayInputs): TodaySummaryData {
-  const rows = liveRows(x.deals, x.pipeline ?? [], x.now).map((r) => r.row);
+  // closed deals (Portfolio, Passed) are not work for today
+  const rows = liveRows(x.deals, x.pipeline ?? [], x.now).filter((r) => !isClosed(r.stage)).map((r) => r.row);
   const unscored = x.deals.filter((k) => !decisionFit(k.decisions)).length;
   const parts = [
     x.open ? `${x.open} decision${x.open === 1 ? "" : "s"} wait for you in Review.` : "Nothing waits for you in Review.",

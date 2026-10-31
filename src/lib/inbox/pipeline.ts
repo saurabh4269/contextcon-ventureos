@@ -1,6 +1,7 @@
 import { dealNameFromInbox, normalizeDomain } from "./company";
+import type { DealStage, StageRecord } from "@/lib/deals/stages";
 
-export type PipelineDealSource = "inbound" | "opened" | "researched";
+export type PipelineDealSource = "inbound" | "opened" | "researched" | "tracked";
 
 export type PipelineDealRow = {
   domain: string;
@@ -8,6 +9,12 @@ export type PipelineDealRow = {
   href: string;
   source: PipelineDealSource;
   at: string;
+  /** from the deal-stage store; absent = never moved (shown as Sourced) */
+  stage?: DealStage;
+  /** DEALDESK_USER_NAME once a person acted; null/absent = Unassigned */
+  owner?: string | null;
+  /** the deal workflow for this company, when one exists */
+  workflowId?: string;
 };
 
 export type InboxDealInput = {
@@ -31,8 +38,9 @@ function href(domain: string) {
   return `/deal?domain=${encodeURIComponent(domain)}`;
 }
 
-/** Unique companies from live inbox threads and memory events, newest first. Inbox wins on a clash. */
-export function mergePipelineDeals(inbox: InboxDealInput[], memory: MemoryDealInput[]): PipelineDealRow[] {
+/** Unique companies from live inbox threads, memory events and the deal-stage store, newest first. Inbox wins on a
+ *  name clash; a stage record adds its stage, owner and workflow to the row (or makes a row of its own). */
+export function mergePipelineDeals(inbox: InboxDealInput[], memory: MemoryDealInput[], stages: StageRecord[] = []): PipelineDealRow[] {
   const map = new Map<string, PipelineDealRow>();
   for (const e of memory) {
     const source = MEMORY_SOURCE[e.kind];
@@ -54,6 +62,19 @@ export function mergePipelineDeals(inbox: InboxDealInput[], memory: MemoryDealIn
       href: href(domain),
       source: "inbound",
       at: !prev || t.lastMessageAt >= prev.at ? t.lastMessageAt : prev.at,
+    });
+  }
+  for (const s of stages) {
+    const domain = normalizeDomain(s.domain);
+    if (!domain) continue;
+    const prev = map.get(domain);
+    const at = !prev || s.updatedAt >= prev.at ? s.updatedAt : prev.at;
+    map.set(domain, {
+      ...(prev ?? { domain, name: s.name?.trim() || domain, href: href(domain), source: "tracked" as const, at }),
+      at,
+      stage: s.stage,
+      owner: s.owner,
+      ...(s.workflowId ? { workflowId: s.workflowId, href: `/workflow?id=${encodeURIComponent(s.workflowId)}` } : {}),
     });
   }
   return [...map.values()].sort((a, b) => b.at.localeCompare(a.at));

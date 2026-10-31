@@ -36,7 +36,8 @@ function liveWorkRows(deals: { domain: string; name: string }[]): WorkRow[] {
 export default function Today({ searchParams }: { searchParams: Promise<Q> }) {
   const q = use(searchParams);
   // Pitch-like inbound and researched companies only: other inbox threads (personal mail) never become rows.
-  const live = realPipelineDeals(usePipelineDeals());
+  const pipelineDeals = usePipelineDeals();
+  const live = realPipelineDeals(pipelineDeals.deals);
   const [step, setStep] = useState<OnboardingData["step"]>((Math.min(5, Math.max(1, Number(q.step) || 1)) as OnboardingData["step"]));
   const tick = q.tick !== "0";
   const jitTool = q.connect && q.connect in connectAsks ? q.connect : undefined;
