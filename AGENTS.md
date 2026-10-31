@@ -14,28 +14,38 @@ TypeScript, vitest. Server code lives in route handlers (`runtime = "nodejs"`). 
 | --- | --- |
 | `src/app/**/page.tsx` | Routes. Thin: read search params, pick a `src/live/*` wrapper or `UnavailablePage` |
 | `src/app/api/live/*` | Crustdata-backed JSON routes (`research`, `company`, `people`, `person`, `jobs`, `news`, `comps`) |
-| `src/app/api/sourcing/run` | Sourcing agent, NDJSON step stream (`src/lib/agent` + `/api/live/screen` are the separate LLM screener) |
+| `src/app/api/live/screen` | LLM research agent (`/ask`), NDJSON stream; 503 `model_unavailable` with no model key |
+| `src/app/api/sourcing/run` | Deterministic Sourcing agent (`/agent`), NDJSON step stream; records exceptions |
+| `src/app/api/exceptions`, `src/app/api/exceptions/[id]` | Exception queue: list/raise, approve/reject/edit |
 | `src/app/api/deals/[id]/{numbers,valuation}` | Explainable numbers (`ComputedField`s) |
 | `src/app/api/memory/{events,stream}` | Organizational memory (Postgres) + SSE |
 | `src/app/api/connectors/{gmail,calendar}` | Google read; calendar insert (dry-run) |
-| `src/app/api/voice/{tts,stt,brief}` | ElevenLabs TTS / STT; deterministic spoken briefs |
+| `src/app/api/voice/{tts,stt,brief,agent-session}` | ElevenLabs TTS / STT; spoken briefs; signed URL for the conversational voice session |
 | `src/app/api/integrations/connectors` | Real connector health |
 | `src/lib/crustdata/` | The Crustdata client: `client.ts`, `http.ts` (transport, 429), `cache.ts`, `rate-limits.ts`, `credits.ts`, `enrich-fields.ts`, `*-queries.ts` (request bodies), `generated/` (OpenAPI types) |
-| `src/lib/sourcing/` | Sourcing agent: `parse.ts` (request → plan + chips), `run.ts` (steps, relax, verify, founders, rank), `export.ts` (memo/CSV), `examples.ts` |
+| `src/lib/agent/` | **LLM research agent** (`/ask`): `agent.ts` (loop: plan, tools, relax/re-query, caps), `model.ts` (OpenAI Responses / Anthropic; defaults and env), `tools.ts` + `tools/*.ts` (Crustdata tool registry), `cite.ts` (server-side citation checks), `contract.ts` (stream + result types) |
+| `src/lib/sourcing/` | **Deterministic Sourcing agent** (`/agent`, no model): `parse.ts` (request → plan + chips), `run.ts` (steps, relax, verify, founders, rank), `export.ts` (memo/CSV), `examples.ts` |
+| `src/lib/exceptions/` | Exception queue: `store.ts` (file store, `.cache/exceptions.json` or `EXCEPTIONS_FILE`), `rules.ts` (run → items), `raise.ts` (helpers), `types.ts` |
+| `src/lib/provenance.ts` | Reasons and sources: `enforceCited` withholds uncited values; `provenance.test.ts` fails on any uncited ok value |
+| `src/lib/resilience/` | `withResilience`, `classifyError`, `resilientModel` (fallback model, tool-JSON repair) |
 | `src/lib/live/` | Orchestration (`research.ts`), normalisation, failure mapping, `liveRoute` wrapper, connector health |
 | `src/lib/numbers/` | Raw response → `ComputedField` (`company-fields.ts`, `deal-numbers.ts`) |
 | `src/lib/fields.ts` | The `ComputedField` type and helpers (`isOk`, `show`, `explain`) |
 | `src/lib/format/` | The only place that formats money and time (IST) |
 | `src/lib/memory/` | Memory store (Postgres or explicit unavailable), `recordMemory` |
 | `src/lib/google/` | OAuth refresh, Gmail, Calendar |
-| `src/lib/voice/` | ElevenLabs TTS/STT, greeting and screen briefs |
+| `src/lib/voice/` | ElevenLabs TTS (`elevenlabs.ts`), STT (`stt.ts`), conversational agent (`agent.ts`, `agentTools.ts`), greeting and screen briefs |
 | `src/lib/outbound.ts` | `OUTBOUND_MODE` switch and dry-run envelope |
 | `src/live/` | Client wrappers that fetch live data and feed the UI kit (`deal.tsx`, `person.tsx`, `today.tsx`, `memo.tsx`, `settings.tsx`, `memory.tsx`, `unavailable.tsx`, `sources.ts`, `useLiveJson.ts`, `voice/*`) |
-| `src/live/agent/` | Sourcing agent screen (`AgentScreen`, `Cite`, `useAgentRun` with the screener seam) |
-| `port/src/` (imported as `@port/*`) | The UI kit: `screens/`, `components/` (shell, ui, charts, signal graph), `types.ts`. Presentational; takes data via props |
+| `src/live/agent/` | Sourcing agent screen (`AgentScreen`, `Cite`, `useAgentRun`) |
+| `src/live/ask.tsx`, `src/live/screen/` | Research agent screen (stream reducer, timeline, cited table, citation popovers) |
+| `src/live/review.tsx` | `/review` exception queue screen |
+| `src/live/voice/` | `MicButton` (STT), `speak.ts` (TTS), `FloatingVoice` orb, `VoiceAgentButton`/`useVoiceAgent` (conversational session), `TodayVoice` |
+| `port/src/` (imported as `@port/*`) | The UI kit: `screens/`, `components/` (shell, ui, charts, signal graph), `types.ts`, `routes.ts`. Presentational; takes data via props |
+| `port/src/components/brand/` | `mascot.tsx` (Dex, logo and empty/loading states), `account.tsx` (account menu) |
 | `port/test/fixtures` | **Test-only** sample data. Never import from production code |
 | `docs/` | `API.md`, `crustdata/openapi/*.yaml` (extracted OpenAPI), `crustdata/fixtures/*.json` (captured live responses for tests), `crustdata/AMBIGUITIES.md` |
-| `scripts/` | OpenAPI extract/codegen, `crustdata-smoke.ts`, screenshot and verify scripts |
+| `scripts/` | OpenAPI extract/codegen, `crustdata-probe.ts`, `preflight.ts`, `screen-live.ts`, `model-smoke.ts`, `voice-agent-setup.mjs`, verify scripts |
 | `verify_shots/` | Last click-through report (`REPORT.md`) and credit ledger (`CREDITS.md`) |
 
 Aliases (`tsconfig.json`): `@/*` → `src/*`, `@port/*` → `port/src/*`.
@@ -47,10 +57,17 @@ Aliases (`tsconfig.json`): `@/*` → `src/*`, `@port/*` → `port/src/*`.
 | `npm run dev` | Dev server on **port 3240**. Often already running on the shared box: check `ss -ltnp \| grep 3240` before starting another |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm test` | vitest, no network. Live Crustdata tests are opt-in: `npm run crustdata:test:live` (spends a few credits) |
-| `npm run crustdata:smoke` | One identify call (0 credits) |
+| `npx tsx scripts/preflight.ts [--offline]` | Key presence (set/missing, never values), outbound mode, free health pings. (`npm run crustdata:smoke` points at a missing script; do not rely on it) |
 | `npm run build` | **Do not run while `next dev` is running on the same directory** (both write `.next/` and corrupt each other). Not needed for most changes; typecheck + tests are the gate |
 
 The box is shared (16 GB, no swap): keep to one dev server and one browser, and kill what you start.
+
+## Working rules for agents
+
+- **Commit as Saurabh Gupta, no trailers** (no `Co-authored-by`, no generated-by lines). Git identity is already set.
+- Stage explicit paths (`git add <paths>`), never `git add -A`; other sessions share the tree.
+- **Usage cap: at most 2–3 subagents at a time.** Do small lookups inline.
+- Do not push or deploy; Grok does the final GitHub push. Do not edit `/workspace/dealdesk-landing` or `/workspace/demo_video`.
 
 ## Product rules (hard constraints; breaking one is a bug)
 
@@ -121,13 +138,14 @@ The box is shared (16 GB, no swap): keep to one dev server and one browser, and 
 
 ## Known gaps
 
-- Fit score, verdict, valuation and IC memo numbers are `unavailable` (decision engine not merged). <!-- VERIFY -->
+- Fit score, verdict, valuation and IC memo numbers are `unavailable` (decision engine not merged; see `docs/HANDOFF.md`).
 - Organizational memory needs `DATABASE_URL`; it is **not set** in this box's `.env.local`, so memory panels show "unavailable".
-- Portfolio, Mandates, Assistant (`/ask`), Slack, Data room: unavailable pages (no source in this build).
+- Portfolio, Mandates, Slack, Data room: unavailable pages (no source in this build).
+- `/ask` runs do not feed the exception queue; only `/agent` runs do (seam: `fromScreenResult` in `src/lib/exceptions/rules.ts`).
 - No webhook route for Crustdata watches yet; `watchCompany` exists in the client but nothing calls it.
 - No auth / multi-user. Single-tenant event build.
-- `/` is a plain link list, not a home screen. <!-- VERIFY: may change with the shell work -->
-- Parser is deterministic: unusual phrasings fall back to visible chips the user must fix. <!-- VERIFY -->
+- `/` is a plain link list, not a home screen.
+- The `/agent` parser is deterministic and its chips are read-only: unusual phrasings show as struck-through "not used" phrases; the user rewords and re-runs (or uses `/ask`).
 
 ## First 30 minutes
 
@@ -136,7 +154,7 @@ The box is shared (16 GB, no swap): keep to one dev server and one browser, and 
 3. `ls .env.local` and compare names with `.env.example` (never print values). Without `CRUSTDATA_API_KEY` every live
    screen shows "not connected"; that is correct behaviour.
 4. `npm run typecheck && npm test`. Both must pass before and after your change.
-5. Open `/settings` (connectors), `/deal?domain=e2b.dev` (cached; 0 credits on repeat), `/agent`. <!-- VERIFY -->
+5. Open `/settings` (connectors), `/deal?domain=e2b.dev` (cached; 0 credits on repeat), `/ask`, `/agent`, `/review`.
 6. Read `src/lib/live/research.ts` end to end: it is the reference pattern (spec → attempt → LiveCall with credits/latency).
 7. Before adding UI text with numbers, re-read rule 3 above.
 8. Do not commit secrets, `.cache/`, `verify_shots/voice/`. Do not push or deploy unless asked; final pushes are done by

@@ -19,7 +19,9 @@ npm run dev                    # http://localhost:3240
 
 | Try this | What happens |
 | --- | --- |
-| `/agent` → "Find ten Indian B2B software companies founded since 2023 whose team grew by half in the last six months, and tell me who founded each and what they did before" | Sourcing agent: interpretation chips → live step trace → ranked, cited table → memo/CSV export <!-- VERIFY: route and flow once src/lib/sourcing lands --> |
+| `/ask` → "Find ten Indian B2B software companies founded since 2023 whose team grew by half in the last six months, and tell me who founded each and what they did before" | Research agent (LLM): plan → live Crustdata tool calls → server-side verification → ranked table; click any value for its citation |
+| `/agent` → the same request (or say it with the mic) | Sourcing agent (deterministic, no model): "Understood" chips → live step trace with credits → ranked, cited table → copy memo / CSV / read aloud |
+| `/review` | Exception queue: items an `/agent` run could not settle on its own, each with its reason; approve, reject or edit |
 | `/deal?domain=e2b.dev` | Live research: identify → enrich → founders, open roles, web, comparables. Click any number for its method and citation. |
 | `/deal?domain=zz9-no-such-startup-qx7.com` | Honest "No Crustdata match" (not an error, not a fake company) |
 | `/settings` → Connectors | Real health checks (Crustdata `GET /account/credits`, ElevenLabs, Gmail, Calendar) |
@@ -42,35 +44,48 @@ Deal Desk does that job end to end and hands back a decision-ready, cited shortl
 | Diligence and research firms | Sell the output (a sourced, cited list or memo) as a service |
 
 It is a **service, not a tool** (the deck's distinction): the output is the finished shortlist with reasons and
-sources, not a search box. Pricing is not set; a per-seat subscription plus Crustdata credits passed through at cost is the
-working assumption. <!-- VERIFY: pricing line with Saurabh -->
+sources, not a search box.
+
+**Pricing (hypothesis, not yet validated with customers):** per seat per month for the fund team, plus Crustdata credits
+passed through at cost (a fresh single-company diligence costs about 5.6 credits; repeats are free from cache). The test a
+fund applies: does one seat replace enough associate hours on sourcing and first-pass diligence to pay for itself? We
+have not run that test with a paying customer yet.
+
+**What is new**
+
+- Outcome, not a tool: the output is a finished, cited shortlist or memo.
+- Every fact carries its source (Crustdata endpoint + JSON path + retrieved time in IST) or says "unavailable" and why.
+- A person is pulled in only for exceptions (ambiguous match, missing or conflicting data, credit threshold, any outbound
+  send); everything else completes on its own.
 
 ## 2. What it does now, and where a person is still needed
 
 | Step | Done by Deal Desk (live) | Person needed |
 | --- | --- | --- |
-| Understand a free-text sourcing request | Deterministic parser → filters shown as editable interpretation chips <!-- VERIFY --> | Confirms or edits the chips when the parse is ambiguous |
-| Find candidates | Crustdata `/company/search` filter tree; relaxes filters with a visible disclosure when too few match <!-- VERIFY --> | Accepts or rejects the relaxation |
-| Verify growth | `/company/enrich` headcount; growth recomputed from the headcount timeseries, cited <!-- VERIFY --> | — |
-| Founders and their past | `/person/search` founders → `/person/enrich` past employers <!-- VERIFY --> | — |
-| Rank, cite, export | Ranked table, each cell cited to endpoint + JSON path; markdown memo and CSV <!-- VERIFY --> | Decides who to meet |
+| Understand a free-text request | `/ask`: the model plans and picks Crustdata tools. `/agent`: a deterministic parser shows what it understood as read-only chips (each with the phrase it came from; unused phrases struck through) | Rewords the request and re-runs if a chip is wrong |
+| Find candidates | Crustdata `/company/search` filter tree; if too few match, relaxes one constraint at a time and says which | — (relaxation is disclosed in the trace and per row) |
+| Verify growth | `/company/enrich` headcount; growth recomputed from `headcount.timeseries`, both points cited (`/agent`); `/ask` checks every value against the cited response (verified / corrected / unavailable) | — |
+| Founders and their past | `/person/search` founders → `/person/enrich` past employers | — |
+| Rank, cite, export | Ranked table, each cell cited to endpoint + JSON path; `/agent` copies a markdown memo and downloads CSV | Decides who to meet |
+| Exceptions | `/agent` runs route ambiguous matches, missing or conflicting data and credit-threshold items to `/review` with their reason; the run finishes when the last item is resolved | Approves, edits or rejects |
 | Single-company diligence | `/deal?domain=`: headcount, growth (6m/QoQ/YoY), funding, web traffic, open roles, founders, live web, comparables | Judgement on fit |
 | Inbox and calendar | Gmail threads + Calendar events (read only), spoken daily greeting | Replies, meetings |
-| Voice | ElevenLabs speech-to-text on the request box, spoken run summary, greeting, context orb <!-- VERIFY: mic + run summary --> | — |
+| Voice | ElevenLabs speech-to-text mic on the `/agent` request box, "Read aloud" run summary, Today greeting, context orb; a conversational voice session (when `ELEVENLABS_AGENT_ID` is set) that can start a sourcing run or open a company | — |
 | Contacting anyone | **Never automatic.** Calendar invites are built and shown as "Dry run — not sent" | Sends it themselves |
-| Fit score, verdict, valuation, IC memo numbers | Shown as **unavailable with the reason** (needs the firm mandate and a pricing model) <!-- VERIFY: unless the decision engine is merged --> | Partner decides |
+| Fit score, verdict, valuation, IC memo numbers | Shown as **unavailable with the reason** (needs the firm mandate and a pricing model; decision engine not merged) | Partner decides |
 
 ## 3. What comes next, and why not now
 
 | Next | What | Why not now |
 | --- | --- | --- |
 | **Track: "not yet, keep watching"** | A verdict that is a clear no for this round, with 2–4 measurable milestones (e.g. team ≥ 50, next round raised). Crustdata `/watch/company` webhooks fire when a milestone is hit; Deal Desk re-scores and asks "re-review?" | Needs a public HTTPS webhook URL, HMAC verification and a deal store to attach the watch to. Watch creation is already in the client (`watchCompany`, documented body, live-verified create/delete) but nothing calls it, by design: the old code created one watch per page view and never deleted it. |
-| **Decision engine** | Fit score against the firm mandate, verdict advance / track / pass, valuation range, IC memo | Built in a separate builder repo; not merged into this build at freeze. Fields show "unavailable" with the reason instead of a guess. <!-- VERIFY: update if merged --> |
+| **Decision engine** | Fit score against the firm mandate, verdict advance / track / pass, valuation range, IC memo | Built in a separate builder repo; not merged into this build. Fields show "unavailable" with the reason instead of a guess. |
 | **Warm forward** | On a thesis-mismatch pass, suggest 2–3 co-investors (inferred from Crustdata funding data, cited), double opt-in, drafts only | Event rule: agents may contact only the team, Crustdata and Techfest. Also needs founder consent flows. |
 | Hiring signal at scale | `/job/search` counts as a sourcing filter, not just on the deal page | Credit cost per candidate; added after the core flow was proven |
 | Crustdata MCP server | Let any agent (Claude, Cursor) drive Deal Desk's sourcing with the same tools | Not needed for a single app; no time to harden |
 | Slack / AgentMail / Fireflies | Post decisions, send founder notes, ingest call transcripts | Outbound is locked during the event |
-| LLM phrasing | Better request parsing and memo prose under "add no facts" rules | No LLM key available at the event; the deterministic path had to work on its own first |
+| `/ask` → exception queue | Research-agent runs raise their exceptions to `/review` like `/agent` runs do | The seam exists (`fromScreenResult`); not wired before freeze |
+| Model-written memo prose | Memo text from the model under "add no facts" rules | The memo is composed deterministically from cited rows; prose adds risk without new facts |
 
 ## 4. How to run it, and how it is built
 
@@ -79,9 +94,11 @@ driver) for organizational memory. No other backend.
 
 **Models.** The research agent (`/ask`) is LLM-driven: OpenAI Responses API with function tools, default `gpt-6.1-sol`
 at reasoning effort `high` (see "Research agent" below). Everything else (the Sourcing agent, ranking, memo and spoken
-summaries) is deterministic code over live data, and is the no-model fallback. ElevenLabs provides voice only: `eleven_flash_v2_5` for
-text-to-speech and Scribe (`scribe_v2`) for speech-to-text. (An optional `ANTHROPIC_API_KEY` hook can rephrase the Today
-greeting from the same facts; it is not set in this build.)
+summaries) is deterministic code over live data, and the Sourcing agent is the no-model fallback. ElevenLabs:
+`eleven_flash_v2_5` for text-to-speech, Scribe (`scribe_v2`) for speech-to-text, and an optional Conversational AI agent
+(created by `scripts/voice-agent-setup.mjs`, LLM `ELEVENLABS_AGENT_LLM`, default `gemini-2.5-flash`) whose client tools only
+navigate (`run_sourcing` → `/agent?q=`, `open_company`, `open_screen`). The Today greeting can be rephrased by the
+configured model from the same facts, adding none.
 
 **Agents** (code, not prompts; each step is a function with a typed input and a cited output):
 
@@ -122,18 +139,26 @@ rate limiter, bounded 429 retry (≤ 15 s total), response cache (no credits on 
 
 | Endpoint | File | Screen | Credits (live-measured / documented) |
 | --- | --- | --- | --- |
-| `POST /company/identify` | `src/lib/live/research.ts` `lookupCompany` | Deal | 0 |
-| `POST /company/enrich` | `research.ts` `lookupCompany`; agent verify step <!-- VERIFY: src/lib/sourcing file --> | Deal, Agent | 2 per company |
-| `POST /company/search` | `research.ts` `searchComps` + `src/lib/crustdata/company-queries.ts`; agent search step <!-- VERIFY --> | Deal (comparables), Agent | 0.03/row base, ≈0.23/row with funding fields |
-| `POST /person/search` | `research.ts` `searchFounders` + `person-queries.ts`; agent founders step <!-- VERIFY --> | Deal, Agent | ≈0.13/row (experience filter), ≈0.23/row with history |
-| `POST /person/enrich` | `research.ts` `enrichPerson`; agent past-employers step <!-- VERIFY --> | Person, Agent | 1 per profile |
-| `POST /job/search` | `research.ts` `searchJobs` + `job-queries.ts` | Deal (open roles) | 0.03/row |
-| `POST /web/search/live` | `research.ts` `searchNews` | Deal (live web) | 1 |
+| `POST /company/identify` | `src/lib/live/research.ts` `lookupCompany`; `src/lib/live/resolve.ts` (domain anywhere, did-you-mean); sourcing name lookup; agent tool `identify_company` | Deal, Agent, Ask | 0 |
+| `POST /company/enrich` | `research.ts` `lookupCompany`; `src/lib/sourcing/run.ts` verify step; agent tools `enrich_companies`, `company_signals` | Deal, Agent, Ask | 2 per company |
+| `POST /company/search` | `research.ts` `searchComps` + `src/lib/crustdata/company-queries.ts`; `run.ts` search + relax steps; agent tool `search_companies` | Deal (comparables), Agent, Ask | 0.03/row base, ≈0.23/row with funding fields |
+| `POST /person/search` | `research.ts` `searchFounders` + `person-queries.ts`; `run.ts` founders step; agent tools `search_people`, `find_founders` | Deal, Agent, Ask | ≈0.13/row (experience filter), ≈0.23/row with history |
+| `POST /person/enrich` | `research.ts` `enrichPerson`; `run.ts` past-employers step; agent tool `enrich_person` | Person, Agent, Ask | 1 per profile |
+| `POST /job/search` | `research.ts` `searchJobs` + `job-queries.ts`; agent tool `search_jobs` | Deal (open roles), Ask | 0.03/row |
+| `POST /web/search/live` | `research.ts` `searchNews`; agent tool `web_search` | Deal (live web), Ask | 1 |
 | `GET /account/credits` | `src/lib/live/integrations.ts` | Settings › Connectors | 0 |
 | `POST/GET/DELETE /watch/company…` | `client.ts` `watchCompany` / `deleteWatch` / `getWatchRuns` | none yet (Track is next) | 0 to create, 5 per notification |
 
-A fresh deal research run on e2b.dev cost **5.56 credits** (measured). A sourcing run costs roughly
-<!-- VERIFY: credits per /agent run from the step trace --> credits. Full audit: [docs/CRUSTDATA_USAGE.md](docs/CRUSTDATA_USAGE.md).
+A fresh deal research run on e2b.dev cost **5.56 credits** (measured). A sourcing run shows its own credit total in
+the step trace (cache hits cost 0). Full audit: [docs/CRUSTDATA_USAGE.md](docs/CRUSTDATA_USAGE.md).
+
+### Robustness
+
+Crustdata calls: timeout per call, a request-scoped deadline (40 s, 55 s for research), retry on 429 (capped) and on
+5xx / timeouts / malformed JSON for read endpoints (jittered backoff), a per-route circuit breaker, and a stale-cache
+fallback labelled "cached at <IST time>". Writes are replayed only if they provably never reached Crustdata. Unknown or typo'd domains return "no match" with
+"did you mean" suggestions, never an auto-picked company. Outage drill: `DEALDESK_SIMULATE_CRUSTDATA_OUTAGE=1`.
+Model calls: fallback model and malformed tool-JSON repair; no model key → `/agent`. Details: [docs/ROBUSTNESS.md](docs/ROBUSTNESS.md).
 
 ### Research agent (LLM screener)
 
@@ -161,8 +186,8 @@ founders ≈20 / 119 s.
 | Unknown domains | Crustdata returns 200 with `matches: []`; old code showed "verified" | Treated as an explicit `no_match` state, never as a company |
 | 429 rate limits | No `Retry-After` header; old client could stall ~50 s | Sliding-window limiter per route; 429 retry capped at 15 s, then fail loudly |
 | Watch created on every research run | Leaked watches, cost per notification | Watch creation removed from page loads; needs an explicit webhook URL |
-| An LLM for parsing the request | No key at the event | Deterministic parser with visible interpretation chips; the user corrects it instead of trusting it <!-- VERIFY --> |
-| Voice: ElevenLabs Conversational AI agent vs STT + TTS | <!-- VERIFY: which shipped --> | STT (Scribe) on the request box + TTS for summaries keeps every spoken fact tied to cited data |
+| A deterministic parser as the only way in | Auditable, but unusual phrasings miss constraints | Kept as `/agent` (the no-model fallback, chips show what it understood); added the LLM research agent `/ask` with server-side citation checks |
+| Voice: ElevenLabs Conversational AI agent vs STT + TTS | Both shipped | STT (Scribe) on the request box + TTS for summaries keep every spoken fact tied to cited data; the conversational agent's tools only navigate (open a screen or company, start a run) and its prompt forbids facts not on screen or from a tool |
 | Browser autoplay for the spoken greeting | Can be blocked without a user gesture | The greeting tries to play, and if blocked says so and waits for a tap (checked in the verify run) |
 
 **Testing:** vitest suites for the Crustdata client (captured live responses through an injected fetch), request bodies,
@@ -189,7 +214,7 @@ trust guards (`src/test/guards.test.ts`). An opt-in live contract suite: `npm ru
 | Name | Role | GitHub |
 | --- | --- | --- |
 | Saurabh Gupta | Product, engineering | [saurabh4269](https://github.com/saurabh4269) |
-| Shiwani Mishra | <!-- VERIFY: role --> | <!-- VERIFY --> |
+| Shiwani Mishra | Team member | — |
 
 ## Code history (honest note): work that predates 10:30 AM IST
 

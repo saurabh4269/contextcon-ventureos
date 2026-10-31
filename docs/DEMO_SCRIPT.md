@@ -1,63 +1,71 @@
 # Demo script
 
-Button labels and chip text marked `<!-- VERIFY -->` must be checked against the final `/agent` screen before recording.
+One Loom (≤ 2:00), then the finals outline (5 min live) and Q&A. All URLs are on the dev server
+(`npm run dev`, http://localhost:3240). Deck requirements (p31): a one-sentence intro, a request the product has never
+seen taken through to finished work, and where each fact came from.
+
+## Before recording (5 min)
+
+| Do | Why |
+| --- | --- |
+| `npx tsx scripts/preflight.ts` | Keys present (set/missing only), outbound is dry-run, Crustdata credits and model reachable |
+| Run the deck request once on `/ask` and once on `/agent` | Crustdata responses are cached (repeats cost 0 credits); `/agent` then fills `/review` |
+| Open `/deal?domain=strpe.com` once | Warms the did-you-mean lookup |
+| 1440×900, zoom 100 %, one tab, notifications off, mic permission granted for localhost | Clean take |
+
+An `/ask` run takes about 1.5–2.5 minutes live (model + Crustdata). **Trim the wait in Loom's editor** after the
+first tool calls appear; do not pretend it is instant.
 
 ## Loom (≤ 2:00)
 
-Deck requirements (p31): a one-sentence intro · a request the product has never seen, through to finished work · show
-where each fact came from. Record at 1440×900, browser zoom 100 %, one tab, notifications off. Speak the lines in quotes.
-
-| Time | Screen and exact clicks | Say |
+| Time | URL and clicks | Say |
 | --- | --- | --- |
-| 0:00–0:08 | `/agent`, empty request box, Dex logo visible | "Deal Desk is an associate for venture funds: you ask for deals, it does the sourcing and diligence on live Crustdata, and cites every fact." |
-| 0:08–0:22 | Click the **mic** <!-- VERIFY -->, say the request; or paste it. Request: *"Find ten Indian B2B software companies founded since 2023 whose team grew by half in the last six months, and tell me who founded each and what they did before."* Transcript lands in the box | "This is the deck's Investing request. I haven't run it before on camera." |
-| 0:22–0:32 | Interpretation chips appear: `India` · `B2B software` · `founded ≥ 2023` · `headcount +50 % / 6 mo` · `10 results` · `founders + past employers` <!-- VERIFY chip text --> | "No LLM here: a deterministic parser turns the request into filters I can see and edit before anything runs." |
-| 0:32–0:58 | Click **Run** <!-- VERIFY -->. Step trace streams: company search → (relaxed, with a note, if too few) → enrich verify → founder search → founder enrich. Each step shows latency and credits | "Each step is a real Crustdata call, streamed as it happens, with the credits it cost. If too few companies match, it relaxes one filter and tells you which." |
-| 0:58–1:15 | Results table. Hover a growth cell, click it: citation opens with `POST /company/enrich` · `headcount.timeseries[…]` · retrieved time (IST) <!-- VERIFY --> | "Growth isn't taken on trust: it's recomputed from the headcount history, and here are the two data points it used." |
-| 1:15–1:30 | Click a company name → `/deal?domain=…`. Click **Open roles** or **Total raised**: method + citation | "Every company opens into a full diligence page. Every number has a method and a source, or it says unavailable and why." |
-| 1:30–1:42 | Back. Type a messy request: *"b2b saas in bangalor foundd 2024 grew 300% hirng"* <!-- VERIFY --> → chips show what was understood and what was dropped; or a deal for `zz9-no-such-startup-qx7.com` → "No Crustdata match" | "Messy input gets an honest reading, not a confident guess. Unknown companies are 'no match', never invented." |
-| 1:42–1:52 | Open **Review** (exceptions count in the nav) <!-- VERIFY -->: one item, e.g. an ambiguous company match, with its reason. Click **Approve**; then **Export memo** / **CSV** | "A person only steps in for exceptions like this one. Everything else finished on its own: a memo and a sheet, every row cited." |
-| 1:52–2:00 | Click **Read summary** <!-- VERIFY -->; ElevenLabs speaks a two-sentence summary | "And a spoken summary for the partner on the move. Built on Crustdata." |
+| 0:00–0:08 | http://localhost:3240/ask (Dex in the sidebar) | "Deal Desk is an associate for venture funds: ask for deals, it does the sourcing and first-pass diligence on live Crustdata, and cites every fact." |
+| 0:08–0:20 | Paste the deck request, click **Run**: *"Find ten Indian B2B software companies founded since 2023 whose team grew by half in the last six months, and tell me who founded each and what they did before."* | "This is the deck's Investing request. The model plans and calls Crustdata tools." |
+| 0:20–0:40 | Plan and tool calls stream (endpoint, credits). *Trim the wait.* Result table appears | "Each step is a real Crustdata call. Rows that don't meet the ask are checked server-side, and any relaxation is disclosed." |
+| 0:40–0:55 | Click a value in the table: citation popover (endpoint, JSON path, retrieved time in IST, verified / corrected) | "Nothing the model says is trusted: the server resolves every value against the cited response. Verified, corrected to Crustdata's value, or unavailable." |
+| 0:55–1:15 | http://localhost:3240/agent → click the **mic**, say *"fintech startups in Bangalore at seed stage, with their founders"* → it runs. "Understood" chips, step trace with credits, ranked table | "No model at all here: the deterministic agent is the fallback if the model is down. You see exactly what it understood and what each step cost." |
+| 1:15–1:22 | Click a growth or headcount cell → citation | "Growth is recomputed from the monthly headcount series; here are the points it used." |
+| 1:22–1:37 | Click **Review** in the sidebar (count badge) → http://localhost:3240/review. One item with its reason, e.g. missing or conflicting data → click its approve action | "A person only steps in for exceptions. Everything else finished on its own." |
+| 1:37–1:50 | http://localhost:3240/deal?domain=strpe.com → "No Crustdata match" with a did-you-mean chip (Stripe) | "Messy input gets an honest answer: a typo'd domain is no match, with a suggestion, never a guessed company." |
+| 1:50–2:00 | Back on `/agent`: **Copy memo (markdown)**, **CSV**, **Read aloud** | "Finished work: a cited memo, a sheet and a spoken summary. Built on Crustdata." |
 
-Recording rules:
-- Run the same request once before recording so responses are cached (repeats cost 0 credits and load fast). Use a
-  *different* messy request on camera for the robustness beat, so "never seen" stays true for that one.
-- If any step fails live, keep recording: the trace shows the error honestly; say "that's the robustness rule: it says
-  what failed instead of hiding it."
-- Open the Loom link in a private window before submitting (deck p31).
+If a live step fails on camera, keep recording: the trace shows the error and the reason. Say "that's the robustness
+rule: it says what failed instead of hiding it."
 
-## Backup plan (live calls slow or failing)
+## Backup plan
 
 | Problem | Do |
 | --- | --- |
-| Search or enrich slow (> 10 s) | Talk over the trace ("you're watching real calls"); the cache will make the take-2 fast. Re-record from 0:22 |
-| Crustdata 429 | Wait 20 s (limits reset per minute), re-run; the trace shows the 429 honestly |
-| `/agent` broken at freeze | Fall back to the deal flow: `/pipeline` research form → `e2b.dev` → click citations → unknown domain → `/today` greeting. Same intro line, same "where facts come from" beat |
-| Mic fails (permission, quota) | Paste the request; say "voice is optional". The error message shows what failed |
-| Voice summary blocked by autoplay | Click again; it needs a user gesture |
-| ElevenLabs quota | Skip the last beat; end on the memo export |
+| `/ask` shows "Model unavailable" | Click its link to `/agent?q=…` (same request, no model); say "this is the fallback" |
+| `/ask` too slow for the take | Lead with `/agent` (seconds, not minutes) and show `/ask` as the second beat, trimmed |
+| `/review` empty | Run any `/agent` request first; only `/agent` runs feed the queue |
+| Mic fails (permission, quota) | Type the request; the mic shows what failed |
+| Read aloud blocked by autoplay | Click again; it needs a user gesture |
+| Crustdata 429 | Wait 20 s, re-run; the trace shows the 429 honestly |
 
-## Finals (5 minutes, live) — outline
+## Finals (5 minutes, live)
 
-| Time | Beat |
-| --- | --- |
-| 0:00–0:20 | Intro: the job (associate sourcing + first-pass diligence), who pays (funds, banks, diligence firms), the trust rule |
-| 0:20–2:30 | Live: a request from the audience or a judge (any sector, any country) → chips → trace → table → citation → deal page |
-| 2:30–3:15 | Robustness: messy input, an impossible filter (relaxation disclosed), an unknown domain |
-| 3:15–3:50 | Finished work: memo + CSV export, spoken summary |
-| 3:50–4:30 | How it's built: architecture slide (`docs/assets/architecture.png`), where Crustdata is called, where the model plans |
-| 4:30–5:00 | What's next: Track on Crustdata watchers, decision engine, warm forward |
+| Time | Beat | URL |
+| --- | --- | --- |
+| 0:00–0:20 | The job (associate sourcing + first-pass diligence), who pays (funds, banks, diligence firms), the trust rule | `/landing` |
+| 0:20–2:00 | A request from a judge (any sector, any country) on `/ask`; while it runs, the same request on `/agent` | `/ask`, `/agent` |
+| 2:00–2:40 | Citations: verified / corrected / unavailable; growth from the headcount series; open a company's deal page | `/deal?domain=<a result>` |
+| 2:40–3:20 | Robustness: typo'd domain (did-you-mean); optionally the outage drill (pre-restarted server with `DEALDESK_SIMULATE_CRUSTDATA_OUTAGE=1`: pages render from stale cache labelled "cached at <IST>") | `/deal?domain=strpe.com`, `/deal?domain=e2b.dev` |
+| 3:20–3:50 | Exceptions: approve one item; memo + CSV; spoken summary | `/review`, `/agent` |
+| 3:50–4:30 | How it's built: architecture, where Crustdata is called, where the model plans | README diagram |
+| 4:30–5:00 | Next: Track on Crustdata watchers, decision engine, warm forward | — |
 
 ## Likely Q&A
 
 | Question | Answer |
 | --- | --- |
-| Who pays? | VC funds first (replaces associate hours on sourcing and first-pass diligence), then banks and diligence firms. Per seat, Crustdata credits passed through. |
-| Where is the model? | The agent loop plans with an OpenAI model (GPT-6.1 Sol) calling Crustdata tools; every value it shows must resolve to a cited path in a Crustdata response, or it is shown as unavailable. With no model key, the deterministic parser still runs and is labelled as such. <!-- VERIFY once feature/nl-screener is merged --> |
-| What does a failure look like? | Crustdata 5xx or timeout: retried with backoff; if still down, the last good response is shown labelled "cached at <IST time>", or the step says what failed. Never invented. |
-| What failed? | Fixture/demo mode (removed: nobody could tell real from fake); enrich without `fields` (basic_info only); one denied field 403s the whole call; `hiring.*` null on our plan (used `/job/search`); every builder search body 400'd until rewritten to the documented filter tree; live web search is slow and noisy. |
-| Hardest case? | Requests the filters can't satisfy exactly. We relax one filter at a time and disclose it, instead of padding the list. Also: "no match" vs "error" must never be confused. |
-| How did you test? | vitest on captured live responses through an injected fetch (no network), guard tests that fail on demo data, hard-coded numbers or email-send code; an opt-in live contract suite; a click-through of every route with DOM-vs-API number checks. |
-| How much Crustdata does it use? | 7 of the 8 APIs; a fresh single-company diligence costs about 5.6 credits, repeats are free from cache. Next: watchers. |
-| What's next? | Track ("not yet, keep watching") on Crustdata watchers with measurable milestones; the decision engine (fit, verdict, valuation, IC memo); warm forward with double opt-in. |
-| Was it built today? | The UI shell existed before 10:30 and is disclosed in the README; the live data layer, trust rules, agent and voice were built today (see git log). |
+| Who pays? | VC funds first (replaces associate hours on sourcing and first-pass diligence), then banks and diligence firms. Hypothesis: per seat, Crustdata credits passed through at cost. Not yet validated with a paying customer. |
+| Where is the model? | `/ask`: an OpenAI model (default `gpt-6.1-sol`, reasoning `high`; Anthropic if configured) plans and calls Crustdata tools within a 60-credit cap. The server checks every value against the cited response. With no model key, `/ask` offers `/agent`, which uses no model. |
+| What does a failure look like? | Crustdata 5xx or timeout: retried with backoff under a deadline; breaker opens on repeated failure; the last good response is shown labelled "cached at <IST>", or the step says what failed. Never invented. |
+| What failed while building? | Fixture/demo mode (removed); enrich without `fields` (basic_info only); one denied field 403s the whole call; `hiring.*` null on our plan (used `/job/search`); builder search bodies 400'd until rewritten to the documented filter tree; live web search is slow and noisy. |
+| Hardest case? | Requests the filters can't satisfy exactly. Relax one constraint at a time and disclose it, instead of padding. And "no match" must never be confused with "error". |
+| How did you test? | vitest on captured live responses through an injected fetch (no network); fault-injection suites (4xx/429/5xx, timeouts, malformed bodies, breaker, stale cache); guard tests that fail on demo data, hard-coded numbers, uncited values or email-send code; an opt-in live contract suite. |
+| How much Crustdata does it use? | 7 of the 8 data APIs. A fresh single-company diligence costs about 5.6 credits; repeats are free from cache. Not yet: watchers and MCP (see `docs/CRUSTDATA_USAGE.md`). |
+| What's next? | Track ("not yet, keep watching") on Crustdata watchers; the decision engine (fit, verdict, valuation, IC memo); `/ask` runs into the exception queue; warm forward with double opt-in. |
+| Was it built today? | The UI shell existed before 10:30 and is disclosed in the README; the live data layer, trust rules, both agents, the exception queue, resilience and voice were built today (see `git log`). |
