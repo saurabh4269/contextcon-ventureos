@@ -32,7 +32,11 @@ TypeScript, vitest. Server code lives in route handlers (`runtime = "nodejs"`). 
 | `src/lib/numbers/` | Raw response → `ComputedField` (`company-fields.ts`, `deal-numbers.ts`) |
 | `src/lib/fields.ts` | The `ComputedField` type and helpers (`isOk`, `show`, `explain`) |
 | `src/lib/format/` | The only place that formats money and time (IST) |
-| `src/lib/memory/` | Memory store (Postgres or explicit unavailable), `recordMemory` |
+| `src/lib/memory/` | Memory store (Postgres, else the durable store's documents, always labelled), `recordMemory` |
+| `src/lib/store/docs.ts` | The durable store: JSON documents in Postgres (`DATABASE_URL` / `POSTGRES_URL`) or files (not durable on Vercel) |
+| `src/lib/workflow/`, `src/app/api/workflow/*`, `src/live/workflow.tsx` | The ten-step deal workflow (`/workflow`) |
+| `src/lib/deals/` | Deal stages and owners (`stage.ts` client-safe, `stages.ts` store functions) |
+| `src/mcp/`, `src/cli/` | MCP server (`npm run mcp`) and `dealdesk` CLI over the app's routes |
 | `src/lib/google/` | OAuth refresh, Gmail, Calendar |
 | `src/lib/voice/` | ElevenLabs TTS (`elevenlabs.ts`), STT (`stt.ts`), conversational agent (`agent.ts`, `agentTools.ts`), greeting and screen briefs |
 | `src/lib/outbound.ts` | `OUTBOUND_MODE` switch and dry-run envelope |
@@ -139,8 +143,9 @@ The box is shared (16 GB, no swap): keep to one dev server and one browser, and 
 ## Known gaps
 
 - Fit score, verdict, valuation and IC memo numbers are `unavailable` (decision engine not merged; see `docs/HANDOFF.md`).
-- Organizational memory needs `DATABASE_URL`; it is **not set** in this box's `.env.local`, so memory panels show "unavailable".
-- Portfolio, Mandates, Slack, Data room: unavailable pages (no source in this build).
+- No `DATABASE_URL` on the deploy: server state (review queue, stages, workflows, mandate, memory) is in per-instance
+  `/tmp` files there, labelled "not durable". See STATE.md.
+- Portfolio has deals from the workflow but no KPI source. Mandates, Slack, Data room: no source in this build.
 - `/ask` runs do not feed the exception queue; only `/agent` runs do (seam: `fromScreenResult` in `src/lib/exceptions/rules.ts`).
 - No webhook route for Crustdata watches yet; `watchCompany` exists in the client but nothing calls it.
 - No auth / multi-user. Single-tenant event build.
