@@ -44,7 +44,7 @@ function MemoFor({ id }: { id: string }) {
   const drafted = isOk(f.icMemoValuation) && isOk(f.diligenceVerdict);
   return (
     <Page active="pipeline" shell={liveShell} top={top}>
-      <div className="mx-auto w-full max-w-[720px] px-6 pt-8 pb-16" data-testid="memo">
+      <div className="mx-auto w-full max-w-[720px] px-6 pt-8 pb-16 max-lg:pb-24 @max-[720px]/main:px-4 @max-[720px]/main:pt-5" data-testid="memo">
         <div className="eyebrow">IC memo</div>
         <h1 className="serif mt-1 text-[32px] leading-tight">{res.data.id}</h1>
         {!drafted && <p className="mt-2 text-[13px] text-zinc-500">No memo drafted. {f.icMemoValuation.status === "unavailable" ? f.icMemoValuation.reason : ""}</p>}
@@ -54,7 +54,7 @@ function MemoFor({ id }: { id: string }) {
             {g.rows.map(([k, label, fmt]) => <FieldRow key={k} label={label} f={f[k]} fmt={fmt} testId={`memo-field-${k}`} />)}
           </section>
         ))}
-        <p className="mt-4 text-[12px] text-zinc-400">Source: GET /api/deals/{res.data.id}/numbers · <Link href={`/deal?domain=${encodeURIComponent(res.data.id)}`} className="underline">open the deal</Link></p>
+        <p className="mt-4 text-[12px] text-zinc-400">Source: GET /api/deals/{res.data.id}/numbers · <Link href={`/deal?domain=${encodeURIComponent(res.data.id)}`} className="underline max-sm:inline-block max-sm:py-3">open the deal</Link></p>
       </div>
     </Page>
   );

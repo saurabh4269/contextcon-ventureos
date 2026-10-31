@@ -86,7 +86,7 @@ export function SettingsScreen(props: Omit<SettingsScreenProps, "data"> & { data
               <I className="size-[15px] text-zinc-500" strokeWidth={1.75} />{s.label}{s.admin && <span className="ml-auto text-[10.5px] text-zinc-400">Admin</span>}{s.id === "connectors" && d.connectors.items.some((x) => x.status === "attention") && <span className="ml-auto size-1.5 rounded-full bg-[#c98a1b]" />}
             </button>); })}</div>
         </nav>
-        <section className={cx("min-w-0 pt-7 pb-12 @max-[720px]/main:px-4 @max-[720px]/main:pt-5", wide ? "px-9" : "px-10")}>
+        <section className={cx("min-w-0 pt-7 pb-12 max-lg:pb-24 @max-[720px]/main:px-4 @max-[720px]/main:pt-5", wide ? "px-9" : "px-10")}>
           {blocked ? (props.unavailable?.(section) ?? <EmptyState title="Not available" body="This section has no data source in this build." />) : <>
           {section === "workflow" && <WorkflowSection {...p} />}
           {section === "connectors" && <ConnectorsPage data={d.connectors} initial={p.connectorsView} onConnect={p.onConnect} onManage={p.onManageConnector} onSync={p.onSyncConnector} onScope={p.onConnectorScope} onDisconnect={p.onDisconnect} demo={p.connectorsDemo} />}
@@ -95,7 +95,7 @@ export function SettingsScreen(props: Omit<SettingsScreenProps, "data"> & { data
           {section === "export" && <ExportSection {...p} />}
           </>}
         </section>
-        {!wide && isFull(d) && <aside className="border-t border-zinc-200/70 bg-white px-6 pt-6 pb-8 @max-[720px]/main:px-4 @min-[720px]/main:col-start-2 @min-[1180px]/main:col-start-auto @min-[1180px]/main:border-t-0 @min-[1180px]/main:border-l">
+        {!wide && isFull(d) && <aside className="border-t border-zinc-200/70 bg-white px-6 pt-6 pb-8 max-lg:pb-24 @max-[720px]/main:px-4 @min-[720px]/main:col-start-2 @min-[1180px]/main:col-start-auto @min-[1180px]/main:border-t-0 @min-[1180px]/main:border-l">
           {section === "members" ? <RolesAside d={d} /> : section === "access" ? <AccessAside /> : section === "export" ? <ExportAside d={d} /> : <BriefsAside {...p} />}
         </aside>}
       </div>

@@ -400,7 +400,7 @@ function Toast({ t, onDone }: { t: PersonToast | null; onDone: () => void }) {
 
 function PersonSkeleton() {
   return (
-    <div aria-busy="true" aria-live="polite" className="mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-5 px-7 pt-6 pb-16 @min-[900px]/main:grid-cols-[minmax(0,1fr)_340px] @max-[720px]/main:px-4">
+    <div aria-busy="true" aria-live="polite" className="mx-auto grid w-full max-w-[1240px] grid-cols-1 gap-5 px-7 pt-6 pb-16 max-lg:pb-24 @min-[900px]/main:grid-cols-[minmax(0,1fr)_340px] @max-[720px]/main:px-4">
       <div className={cx(CARD, "@min-[900px]/main:col-span-2 flex overflow-hidden items-center gap-5 p-6")}><span className="size-16 shrink-0 overflow-hidden rounded-full"><Skeleton className="size-full" /></span><div className="flex-1 space-y-2"><Skeleton className="h-7 w-56" /><Skeleton className="h-4 w-80" /></div><Skeleton className="h-9 w-56 rounded-full" /></div>
       <div className={cx(CARD, "space-y-5 p-6")}><Skeleton className="h-8 w-2/3" />{Array.from({ length: 5 }).map((_, i) => <div key={i} className="flex gap-3"><span className="size-7 shrink-0 overflow-hidden rounded-full"><Skeleton className="size-full" /></span><Skeleton className="h-5 flex-1" /></div>)}</div>
       <div className="space-y-4">{[2, 5, 4].map((n, i) => <div key={i} className={cx(CARD, "space-y-2.5 p-5")}><Skeleton className="h-4 w-1/3" />{Array.from({ length: n - 1 }).map((_, j) => <Skeleton key={j} className="h-3.5" />)}</div>)}</div>
@@ -451,7 +451,7 @@ export function PersonScreen({ shell, data, tab: tab0 = "activity", overlay, onE
       <Toast t={toast} onDone={() => setToast(null)} />
     </>}>
       {status === "loading" ? <PersonSkeleton /> : status === "error" ? <ErrorState message={error ?? `Couldn’t load ${data.person.name}.`} onRetry={onRetry} /> : (
-        <motion.div initial={rm || !dir ? false : { opacity: 0, y: dir * 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} className="mx-auto grid w-full max-w-[1240px] grid-cols-1 items-start gap-5 px-7 pt-6 pb-16 @min-[900px]/main:grid-cols-[minmax(0,1fr)_340px] @max-[720px]/main:gap-4 @max-[720px]/main:px-4 @max-[720px]/main:pt-4">
+        <motion.div initial={rm || !dir ? false : { opacity: 0, y: dir * 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }} className="mx-auto grid w-full max-w-[1240px] grid-cols-1 items-start gap-5 px-7 pt-6 pb-16 max-lg:pb-24 @min-[900px]/main:grid-cols-[minmax(0,1fr)_340px] @max-[720px]/main:gap-4 @max-[720px]/main:px-4 @max-[720px]/main:pt-4">
           <Rise className="min-w-0 @min-[900px]/main:col-span-2"><Header d={data} onEmail={onEmail ?? (() => setCompose(data.email))} onBook={onBook} /></Rise>
           <section className={cx(CARD, "min-w-0 overflow-hidden")}>
             <Tabs d={data} tab={tab} onTab={setTab} />

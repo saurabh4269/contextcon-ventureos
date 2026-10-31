@@ -171,7 +171,7 @@ export function DealScreen(p: DealScreenProps) {
           </>}
         </section>
         {/* v3.2: with the assistant docked, this column steps aside; the answers cite the same evidence */}
-        <aside className="border-t border-zinc-200/70 bg-white px-6 pt-6 pb-10 group-data-[dock=open]/page:hidden @max-[720px]/main:px-4 @min-[720px]/main:col-start-2 @min-[1100px]/main:col-start-auto @min-[1100px]/main:border-t-0 @min-[1100px]/main:border-l">
+        <aside className="border-t border-zinc-200/70 bg-white px-6 pt-6 pb-10 max-lg:pb-24 group-data-[dock=open]/page:hidden @max-[720px]/main:px-4 @min-[720px]/main:col-start-2 @min-[1100px]/main:col-start-auto @min-[1100px]/main:border-t-0 @min-[1100px]/main:border-l">
           {d.live && <div className="mb-4"><LiveRail run={d.live} boxed /></div>}
           <DealTeamPanel team={d.team} me={p.shell.user.initials} onClaim={p.onClaim} onAssign={p.onAssign} onUndoClaim={p.onUndoClaim} onAddReviewer={p.onAddReviewer} reviewerAdded={p.reviewerAdded} />
           <div className="mt-6 flex items-center justify-between"><span className="text-[14px] font-medium">Evidence</span><span className="inline-flex items-center gap-1.5 text-[12px] text-ok"><Check className="size-3.5" />{d.evidence.agreeNote}</span></div>

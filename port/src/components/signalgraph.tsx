@@ -404,7 +404,7 @@ export function SignalGraph(p: SignalGraphProps) {
   const seen = p.autoplayKey && p.freezeAt == null && status === "ready" ? seenKey(p.autoplayKey) : null;
 
   return (
-    <div ref={root} className="sg-root relative grid grid-cols-1 items-stretch gap-4 @[880px]/sg:grid-cols-[minmax(0,1fr)_276px]">
+    <div ref={root} className="sg-root relative grid grid-cols-1 items-stretch gap-4 @max-[679px]/sg:w-[680px] @[880px]/sg:grid-cols-[minmax(0,1fr)_276px]">
       {/* First visit: hide the server-rendered settled graph until the replay starts (no flash of the ending). */}
       {seen && <script dangerouslySetInnerHTML={{ __html: `try{if(!sessionStorage.getItem(${JSON.stringify(seen)})&&!matchMedia("(prefers-reduced-motion: reduce)").matches&&!document.getElementById("sg-first")){var s=document.createElement("style");s.id="sg-first";s.textContent=".sg-root{visibility:hidden}";document.head.appendChild(s)}}catch(e){}` }} />}
       {/* ── Crustdata panel ── */}
@@ -502,7 +502,7 @@ function FitCard({ d, T, S, score, decided, failed, loading, hover, setHover, la
   const [done, setDone] = useState<string[]>([]);
   const heat = failed || loading ? 0 : f.contributions.reduce((a, k) => a + landed(k.id), 0) / Math.max(1, f.contributions.length);
   return (
-    <div data-sg="fit" className="relative flex flex-col rounded-[20px] bg-white px-4 pt-3.5 pb-4" style={{ boxShadow: "var(--dd-e2)" }}>
+    <div data-sg="fit" className="relative flex flex-col rounded-[20px] bg-white px-4 pt-3.5 pb-4 @max-[679px]/sg:sticky @max-[679px]/sg:left-0 @max-[679px]/sg:w-[100cqw]" style={{ boxShadow: "var(--dd-e2)" }}>
       <div data-sg="fit-list">
         <div className="flex items-baseline justify-between"><span className="text-[14px] font-medium text-ink">Signals into fit</span><span className="tnum text-[12px] text-zinc-500">{f.contributions.filter((k) => landed(k.id) > 0).length}/{f.contributions.length}</span></div>
         <div className="mt-1.5 flex items-center justify-between border-b border-zinc-100 pb-1 text-[11.5px] text-zinc-500"><span className="truncate">{f.base.label}</span><span className="tnum ml-3 w-9 shrink-0 text-center font-medium text-zinc-700">{un || f.base.value == null ? "—" : f.base.value}</span></div>
@@ -576,10 +576,11 @@ export function SignalSection({ aside, ...p }: SignalGraphProps & { aside?: Reac
         <div className="ml-auto flex items-center gap-3 pb-1">
           <span className="eyebrow">{p.data.eyebrow}</span>
           {aside}
-          <Btn icon={<RotateCcw className="size-3.5" />} onClick={() => setTok((n) => n + 1)} disabled={p.status === "loading"}>Replay research</Btn>
+          <Btn className="max-sm:h-10" icon={<RotateCcw className="size-3.5" />} onClick={() => setTok((n) => n + 1)} disabled={p.status === "loading"}>Replay research</Btn>
         </div>
       </div>
-      <div className="@container/sg mt-3"><SignalGraph {...p} replayToken={tok} /></div>
+      {/* Narrow screens: the graph keeps a readable width and scrolls sideways; the fit card stays pinned to the visible width. */}
+      <div className="@container/sg mt-3 overflow-x-auto overscroll-x-contain pb-1"><SignalGraph {...p} replayToken={tok} /></div>
     </section>
   );
 }

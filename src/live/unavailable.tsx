@@ -62,7 +62,7 @@ export function UnavailablePage({ screen, active, crumbs, mode, action, dock, ch
   const s = SOURCES[screen];
   return (
     <Page active={active} mode={mode} shell={liveShell} dock={dock} top={<TopBar crumbs={crumbs ?? [{ label: s.label }]} ctx={s.label} />}>
-      <div className="px-4 pb-6">
+      <div className="px-4 pb-6 max-lg:pb-24">
         <UnavailableBlock screen={screen} action={action} />
         {children && <div className="mx-auto mt-6 mb-16 w-full max-w-[560px]">{children}</div>}
       </div>

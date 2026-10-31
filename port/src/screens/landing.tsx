@@ -482,7 +482,7 @@ function Closing({ d, demo, moving, requested, onDemo, onRequest, inputRef }: { 
               <button type="submit" className="flex h-10 shrink-0 items-center gap-2 rounded-full bg-ink px-5 text-[13.5px] font-medium text-white shadow-[inset_0_1px_0_rgba(255,255,255,.12)] transition-colors hover:bg-zinc-800">{d.cta}<ArrowUpRight className="size-4 text-[#f0b48a]" /></button>
             </form>
           )}
-          <button type="button" onClick={onDemo} className="mt-5 inline-flex items-center gap-2 text-[13.5px] font-medium text-zinc-700 hover:text-ink"><span className="grid size-7 place-items-center rounded-full bg-white/80 ring-1 ring-black/[.05]"><Play className="size-3 fill-current" /></span>{demo}</button>
+          <button type="button" onClick={onDemo} className="mt-5 inline-flex min-h-10 items-center gap-2 text-[13.5px] font-medium text-zinc-700 hover:text-ink"><span className="grid size-7 place-items-center rounded-full bg-white/80 ring-1 ring-black/[.05]"><Play className="size-3 fill-current" /></span>{demo}</button>
         </div>
       </div>
     </section>
@@ -573,7 +573,7 @@ export function LandingScreen(p: LandingScreenProps) {
   // Phones and tablets get the app itself; the framed preview only makes sense on a desktop-sized window.
   const openDemo = () => { if (typeof window !== "undefined" && window.innerWidth < 1024) window.location.assign(d.demo.src); else setDemo(true); };
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#fcf8f3] pb-10 text-ink">
+    <div className="min-h-screen overflow-x-hidden bg-[#fcf8f3] pb-10 max-lg:pb-24 text-ink">
       <style>{KEYFRAMES}</style>
       <header className="relative m-3 overflow-hidden rounded-[28px] shadow-[0_1px_2px_rgba(60,20,0,.06),0_0_0_1px_rgba(120,50,10,.12)]">
         <Glow moving={moving} />

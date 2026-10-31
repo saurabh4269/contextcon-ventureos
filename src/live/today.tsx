@@ -40,7 +40,7 @@ export function LiveToday() {
   const cal = useLiveJson<{ events: Meeting[] }>(`/api/connectors/calendar/events?max=${MEETINGS_MAX}`);
   return (
     <Page active="today" shell={liveShell} dock={<TodayVoiceDock />} top={<TopBar crumbs={[{ label: "Today" }]} ctx="Today" />}>
-      <div className="mx-auto grid w-full max-w-[980px] grid-cols-1 gap-5 px-8 pt-8 pb-16 @min-[900px]/main:grid-cols-2">
+      <div className="mx-auto grid w-full max-w-[980px] grid-cols-1 gap-5 px-8 pt-8 pb-16 max-lg:pb-24 @max-[720px]/main:gap-4 @max-[720px]/main:px-4 @max-[720px]/main:pt-5 @min-[900px]/main:grid-cols-2">
         <div className="@min-[900px]/main:col-span-2">
           <h1 className="serif text-[34px] leading-none tracking-[-0.02em]">Today</h1>
           <p className="mt-2 text-[13px] text-zinc-500">{today} · times in IST</p>

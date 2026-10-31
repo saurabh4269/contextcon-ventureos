@@ -129,7 +129,7 @@ export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onS
           {TABS.map((t) => {
             const on = tab === t.id, n = tabCount(t.id);
             return (
-              <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => setTab(t.id)} className={cx("relative flex h-8 shrink-0 items-center gap-2 rounded-full px-3.5 text-[13px] whitespace-nowrap motion-safe:transition-colors @max-[720px]/main:px-2.5", on ? "font-medium text-ink" : "text-zinc-500 hover:text-ink")}>
+              <button key={t.id} type="button" role="tab" aria-selected={on} onClick={() => setTab(t.id)} className={cx("relative flex h-8 shrink-0 items-center gap-2 rounded-full max-sm:h-10 px-3.5 text-[13px] whitespace-nowrap motion-safe:transition-colors @max-[720px]/main:px-2.5", on ? "font-medium text-ink" : "text-zinc-500 hover:text-ink")}>
                 {on && <motion.span layoutId={r ? undefined : "conn-tab"} transition={{ duration: 0.3, ease: EASE }} className="absolute inset-0 rounded-full bg-white shadow-[0_0_0_1px_rgba(9,9,11,.06),0_1px_2px_rgba(9,9,11,.08)]" />}
                 <span className="relative">{t.label}</span>
                 <span className={cx("tnum relative min-w-5 rounded-full px-1.5 text-center text-[11px] leading-[18px]", t.id === "attention" && n > 0 ? "bg-warn-50 text-warn ring-1 ring-warn-100" : on ? "bg-zinc-100 text-zinc-700" : "bg-zinc-200/60 text-zinc-500")}>{n}</span>
@@ -149,7 +149,7 @@ export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onS
         {data.categories.map((c) => {
           const on = cat === c.id, n = catCount(c.id);
           return (
-            <button key={c.id} type="button" aria-pressed={on} title={on ? "Show all categories" : undefined} onClick={() => setCat(on ? null : c.id)} className={cx("flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-[12px] whitespace-nowrap motion-safe:transition-colors", on ? "border-ink bg-ink text-white" : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300", !on && n === 0 && "text-zinc-400")}>
+            <button key={c.id} type="button" aria-pressed={on} title={on ? "Show all categories" : undefined} onClick={() => setCat(on ? null : c.id)} className={cx("flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-2.5 max-sm:h-10 text-[12px] whitespace-nowrap motion-safe:transition-colors", on ? "border-ink bg-ink text-white" : "border-zinc-200 bg-white text-zinc-700 hover:border-zinc-300", !on && n === 0 && "text-zinc-400")}>
               {c.label}<span className={cx("tnum text-[11px]", on ? "text-white/60" : "text-zinc-400")}>{n}</span>{on && <X aria-hidden className="-mr-0.5 size-3 text-white/70" />}
             </button>
           );
@@ -187,7 +187,7 @@ export function ConnectorsPage({ data, initial, onConnect, onManage, onSync, onS
           <span className="mx-auto grid size-11 place-items-center rounded-2xl bg-white text-zinc-400 shadow-[var(--dd-e2)]"><Search className="size-5" strokeWidth={1.75} /></span>
           <div className="serif mt-4 text-[22px] leading-tight">{needle ? <>No connectors match “{q.trim()}”</> : "Nothing here"}</div>
           <p className="mt-1.5 text-[13px] text-zinc-500">{needle ? "Try a tool name, or search across every status and category." : "No connectors in this view."}</p>
-          <button type="button" onClick={clear} className="mt-5 inline-flex h-8 items-center rounded-full border border-zinc-200 bg-white px-3.5 text-[12.5px] font-medium shadow-[0_1px_1px_rgba(9,9,11,.04)] hover:bg-zinc-50">Clear filters</button>
+          <button type="button" onClick={clear} className="mt-5 inline-flex h-8 items-center rounded-full max-sm:h-10 border border-zinc-200 bg-white px-3.5 text-[12.5px] font-medium shadow-[0_1px_1px_rgba(9,9,11,.04)] hover:bg-zinc-50">Clear filters</button>
         </div>
       )}
 
@@ -301,7 +301,7 @@ function StatusLine({ c }: { c: Connector }) {
   return <span className="text-[12px] text-zinc-400">Not connected</span>;
 }
 
-const BTN = "inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[12.5px] font-medium motion-safe:transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
+const BTN = "inline-flex h-8 max-sm:h-10 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[12.5px] font-medium motion-safe:transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink";
 const BTN_GHOST = "border border-zinc-200 bg-white text-zinc-700 shadow-[0_1px_1px_rgba(9,9,11,.04)] hover:border-zinc-300 hover:text-ink";
 function Action({ c, onConnect, onManage }: { c: Connector; onConnect: (id: string) => void; onManage: (id: string) => void }) {
   if (c.catalogueOnly) return <span className="inline-flex h-8 items-center text-[12px] text-zinc-400" title="Not integrated in this build — shown so you can see what it would do.">Not built yet</span>;
@@ -503,7 +503,7 @@ function ManageSheet({ c, cat, agents, onClose, patch, onSync, onScope, onDiscon
             {confirm ? (
               <motion.div key="confirm" initial={r ? false : { opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, transition: { duration: r ? 0 : 0.12 } }} className="flex items-center gap-3" role="alertdialog" aria-label={`Disconnect ${nameOf(c)}?`}>
                 <p className="min-w-0 flex-1 text-[12.5px] leading-snug text-zinc-600">{used.length ? <>{used.length === 1 ? "1 agent" : `${used.length} agents`} will pause at any step that needs {nameOf(c)}.</> : <>Agents lose access to {nameOf(c)}.</>}</p>
-                <button type="button" onClick={() => setConfirm(false)} className={cx(BTN, "h-8 text-zinc-600 hover:bg-zinc-100")}>Cancel</button>
+                <button type="button" onClick={() => setConfirm(false)} className={cx(BTN, "h-8 max-sm:h-10 text-zinc-600 hover:bg-zinc-100")}>Cancel</button>
                 <button type="button" onClick={disconnect} disabled={busy} className={cx(BTN, "bg-rust text-white hover:bg-[#86390c] disabled:opacity-80")}>{busy ? <Loader2 className="size-3.5 motion-safe:animate-spin" /> : <Unplug className="size-3.5" />}Disconnect</button>
               </motion.div>
             ) : (
