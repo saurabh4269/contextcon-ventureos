@@ -15,8 +15,10 @@ export default function Memo({ searchParams }: { searchParams: Promise<Q> }) {
   const status = (["loading", "empty", "error"] as const).find((s) => s === q.status) as LoadStatus | undefined;
   const mode = useDataMode();
   // Live mode: ?id=<domain> (or no id → the latest deal worked on) is the same memo screen fed from decisions + research.
-  // Fixture variants (?id=helio, ?status=, ?priors=, ?pin=) keep the fixtures.
-  if (mode === "live" && q.id !== "helio" && !q.status && !q.priors && !q.pin) return <LiveMemoScreen shell={liveShellFrom(shellInvest)} id={q.id?.trim() || undefined} />;
+  // In demo mode a domain id (the live deal page's "IC memo" button) opens that deal's own live memo too, never the
+  // sample memo. Fixture variants (?id=helio, other ids without a dot, ?status=, ?priors=, ?pin=) keep the fixtures.
+  const domainId = q.id?.trim().includes(".") ? q.id.trim() : undefined;
+  if ((mode === "live" || domainId) && q.id !== "helio" && !q.status && !q.priors && !q.pin) return <LiveMemoScreen shell={mode === "live" ? liveShellFrom(shellInvest) : shellInvest} id={domainId ?? (q.id?.trim() || undefined)} />;
   if (q.id === "helio") return (
     <MemoScreen shell={shellInvest} data={helioMemoDoc} status={status} error="Couldn’t load the Helio Sensors memo" onRetry={() => window.location.reload()} pinSources={q.pin === "1"}
       initial={{ share: q.share === "1", vote: q.vote === "1" || q.queued === "1", queued: q.queued === "1", edit: q.edit, override: q.override === "0" ? false : undefined, cite: q.cite ? Number(q.cite) : undefined }} />
