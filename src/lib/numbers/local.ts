@@ -29,7 +29,8 @@ export type Peer = {
 export type PeerSearch = { call: LiveCall<Peer[]>; matched: ("sector" | "stage" | "geo")[] };
 
 const MANDATE_ENDPOINT = "GET /api/settings/mandate";
-const mandateCite = (m: Mandate, path: string): Citation => ({ source: "Firm mandate (entered in Settings)", endpoint: MANDATE_ENDPOINT, path, url: "/settings/mandate", retrievedAt: m.updatedAt ?? undefined });
+// A mandate from MANDATE_JSON has no save time; its values are cited to the server env, read at readAt.
+const mandateCite = (m: Mandate, path: string): Citation => ({ source: m.origin === "env" ? "Firm mandate (MANDATE_JSON, server env)" : "Firm mandate (entered in Settings)", endpoint: MANDATE_ENDPOINT, path, url: "/settings/mandate", retrievedAt: m.updatedAt ?? m.readAt ?? undefined });
 const crust = (call: LiveCall, path: string): Citation => ({ source: "Crustdata", endpoint: `${call.method} ${call.path}`, path, retrievedAt: call.retrievedAt ?? undefined, ...(call.stale ? { stale: true, note: call.note } : {}) });
 const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 const usd = (n: number) => fmtMoney(money(n, "USD"));

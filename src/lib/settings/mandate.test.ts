@@ -95,6 +95,14 @@ describe("MANDATE_JSON: one mandate source", () => {
     expect(r).toMatchObject({ ok: false, status: 409, message: expect.stringMatching(/MANDATE_JSON.*DATABASE_URL/) });
     expect(await s.source()).toMatchObject({ mandate: { sectors: ["B2B SaaS"] }, source: { kind: "env", writable: false } });
   });
+  it("MANDATE_JSON values are cited (origin env, read time), so priors are not withheld as uncited", async () => {
+    const { returnMultiple } = await import("@/lib/numbers/local");
+    const { enforceCited } = await import("@/lib/provenance");
+    const m = await createMandateStore({ docs: createMemoryDocStore(), seed }).get();
+    expect(m).toMatchObject({ origin: "env", updatedAt: null, readAt: expect.stringMatching(/Z$/) });
+    const f = enforceCited({ r: returnMultiple(m, "low") }).r!;
+    expect(f).toMatchObject({ status: "ok", value: 3, citations: [{ source: "Firm mandate (MANDATE_JSON, server env)" }] });
+  });
   it("ignores an invalid seed", async () => {
     expect((await createMandateStore({ docs: createMemoryDocStore(), seed: "{nope" }).get()).sectors).toEqual([]);
   });

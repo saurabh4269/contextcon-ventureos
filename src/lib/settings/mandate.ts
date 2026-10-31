@@ -21,6 +21,9 @@ export type Mandate = {
   /** partners a deal meeting can be booked with, by sector focus (optional; the deal workflow's schedule step uses it) */
   partners?: { name: string; focus: string[] }[];
   updatedAt: string | null;
+  /** set by the store: "env" = MANDATE_JSON, with readAt = when the server read it (the citation time of its values) */
+  origin?: "settings" | "env";
+  readAt?: string;
 };
 
 export const EMPTY_MANDATE: Mandate = { sectors: [], stages: [], geos: [], checkSizeUsd: {}, priors: {}, updatedAt: null };
@@ -136,10 +139,11 @@ export function createMandateStore(opts: { docs: DocStore; seed?: string | null;
   };
   const resolve = async (): Promise<{ mandate: Mandate; source: MandateSource }> => {
     const storage = opts.docs.info();
-    if (!storage.durable && seed) return { mandate: seed, source: { kind: "env", writable: false, storage, note: `From MANDATE_JSON. ${storage.note} So the env mandate is the one source; change MANDATE_JSON or set DATABASE_URL to edit it here.` } };
+    const env = seed ? { ...seed, origin: "env" as const, readAt: new Date().toISOString() } : null;
+    if (!storage.durable && env) return { mandate: env, source: { kind: "env", writable: false, storage, note: `From MANDATE_JSON. ${storage.note} So the env mandate is the one source; change MANDATE_JSON or set DATABASE_URL to edit it here.` } };
     const s = await stored();
-    if (s) return { mandate: s, source: { kind: "stored", writable: true, storage, note: `Saved in Settings. ${storage.note}` } };
-    if (seed) return { mandate: seed, source: { kind: "env", writable: true, storage, note: "From MANDATE_JSON until you save a mandate here." } };
+    if (s) return { mandate: { ...s, origin: "settings" }, source: { kind: "stored", writable: true, storage, note: `Saved in Settings. ${storage.note}` } };
+    if (env) return { mandate: env, source: { kind: "env", writable: true, storage, note: "From MANDATE_JSON until you save a mandate here." } };
     return { mandate: EMPTY_MANDATE, source: { kind: "unset", writable: true, storage, note: `No mandate yet. ${storage.note}` } };
   };
   return {
