@@ -1,4 +1,4 @@
-import type { MandateGate, MandatesData } from "../types";
+import type { MandateGate, MandatesData } from "../../src/types";
 import { halyardFootballField } from "./valuation";
 
 const ms = (n: number, active: boolean): MandatesData["buyers"][number]["milestones"] =>

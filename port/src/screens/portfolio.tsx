@@ -144,7 +144,7 @@ function Table({ d, filter, setFilter, sel, onSelect }: { d: PortfolioData; filt
         </span>
       </div>
       <div className={cx("grid h-10 items-center border-y border-zinc-100 bg-zinc-50/50 px-4 text-[11.5px] text-zinc-500", COLS)}>
-        <span>Company</span><span className="text-right">ARR</span><span className={cx(WIDE, "justify-center")}>6 months</span><span title={`Tick marks the ${d.alertLineMonths} mo alert line`}>Runway</span><span className={WIDE}>Update</span><span className="pr-[22px] text-right">Status</span>
+        <span>Company</span><span className="text-right">ARR</span><span className={cx(WIDE, "justify-center")}>Trend</span><span title={`Tick marks the ${d.alertLineMonths} mo alert line`}>Runway</span><span className={WIDE}>Update</span><span className="pr-[22px] text-right">Status</span>
       </div>
       <ul>
         <AnimatePresence initial={false}>{shown.map((c, i) => <Row key={c.id} c={c} d={d} i={i} sel={sel === c.id} onSelect={() => onSelect(c.id)} />)}</AnimatePresence>

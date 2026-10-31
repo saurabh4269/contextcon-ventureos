@@ -1,4 +1,4 @@
-import type { ShellData } from "../types";
+import type { ShellData } from "../../src/types";
 import { askByPage } from "./assistant";
 
 export const shellInvest: ShellData = {

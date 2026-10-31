@@ -1,5 +1,5 @@
-import type { PortfolioCompany, PortfolioData } from "../types";
-import { ROUTES } from "../routes";
+import type { PortfolioCompany, PortfolioData } from "../../src/types";
+import { ROUTES } from "../../src/routes";
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 /** Five months of runway ending at `end` in `last`, falling `step` months each month (no raise in between). */

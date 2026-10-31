@@ -44,7 +44,8 @@ export function Cite({ n, onCite, on }: { n: number; onCite?: (n: number) => voi
   );
 }
 /** Strips the markup for plain contexts (exports, aria). */
-export const plain = (t: MemoText) => t.replace(/\*\*([^*]+)\*\*/g, "$1").replace(/\s*\[\d+\]/g, "").trim();
+export const plain = (t: MemoText) => t.replace(/\*\*([^*]+)\*\*/g, "$1") // data-literal-ok: regex backreference, not money
+  .replace(/\s*\[\d+\]/g, "").trim();
 
 /* ---------- companion rail ---------- */
 const CARD = "rounded-[16px] border border-zinc-200/70 bg-white shadow-[0_1px_2px_rgba(9,9,11,.03),0_12px_32px_-22px_rgba(9,9,11,.14)]";

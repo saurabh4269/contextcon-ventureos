@@ -1,4 +1,4 @@
-import type { PipelineBoardData, PipelineDeal, PipelineHeader, Stage, WatchlistData } from "../types";
+import type { PipelineBoardData, PipelineDeal, PipelineHeader, Stage, WatchlistData } from "../../src/types";
 
 const co = (id: string, name: string, line: string, dark?: boolean) => ({ id, name, initial: name[0], line, ...(dark ? { dark } : {}) });
 
@@ -74,7 +74,7 @@ export const pipelineTable = {
     { id: "ac3", label: "Logged Ledgerly call notes", at: "Yesterday", undoable: true },
     { id: "ac4", label: "Moved Tallyfi to Passed", at: "Yesterday", undoable: true },
   ],
-} satisfies import("../types").PipelineTableData;
+} satisfies import("../../src/types").PipelineTableData;
 
 /** Board = same deals + more per column. Moves: PATCH /api/deals/[id] {stage} (@assumed), logged + undoable. */
 export const pipelineBoard: PipelineBoardData = { header: pipelineHeader, stages, deals: [...pipelineDeals, ...boardExtra] };

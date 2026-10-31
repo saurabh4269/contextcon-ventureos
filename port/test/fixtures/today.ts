@@ -1,4 +1,4 @@
-import type { OutboundItem, TodayData } from "../types";
+import type { OutboundItem, TodayData } from "../../src/types";
 
 const nexa = { id: "nexaflow", name: "NexaFlow", initial: "N", dark: true };
 

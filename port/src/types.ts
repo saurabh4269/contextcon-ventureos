@@ -44,7 +44,8 @@ export interface ShellData {
   firm?: { name: string; sub: string; initial: string };
   /** Badge per nav item (Today = needs-you count, Pipeline = active deals …). */
   badges: Partial<Record<Nav, NavBadge>>;
-  agentsWorking: number;
+  /** Absent when no agent runtime reports it (nothing is shown). */
+  agentsWorking?: number;
   /** Shows the red dot on the bell. */
   unreadNotifications?: boolean;
   /** v3.2 · what the dock shows when opened with ⌘J on a page that brings no dock of its own. */
@@ -884,8 +885,10 @@ export interface SignalGraphData {
     label: string;
     /** No score can be computed (e.g. no firm thesis/scoring model): the tile shows "—" and this reason, never a number. */
     unscored?: { reason: string };
-    base: { label: string; value: number };
-    threshold: { value: number; label: string };
+    /** `value` null when unscored (no thesis model) — rendered as "—". */
+    base: { label: string; value: number | null };
+    /** Firm's "strong" line; absent when there is no firm thesis to take it from. */
+    threshold?: { value: number; label: string };
     /** Band names by fitBand(score), the same as Today’s fit pill. */
     bands: Record<FitBand, string>;
     contributions: SignalContribution[];
@@ -1080,6 +1083,8 @@ export interface Connector {
   scopes?: ConnectorScope[];
   activity?: ConnectorEvent[];
   api?: ConnectorApi;
+  /** Catalogue tile for a tool Deal Desk does not integrate yet: no Connect/test/status, just what it would do. */
+  catalogueOnly?: boolean;
 }
 export interface ConnectorUse { id: ID; label: string; detail: string; stat: string }
 export interface ConnectorsData {
@@ -1184,7 +1189,8 @@ export type DealSection =
   | (DealSectionBase & { kind: "customers"; stats: { id: ID; label: string; value: string }[]; plants: { months: string[]; values: number[] }; rows: CustomerRow[]; unit: "K" })
   | (DealSectionBase & { kind: "market"; sizes: MarketSize[]; comps: CompRow[] })
   | (DealSectionBase & { kind: "cap"; round: { label: string; value: string }[]; rows: CapRow[] })
-  | (DealSectionBase & { kind: "valuation"; valuation: Valuation; stats: { id: ID; label: string; value: string; sub?: string }[] });
+  /** `valuation` absent ⇒ the football field is unavailable; `unavailable` says why (shown instead of the chart). */
+  | (DealSectionBase & { kind: "valuation"; valuation?: Valuation; unavailable?: string; stats: { id: ID; label: string; value: string; sub?: string; hint?: string }[] });
 export interface DealData {
   /** v4 · diligence alert card at the top of the main section. */
   alert?: DiligenceAlert;

@@ -1,10 +1,11 @@
 // GET /api/integrations/connectors → the Settings › Connectors UI (port ConnectorsData).
 // Only the real connectors (API ids below) take their status from the API. Catalogue tiles (Affinity, Attio, Carta,
-// PitchBook, HubSpot, Notion …) stay "available" and have no status/login/test wiring. Fixture-only content that would
-// read as live activity (invented activity feeds, "412 this week" call counts) is removed in live mode.
+// PitchBook, HubSpot, Notion …) stay "available" and have no status/login/test wiring. Content that
+// would read as live activity (feeds, call counts, sync times) does not exist in the catalogue (src/lib/connectors/catalogue.ts).
 import type { Connector, ConnectorsData } from "@port/types";
-import { FIXTURE_CREDITS } from "@/lib/crustdata/credits";
+import { CREDIT_COSTS } from "@/lib/crustdata/credits";
 import type { IntegrationInfo, IntegrationsResponse } from "@/lib/live/types";
+import { fmtAgo } from "@/lib/format";
 
 /** API connector id → the UI connector ids it drives (Google Calendar status also drives the Meet tile). */
 export const UI_IDS_BY_API_ID: Record<string, string[]> = {
@@ -17,24 +18,17 @@ export const UI_IDS_BY_API_ID: Record<string, string[]> = {
   calendar: ["calendar", "googlemeet"],
 };
 
-/** "3m ago" style; deterministic given `now`. */
-export function ago(iso: string | null, now: Date = new Date()): string {
-  if (!iso) return "never";
-  const s = Math.max(0, Math.round((now.getTime() - new Date(iso).getTime()) / 1000));
-  if (s < 45) return "just now";
-  if (s < 3600) return `${Math.round(s / 60)}m ago`;
-  if (s < 86400) return `${Math.round(s / 3600)}h ago`;
-  return `${Math.round(s / 86400)}d ago`;
-}
+/** "3m ago" from the last health check (absolute time is in the API response). */
+export const ago = (iso: string | null, now: Date = new Date()) => fmtAgo(iso, now);
 
 /** Per-call cost labels for the Crustdata manage sheet (documented pricing; replaces invented call counts). */
 const CRUSTDATA_COST: Record<string, string> = {
-  "/company/identify": `${FIXTURE_CREDITS.identify} cr`,
-  "/company/enrich": `${FIXTURE_CREDITS.enrichCompany} cr`,
-  "/person/enrich": `${FIXTURE_CREDITS.personEnrich} cr`,
-  "/person/search": `${FIXTURE_CREDITS.personSearchFounderPerRow} cr/row`,
-  "/job/search": `${FIXTURE_CREDITS.jobSearchPerRow} cr/row`,
-  "/web/search/live": `${FIXTURE_CREDITS.webSearchLive} cr`,
+  "/company/identify": `${CREDIT_COSTS.identify} cr`,
+  "/company/enrich": `${CREDIT_COSTS.enrichCompany} cr`,
+  "/person/enrich": `${CREDIT_COSTS.personEnrich} cr`,
+  "/person/search": `${CREDIT_COSTS.personSearchFounderPerRow} cr/row`,
+  "/job/search": `${CREDIT_COSTS.jobSearchPerRow} cr/row`,
+  "/web/search/live": `${CREDIT_COSTS.webSearchLive} cr`,
   "/watch/company": "not used",
 };
 
@@ -51,8 +45,6 @@ function applyStatus(c: Connector, info: IntegrationInfo, now: Date): Connector 
       return { ...base, status: "available", lastSynced: undefined, issue: undefined, usedBy: undefined, scope: `Not connected · set ${info.env.join(" or ")}` };
     case "error":
       return { ...base, status: "attention", lastSynced: ago(info.lastCheckedAt, now), issue: hint };
-    case "demo":
-      return { ...base, status: "attention", lastSynced: "never", issue: "Fixture mode · no live calls" };
   }
 }
 
@@ -69,7 +61,7 @@ export function toLiveConnectors(catalogue: ConnectorsData, res: IntegrationsRes
       return out;
     }
     // catalogue-only tile: never connected in this build
-    return { ...c, status: "available" as const, activity: undefined, syncing: false, lastSynced: undefined, issue: undefined };
+    return { ...c, status: "available" as const, catalogueOnly: true, activity: undefined, syncing: false, lastSynced: undefined, issue: undefined };
   });
   const crust = byUi.get("crustdata");
   const featured = catalogue.featured && {
@@ -82,13 +74,13 @@ export function toLiveConnectors(catalogue: ConnectorsData, res: IntegrationsRes
           crust?.status !== "connected"
             ? "Not connected"
             : u.id === "company"
-              ? `${FIXTURE_CREDITS.enrichCompany} credits / company`
+              ? `${CREDIT_COSTS.enrichCompany} credits / company`
               : u.id === "person"
-                ? `${FIXTURE_CREDITS.personEnrich} credit / profile`
+                ? `${CREDIT_COSTS.personEnrich} credit / profile`
                 : u.id === "jobs"
-                  ? `${FIXTURE_CREDITS.jobSearchPerRow} credits / role`
+                  ? `${CREDIT_COSTS.jobSearchPerRow} credits / role`
                   : u.id === "web"
-                    ? `${FIXTURE_CREDITS.webSearchLive} credit / search`
+                    ? `${CREDIT_COSTS.webSearchLive} credit / search`
                     : "Live",
       })),
   };

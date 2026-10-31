@@ -13,7 +13,7 @@ import { MandatesScreen } from "../src/screens/mandates";
 import { DealScreen, RestrictedDealScreen } from "../src/screens/deal";
 import { DataRoomScreen } from "../src/screens/dataroom";
 import { MemoScreen } from "../src/screens/memo";
-import { helioMemoDoc } from "../src/fixtures/heliomemo";
+import { helioMemoDoc } from "./fixtures/heliomemo";
 import { BrainScreen } from "../src/screens/brain";
 import { SettingsScreen } from "../src/screens/settings";
 import { SlackPreviewScreen, SlackStateScreen } from "../src/screens/slackpreview";
@@ -31,7 +31,7 @@ import { BookCall } from "../src/components/meeting";
 import { ConnectModal, ConnectChip } from "../src/components/connect";
 import { AgentsScreen } from "../src/screens/agents";
 import { LandingScreen } from "../src/screens/landing";
-import * as F from "../src/fixtures";
+import * as F from "./fixtures";
 import type { LoadStatus, SettingsSection } from "../src/types";
 
 const cases: [string, ReactElement][] = [];

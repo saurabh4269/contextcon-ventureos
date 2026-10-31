@@ -3,13 +3,14 @@
 // "not in pipeline" / empty tabs (the screen's own empty states) instead of invented activity.
 import type { PersonData, PersonEvent, SourceRef } from "@port/types";
 import type { LiveEmployment, LivePerson } from "@/lib/live/types";
+import { fmtDate, fmtDateTime, fmtMonthYear } from "@/lib/format";
 
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
-const ym = (d?: string) => (d ? new Date(`${d.slice(0, 7)}-01T00:00:00Z`).toLocaleString("en-US", { month: "short", year: "numeric", timeZone: "UTC" }) : undefined);
+const ym = (d?: string) => fmtMonthYear(d);
 const span = (e: LiveEmployment) => [ym(e.start), e.end ? ym(e.end) : "now"].filter(Boolean).join(" – ");
 
 export function toLivePerson(p: LivePerson, opts: { retrievedAt?: string | null; linkedinUrl: string; domain?: string }): PersonData {
-  const src = (field: string): SourceRef => ({ kind: "crust", label: field, provider: "crustdata", ...(opts.retrievedAt ? { asOf: `retrieved ${opts.retrievedAt.slice(0, 10)}` } : {}) });
+  const src = (field: string): SourceRef => ({ kind: "crust", label: field, provider: "crustdata", ...(opts.retrievedAt ? { asOf: `retrieved ${fmtDate(opts.retrievedAt)}` } : {}) });
   const cur = (opts.domain ? p.current.find((e) => e.companyDomain === opts.domain) : undefined) ?? p.current[0];
   const slug = opts.linkedinUrl.replace(/\/$/, "").split("/").pop()!;
   const career: PersonEvent[] = [...p.current, ...p.past].map((e, i) => ({
@@ -52,9 +53,9 @@ export function toLivePerson(p: LivePerson, opts: { retrievedAt?: string | null;
         ...(p.schools[0] ? [`${p.schools[0].degree ? `${p.schools[0].degree}, ` : ""}${p.schools[0].school}`] : []),
       ],
       sources: [src("/person/enrich")],
-      updated: opts.retrievedAt ? `From Crustdata · retrieved ${opts.retrievedAt.slice(0, 16).replace("T", " ")}Z` : "From Crustdata",
+      updated: opts.retrievedAt ? `From Crustdata · retrieved ${fmtDateTime(opts.retrievedAt)}` : "From Crustdata",
     },
-    queue: { label: "Live profile", index: 1, total: 1 },
+    queue: { label: "Live profile", index: 1, total: 1 }, // a single profile, not a queue
     groups: [
       ...(career.length ? [{ id: "career", label: "Career · Crustdata", events: career }] : []),
       ...(education.length ? [{ id: "edu", label: "Education · Crustdata", events: education }] : []),

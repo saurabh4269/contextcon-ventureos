@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Plus, Plug, Lock, Mail, MessageSquare, GripVertical, UserPlus, Download, KeyRound, ShieldAlert, Check, Loader2, Workflow, Users, FileArchive, Blocks, ArrowRight, Settings2 } from "lucide-react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Page, TopBar } from "../components/shell";
@@ -11,6 +11,10 @@ import { WallBadge } from "../components/wall";
 import { ScreenSkeleton, ErrorState, EmptyState } from "../components/states";
 import { TOOL_NAME } from "../components/tools";
 import type { FirmConfig, ScreenStatus, SettingsData, SettingsSection, ShellData, AccessDeniedRow } from "../types";
+
+/** Only the connectors are known (no firm config/members source): the other sections render `unavailable`. */
+export type SettingsConnectorsOnly = Pick<SettingsData, "isAdmin" | "connectors">;
+const isFull = (d: SettingsData | SettingsConnectorsOnly): d is SettingsData => "config" in d && !!d.config;
 
 export interface SettingsScreenProps extends ScreenStatus {
   shell: ShellData;
@@ -62,11 +66,13 @@ const Card = ({ title, sub, meta, right, children, className, i = 1 }: { title: 
   </Rise>
 );
 
-export function SettingsScreen(p: SettingsScreenProps) {
-  const { data: d, status = "ready" } = p;
+export function SettingsScreen(props: Omit<SettingsScreenProps, "data"> & { data: SettingsData | SettingsConnectorsOnly; /** shown instead of a section whose data is not available */ unavailable?: (section: SettingsSection) => ReactNode }) {
+  const { data: d, status = "ready" } = props;
+  const p = props as SettingsScreenProps;
   const visible = SECTIONS.filter((s) => !s.admin || d.isAdmin);
   const section: SettingsSection = p.section === "integrations" ? "connectors" : p.section ?? "workflow"; // "integrations" is the v3 alias
-  const wide = section === "connectors";
+  const blocked = section !== "connectors" && !isFull(d);
+  const wide = section === "connectors" || blocked;
   const label = SECTIONS.find((s) => s.id === section)?.label ?? "Settings";
   return (
     <Page active="settings" shell={p.shell} top={<TopBar crumbs={[{ label: "Settings" }, { label }]} ctx="Settings" />}>
@@ -80,13 +86,15 @@ export function SettingsScreen(p: SettingsScreenProps) {
             </button>); })}</div>
         </nav>
         <section className={cx("min-w-0 pt-7 pb-12", wide ? "px-9" : "px-10")}>
+          {blocked ? (props.unavailable?.(section) ?? <EmptyState title="Not available" body="This section has no data source in this build." />) : <>
           {section === "workflow" && <WorkflowSection {...p} />}
           {section === "connectors" && <ConnectorsPage data={d.connectors} initial={p.connectorsView} onConnect={p.onConnect} onManage={p.onManageConnector} onSync={p.onSyncConnector} onScope={p.onConnectorScope} onDisconnect={p.onDisconnect} demo={p.connectorsDemo} />}
           {section === "members" && <MembersSection {...p} />}
           {section === "access" && (d.isAdmin ? <AccessSection {...p} /> : <EmptyState title="Admins only" body="The access audit lists who was denied access to walled deals. Ask a firm admin." />)}
           {section === "export" && <ExportSection {...p} />}
+          </>}
         </section>
-        {!wide && <aside className="border-l border-zinc-200/70 bg-white px-6 pt-6">
+        {!wide && isFull(d) && <aside className="border-l border-zinc-200/70 bg-white px-6 pt-6">
           {section === "members" ? <RolesAside d={d} /> : section === "access" ? <AccessAside /> : section === "export" ? <ExportAside d={d} /> : <BriefsAside {...p} />}
         </aside>}
       </div>
@@ -193,7 +201,7 @@ function AccessSection(p: SettingsScreenProps) {
   return (
     <>
       <div className="flex items-end justify-between">
-        <div><h1 className="serif text-[32px] leading-none">Access audit</h1><div className="mt-2 text-[13px] text-zinc-500"><span className="tnum">{rows.length}</span> denied · last 30 days</div></div>
+        <div><h1 className="serif text-[32px] leading-none">Access audit</h1><div className="mt-2 text-[13px] text-zinc-500"><span className="tnum">{rows.length}</span> denied in this period</div></div>
         <IconBtn icon={<Download />} label="Export CSV" onClick={p.onExportAudit} />
       </div>
       <div className="mt-5 flex items-center gap-1.5">{(["all", ...surfaces] as const).map((s) => <Chip key={s} on={f === s} onClick={() => setF(s)}>{s === "all" ? "All" : SURFACE[s]}</Chip>)}</div>
@@ -223,7 +231,7 @@ function AccessAside() {
         <li className="flex gap-2"><Check className="mt-0.5 size-3.5 shrink-0 text-ok" />Who asked, from where, and the code name they saw</li>
         <li className="flex gap-2"><Lock className="mt-0.5 size-3.5 shrink-0" />The person who was denied sees a private note. Nobody else is told.</li>
       </ul>
-      <div className="mt-5 rounded-xl bg-zinc-50 p-3.5 text-[12px] text-zinc-600">Kept 7 years for compliance. Read-only. Rows can’t be edited or deleted.</div>
+      <div className="mt-5 rounded-xl bg-zinc-50 p-3.5 text-[12px] text-zinc-600">Kept for compliance per your firm’s retention policy. Read-only. Rows can’t be edited or deleted.</div>
     </>
   );
 }
@@ -282,7 +290,7 @@ function ExportAside({ d }: { d: SettingsData }) {
     <>
       <div className="eyebrow">Where your data goes</div>
       <div className="mt-3 space-y-2.5 text-[12.5px] leading-snug text-zinc-600">
-        <div className="flex gap-2"><Lock className="mt-0.5 size-3.5 shrink-0" />Bundles are built on request and expire after 24 hours.</div>
+        <div className="flex gap-2"><Lock className="mt-0.5 size-3.5 shrink-0" />Bundles are built on request; download links expire.</div>
         <div className="flex gap-2"><KeyRound className="mt-0.5 size-3.5 shrink-0" />With your own keys, prompts go straight to your provider under your contract.</div>
       </div>
       <div className="mt-5 rounded-xl border border-zinc-200 bg-zinc-50/60 p-4"><div className="flex items-center gap-2 text-[13px] font-medium"><Plug className="size-4" />MCP access</div><div className="mt-2 font-mono text-[11px] text-zinc-500">{d.mcp.url}</div></div>

@@ -1,4 +1,4 @@
-import type { SlackMessage } from "../types";
+import type { SlackMessage } from "../../src/types";
 
 /** Outbound hold approval — the same card goes to Teams as an Adaptive Card. */
 export const slackHoldApproval: SlackMessage = {

@@ -33,9 +33,6 @@ export function Sidebar({ active, mode = "invest", shell, onSearch, onAsk }: { a
         <span className="flex size-7 items-center justify-center rounded-[7px] bg-ink font-serif text-[16px] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.15)]">D</span>
         <span className="serif text-[16px] text-ink">Deal Desk</span>
       </div>
-      <div className="mx-3 mt-3 grid grid-cols-2 rounded-lg bg-zinc-200/60 p-0.5 text-[11.5px]">
-        {(["invest", "bank"] as const).map((m) => <Link key={m} href={ROUTES.today(m)} aria-current={m === mode ? "page" : undefined} className={cx("rounded-md py-1 text-center", m === mode ? "bg-white font-medium text-ink shadow-sm" : "text-zinc-500 hover:text-ink")}>{m === "invest" ? "Investing" : "Banking"}</Link>)}
-      </div>
       <div className="px-3 pt-3">
         <button type="button" onClick={onSearch} className="flex h-8 w-full items-center gap-2 rounded-lg px-2.5 text-[12.5px] text-zinc-500 hover:bg-zinc-200/50">
           <Search className="size-3.5" /> Search
@@ -51,7 +48,7 @@ export function Sidebar({ active, mode = "invest", shell, onSearch, onAsk }: { a
           <div key={gi} className={cx("space-y-px", gi > 0 && "mt-4")}>
             {g.label && <div className="px-2.5 pb-1 text-[11px] text-zinc-400">{g.label}</div>}
             {g.items.map((it) => {
-              const I = it.icon, on = it.id === active, badge = b[it.id], live = it.id === "agents" && shell.agentsWorking > 0;
+              const I = it.icon, on = it.id === active, badge = b[it.id], live = it.id === "agents" && (shell.agentsWorking ?? 0) > 0;
               return (
                 <Link key={it.id} href={navHref[it.id](mode)} aria-current={on ? "page" : undefined} className={cx("group flex h-8 cursor-pointer items-center gap-2.5 rounded-md px-2.5 text-[13px]", on ? "bg-white font-medium text-ink shadow-[0_1px_2px_rgba(9,9,11,.06)] ring-1 ring-zinc-200/80" : "text-zinc-600 hover:bg-zinc-200/50")}>
                   <I className={cx("size-[15px]", on ? "text-ink" : "text-zinc-500")} strokeWidth={1.75} />
@@ -100,7 +97,7 @@ function AskPill({ ctx, onAsk, wide }: { ctx?: string; onAsk?: () => void; wide?
 /** v3.2 · the signed-in user, provided by <Page> so every TopBar can show the avatar without prop drilling. */
 const MeContext = createContext<{ initials: string; name: string } | undefined>(undefined);
 
-export function TopBar({ crumbs, right, ctx = "All deals", ask = true, bell = true, onAsk, pill = true, lead, me }: { crumbs: Crumb[]; right?: ReactNode; ctx?: string; ask?: boolean; bell?: boolean; onAsk?: () => void; pill?: boolean; /** left slot (e.g. page title + date); replaces the back link */ lead?: ReactNode; /** signed-in user, shown as an avatar after the bell */ me?: { initials: string; name: string } }) {
+export function TopBar({ crumbs, right, ctx = "All deals", ask = true, bell = false, onAsk, pill = true, lead, me }: { crumbs: Crumb[]; right?: ReactNode; ctx?: string; ask?: boolean; bell?: boolean; onAsk?: () => void; pill?: boolean; /** left slot (e.g. page title + date); replaces the back link */ lead?: ReactNode; /** signed-in user, shown as an avatar after the bell */ me?: { initials: string; name: string } }) {
   const ctxMe = useContext(MeContext);
   me = me ?? ctxMe;
   return (

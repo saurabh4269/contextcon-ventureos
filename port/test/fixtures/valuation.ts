@@ -1,4 +1,4 @@
-import type { DealHeader, Valuation } from "../types";
+import type { DealHeader, Valuation } from "../../src/types";
 
 /** GET /api/deals/[id]/valuation — invest mode is always pre-money. */
 export const nexaValuation: Valuation = {

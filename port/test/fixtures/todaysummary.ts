@@ -1,6 +1,6 @@
 /** v3.2 · The new Today: ask card + one metric, a hero number, and the work list with fit scores from data. */
-import type { TodaySummaryData, WorkRow } from "../types";
-import { ROUTES } from "../routes";
+import type { TodaySummaryData, WorkRow } from "../../src/types";
+import { ROUTES } from "../../src/routes";
 import { helioLive, helioFit } from "./helio";
 import { nextMeetings } from "./meetings";
 

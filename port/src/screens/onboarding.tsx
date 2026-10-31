@@ -146,7 +146,7 @@ export function OnboardingScreen(p: OnboardingScreenProps) {
             </div>
             <div className="mt-6 rounded-xl border border-dashed border-zinc-300 bg-zinc-50/60 p-5 text-center">
               <div className="serif text-[20px]">Nothing needs you yet</div>
-              <div className="mt-1 text-[12.5px] text-zinc-500">Your first brief lands tomorrow at 08:00.</div>
+              <div className="mt-1 text-[12.5px] text-zinc-500">Your first brief lands at the time you set.</div>
             </div>
           </Rise>
         </div>

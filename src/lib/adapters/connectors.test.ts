@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { connectors } from "@port/fixtures/connectors";
+import { connectorCatalogue as connectors } from "@/lib/connectors/catalogue";
 import { toLiveConnectors } from "./connectors";
 import type { IntegrationInfo, IntegrationsResponse } from "@/lib/live/types";
 
@@ -7,7 +7,7 @@ const now = new Date("2026-10-31T06:00:00Z");
 const info = (id: string, status: IntegrationInfo["status"], over: Partial<IntegrationInfo> = {}): IntegrationInfo => ({
   id, name: id, status, mode: status === "connected" ? "live_check" : "env", wired: id === "crustdata", detail: `${id} detail`, env: [`${id.toUpperCase()}_KEY`], docsUrl: "https://x", lastCheckedAt: status === "connected" ? "2026-10-31T05:58:00Z" : null, ...over,
 });
-const res = (list: IntegrationInfo[]): IntegrationsResponse => ({ dataMode: "live", checkedAt: now.toISOString(), connectors: list });
+const res = (list: IntegrationInfo[]): IntegrationsResponse => ({ checkedAt: now.toISOString(), connectors: list });
 const ids = ["crustdata", "llm", "agentmail", "slack", "fireflies", "gmail", "calendar"];
 
 describe("toLiveConnectors", () => {

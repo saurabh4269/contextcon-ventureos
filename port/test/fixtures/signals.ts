@@ -7,7 +7,7 @@
  * 22 → 31 in six months, 9 open roles (6 engineering), ex-Bosch IoT platforms lead, 22%/mo verified from HDFC deposits
  * vs the deck's 40%. The fit count-up lands exactly on Today's score: the thesis prior is derived from the weights.
  */
-import type { DealData, SignalContribution, SignalGraphData } from "../types";
+import type { DealData, SignalContribution, SignalGraphData } from "../../src/types";
 import { helioCo, helioDeal, helioFit as helioFitCanon } from "./helio";
 
 const pts = (vs: number[]) => vs.map((v, i) => ({ date: `2026-${String(5 + i).padStart(2, "0")}-01`, v }));

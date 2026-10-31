@@ -6,26 +6,22 @@ import type { DealData, DealEvent, DealKpi, DealMetric, DealSection, EvidenceIte
 import { explain, isOk, show, type ComputedField } from "@/lib/fields";
 import type { LiveCall, LivePerson, Point, ResearchResult } from "@/lib/live/types";
 import { CRUSTDATA_API_VERSION } from "@/lib/crustdata/http";
+import { fmtAgo, fmtCompact, fmtDate, fmtDateTime, fmtInt, fmtLabel, fmtMoney, fmtMonth, fmtMonthYear, fmtPct, isMoney, money } from "@/lib/format";
 
 type Ok = Extract<ResearchResult, { status: "ok" }>;
 type F = ComputedField<unknown>;
 
-/* ── formatting (display only; the value itself comes from the field) ── */
+/* ── formatting (display only; the value itself comes from the field; all formatters live in src/lib/format) ── */
 const n = (v: unknown) => (typeof v === "number" ? v : Number(v));
-export const fmtInt = (v: unknown) => n(v).toLocaleString("en-US");
-export const fmtPct = (v: unknown) => `${n(v) > 0 ? "+" : n(v) < 0 ? "−" : ""}${Math.abs(Math.round(n(v)))}%`;
-export const fmtUsdM = (v: unknown) => `$${n(v) >= 10 ? Math.round(n(v)) : n(v)}M`;
-export const fmtRound = (v: unknown) => String(v).replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-const fmtCompact = (v: number) => (v >= 1e6 ? `${(v / 1e6).toFixed(1)}M` : v >= 1e3 ? `${(v / 1e3).toFixed(1)}K` : String(Math.round(v)));
-const monthLabel = (iso: string) => new Date(`${iso.slice(0, 7)}-01T00:00:00Z`).toLocaleString("en-US", { month: "short", timeZone: "UTC" });
+export { fmtInt, fmtPct };
+export const fmtRound = fmtLabel;
+/** Money field value ({amount, currency}) in its own currency. */
+export const fmtM = (v: unknown) => (isMoney(v) ? fmtMoney(v) : "—");
 const initials = (name: string) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]!.toUpperCase()).join("");
 const pathOfField = (f: F | undefined) => (isOk(f) ? f.citations[0]?.path : undefined);
 
-/** "2h ago" relative to now; the absolute time stays in requestedAt. */
-export function relTime(iso: string, now: Date = new Date()): string {
-  const s = Math.max(0, Math.round((now.getTime() - new Date(iso).getTime()) / 1000));
-  return s < 60 ? "just now" : s < 3600 ? `${Math.round(s / 60)}m ago` : s < 86400 ? `${Math.round(s / 3600)}h ago` : `${Math.round(s / 86400)}d ago`;
-}
+/** "2h ago" relative to now; the absolute time stays in requestedAt (shown in IST via fmtDateTime). */
+export const relTime = (iso: string, now: Date = new Date()) => fmtAgo(iso, now);
 
 const crust = (label: string, asOf?: string): SourceRef => ({ kind: "crust", label, provider: "crustdata", ...(asOf ? { asOf } : {}) });
 
@@ -77,13 +73,13 @@ export function toSignalGraph(r: Ok, now: Date = new Date()): SignalGraphData {
         chip("htot", "headcount.total", f.headcountLatest, fmtInt, { short: "headcount" }),
         chip("hc6", "headcount.growth_percent.six_months", f.headcountGrowth6m, fmtPct, { tone: isOk(f.headcountGrowth6m) && n(f.headcountGrowth6m.value) < 0 ? "down" : "up", short: "6-mo growth" }),
         chip("round", "funding.last_round_type", f.lastRoundType, fmtRound, { short: "last round" }),
-        chip("raised", "funding.total_investment_usd", f.fundingTotalUsdM, fmtUsdM, { short: "raised" }),
+        chip("raised", "funding.total_investment_usd", f.fundingTotal, fmtM, { short: "raised" }),
         chip("webqoq", `${traffic}.qoq_pct`, f.webTrafficQoQ, fmtPct, { tone: isOk(f.webTrafficQoQ) && n(f.webTrafficQoQ.value) < 0 ? "down" : "up", short: "web traffic 3mo" }),
       ]),
       sparks: [
         spark("hcts", "headcount.timeseries", "headcount", c.headcount.monthly, fmtInt),
         topFn ? spark("fnts", `headcount.by_function_timeseries.CURRENT_FUNCTION.${topFn.label}`, `${topFn.label.toLowerCase()} headcount`, topFn.monthly, fmtInt) : null,
-        spark("web", `${traffic}.monthly_visitors_timeseries`, "monthly_visitors", c.web.monthly, fmtCompact),
+        spark("web", `${traffic}.monthly_visitors_timeseries`, "monthly_visitors", c.web.monthly, (v) => fmtCompact(v)),
       ].filter((x): x is SignalSpark => !!x),
     }),
     call(k.founders, {
@@ -142,12 +138,12 @@ export function toSignalGraph(r: Ok, now: Date = new Date()): SignalGraphData {
     company: { id: c.domain, name: c.name, initial: c.name[0]!.toUpperCase(), line: c.categories[0] ?? c.industries[0], domain: c.domain, ...(c.logoUrl ? { logoUrl: c.logoUrl } : {}) },
     provider: {
       name: "Crustdata", graphLabel: "The Crustdata Graph", apiVersion: CRUSTDATA_API_VERSION, markUrl: "/logos/tools/crustdata-mark.svg",
-      stats: [{ id: "p", label: "1B+ people", icon: "people" }, { id: "c", label: "60M+ companies", icon: "companies" }, { id: "a", label: "REST API", icon: "api" }],
+      stats: [],
       sources: ["headcount", "funding", "web traffic", "people", "job posts", "news"],
     },
     eyebrow: "Signals · live research",
     headline: isOk(f.headcountLatest)
-      ? { pre: `${fmtInt(f.headcountLatest.value)} people`, hl: isOk(g6) ? `, ${fmtPct(g6.value)} in 6 months` : "", post: "" }
+      ? { pre: `${fmtInt(f.headcountLatest.value)} people`, hl: isOk(g6) ? `, ${fmtPct(g6.value)} in 6 months` : "", post: "" } // data-literal-ok: window of the Crustdata field (growth_percent.six_months / web_traffic qoq_pct)
       : { pre: `${c.name} on Crustdata` },
     requestedAt: r.requestedAt,
     requestedAgo: relTime(r.requestedAt, now),
@@ -155,8 +151,7 @@ export function toSignalGraph(r: Ok, now: Date = new Date()): SignalGraphData {
     fit: {
       label: "Signal score",
       unscored: { reason: explain(f.signalScore).replace(/^Unavailable: /, "") },
-      base: { label: "No firm thesis configured", value: 0 },
-      threshold: { value: 75, label: "Strong" },
+      base: { label: "No firm thesis configured", value: null },
       bands: { strong: "Strong", maybe: "Possible", weak: "Weak" },
       contributions: [],
       recommendation: {
@@ -185,11 +180,11 @@ function teamPerson(p: LivePerson, i: number, domain: string, companyName: strin
     initials: initials(p.name),
     role: p.title ?? cur?.title ?? "Founder",
     prev: prev ? `${prev.company}${prev.title ? ` · ${prev.title}` : ""}` : "No earlier role indexed",
-    tenure: cur?.start ? `Since ${cur.start.slice(0, 7)}${p.schools[0] ? ` · ${p.schools[0].school}` : ""}` : (p.schools[0]?.school ?? "—"),
+    tenure: cur?.start ? `Since ${fmtMonthYear(cur.start) ?? cur.start}${p.schools[0] ? ` · ${p.schools[0].school}` : ""}` : (p.schools[0]?.school ?? "—"),
     check: { label: "Crustdata profile", ok: true },
     href: livePersonHref(p, domain),
     founder: true,
-    hint: `Crustdata /person/search · profiles[${i}] · retrieved ${retrieved.slice(0, 16).replace("T", " ")}Z`,
+    hint: `Crustdata /person/search · profiles[${i}] · retrieved ${fmtDateTime(retrieved)}`,
   };
 }
 
@@ -207,8 +202,8 @@ export function toLiveDeal(r: Ok, now: Date = new Date()): DealData {
 
   const events: DealEvent[] = [
     ...(isOk(f.foundedYear) ? [{ id: "e-founded", at: String(f.foundedYear.value), label: "Company founded", detail: explain(f.foundedYear).split("\n")[0], by: "person" as const, who: "—" }] : []),
-    ...(isOk(f.lastFundingDate) ? [{ id: "e-round", at: String(f.lastFundingDate.value), label: `Raised ${show(f.lastRoundType, fmtRound)}`, detail: isOk(f.lastFundingUsdM) ? `${fmtUsdM(f.lastFundingUsdM.value)} · Crustdata funding` : "Crustdata funding", by: "person" as const, who: "$" }] : []),
-    { id: "e-research", at: new Date(r.requestedAt).toISOString().slice(0, 10), label: `Researched ${c.domain} on Crustdata`, detail: `${Object.values(k).filter((x) => x.status === "ok").length} of ${Object.values(k).length} calls returned data`, by: "agent", who: "Live research", tone: "ok" },
+    ...(isOk(f.lastFundingDate) ? [{ id: "e-round", at: fmtDate(String(f.lastFundingDate.value)), label: `Raised ${show(f.lastRoundType, fmtRound)}`, detail: isOk(f.lastFunding) ? `${fmtM(f.lastFunding.value)} · Crustdata funding` : "Crustdata funding", by: "person" as const, who: "$" }] : []),
+    { id: "e-research", at: fmtDateTime(r.requestedAt), label: `Researched ${c.domain} on Crustdata`, detail: `${Object.values(k).filter((x) => x.status === "ok").length} of ${Object.values(k).length} calls returned data`, by: "agent", who: "Live research", tone: "ok" },
   ];
 
   const kpi = (id: string, label: string, fl: F | undefined, fmt: (v: unknown) => string, subText: string, trend?: Point[]): DealKpi => ({
@@ -220,16 +215,16 @@ export function toLiveDeal(r: Ok, now: Date = new Date()): DealData {
       kind: "overview", id: "overview", eyebrow: "Overview", source: enrichSrc,
       headline: { pre: c.description ? `${c.description}` : c.name, hl: "", post: "" },
       kpis: [
-        kpi("hc", "Headcount", f.headcountLatest, fmtInt, `${show(f.headcountGrowth6m, fmtPct)} in 6 months`, c.headcount.monthly),
-        kpi("raised", "Total raised", f.fundingTotalUsdM, fmtUsdM, `Last round ${show(f.lastRoundType, fmtRound)}`),
+        kpi("hc", "Headcount", f.headcountLatest, fmtInt, `${show(f.headcountGrowth6m, fmtPct)} in 6 months`, c.headcount.monthly), // data-literal-ok: window of the Crustdata field (growth_percent.six_months / web_traffic qoq_pct)
+        kpi("raised", "Total raised", f.fundingTotal, fmtM, `Last round ${show(f.lastRoundType, fmtRound)}`),
         kpi("roles", "Open roles", f.openRoles, fmtInt, "Crustdata job search"),
-        kpi("web", "Monthly visitors", f.webMonthlyVisitors, (v) => fmtCompact(n(v)), `${show(f.webTrafficQoQ, fmtPct)} over 3 months`, c.web.monthly),
+        kpi("web", "Monthly visitors", f.webMonthlyVisitors, (v) => fmtCompact(v), `${show(f.webTrafficQoQ, fmtPct)} over 3 months`, c.web.monthly), // data-literal-ok: window of the Crustdata field (growth_percent.six_months / web_traffic qoq_pct)
       ],
       facts: [
         { k: "Founded", v: show(f.foundedYear, String) },
         { k: "HQ", v: c.hq ?? "—" },
         { k: "Team", v: c.employeeRange ? `${c.employeeRange} (range)` : "—" },
-        { k: "Last round", v: [show(f.lastRoundType, fmtRound), show(f.lastFundingUsdM, fmtUsdM), show(f.lastFundingDate, String)].filter((x) => x !== "—").join(" · ") || "—" },
+        { k: "Last round", v: [show(f.lastRoundType, fmtRound), show(f.lastFunding, fmtM), show(f.lastFundingDate, (v) => fmtDate(String(v)))].filter((x) => x !== "—").join(" · ") || "—" },
         { k: "Investors", v: c.funding.investors.slice(0, 3).join(", ") || "—" },
         { k: "Website", v: c.website?.replace(/^https?:\/\//, "") ?? c.domain },
       ],
@@ -247,8 +242,8 @@ export function toLiveDeal(r: Ok, now: Date = new Date()): DealData {
       ],
       people: founders.map((p, i) => teamPerson(p, i, c.domain, c.name, k.founders.retrievedAt ?? r.requestedAt)),
       hiring: fnSeries.length
-        ? { months: fnMonths.map(monthLabel), series: fnSeries.map((s) => ({ id: s.label, label: s.label, values: fnMonths.map((d) => s.monthly.find((p) => p.date === d)?.v ?? 0) })) }
-        : { months: months.map((p) => monthLabel(p.date)), series: months.length ? [{ id: "total", label: "Total", values: months.map((p) => p.v) }] : [] },
+        ? { months: fnMonths.map(fmtMonth), series: fnSeries.map((s) => ({ id: s.label, label: s.label, values: fnMonths.map((d) => s.monthly.find((p) => p.date === d)?.v ?? 0) })) }
+        : { months: months.map((p) => fmtMonth(p.date)), series: months.length ? [{ id: "total", label: "Total", values: months.map((p) => p.v) }] : [] },
     },
   };
   if (k.comps.status === "ok" && k.comps.data?.length) {
@@ -258,10 +253,10 @@ export function toLiveDeal(r: Ok, now: Date = new Date()): DealData {
       note: explain(f.compsFound),
       sizes: [],
       comps: [
-        { id: "us", company, stage: show(f.lastRoundType, fmtRound), raised: show(f.fundingTotalUsdM, fmtUsdM), multiple: "—", note: "This company", us: true },
+        { id: "us", company, stage: show(f.lastRoundType, fmtRound), raised: show(f.fundingTotal, fmtM), multiple: "—", note: "This company", us: true },
         ...k.comps.data.map((x) => ({
           id: String(x.id), company: { id: x.domain ?? String(x.id), name: x.name, initial: x.name[0]!.toUpperCase(), ...(x.domain ? { domain: x.domain } : {}) },
-          stage: x.lastRoundType ? fmtRound(x.lastRoundType) : "—", raised: x.totalUsd != null ? fmtUsdM(Math.round(x.totalUsd / 1e5) / 10) : "—", multiple: "—",
+          stage: x.lastRoundType ? fmtRound(x.lastRoundType) : "—", raised: x.totalUsd != null ? fmtMoney(money(x.totalUsd, "USD")) : "—", multiple: "—",
           note: [x.description, x.yearFounded ? `founded ${x.yearFounded}` : null].filter(Boolean).join(" · ") || "—",
         })),
       ],
@@ -283,10 +278,10 @@ export function toLiveDeal(r: Ok, now: Date = new Date()): DealData {
       company, stageLabel: "Live research", subtitle: sub || c.domain, files: { reviewed: 0, total: 0 }, icLabel: "Not scheduled", flags: [],
       metrics: [
         metric("hc", "Headcount", f.headcountLatest, fmtInt, isOk(f.headcountGrowth6m) ? `${fmtPct(f.headcountGrowth6m.value)} 6 mo` : undefined),
-        metric("raised", "Total raised", f.fundingTotalUsdM, fmtUsdM),
+        metric("raised", "Total raised", f.fundingTotal, fmtM),
         metric("round", "Last round", f.lastRoundType, fmtRound),
         metric("roles", "Open roles", f.openRoles, fmtInt),
-        metric("web", "Monthly visitors", f.webMonthlyVisitors, (v) => fmtCompact(n(v))),
+        metric("web", "Monthly visitors", f.webMonthlyVisitors, (v) => fmtCompact(v)),
       ],
     },
     outline,
@@ -296,7 +291,7 @@ export function toLiveDeal(r: Ok, now: Date = new Date()): DealData {
     },
     sections,
     evidence: { agreeNote: evidence.length ? `${evidence.length} news items · Crustdata` : "No news indexed", items: evidence },
-    team: { members: [], sourcedBy: { initials: "DD", name: "Deal Desk", via: "Live research · Crustdata", at: new Date(r.requestedAt).toISOString().slice(0, 10), locked: false }, suggestion: null, canClaim: false, ownerRule: "ask_first" },
+    team: { members: [], sourcedBy: { initials: "DD", name: "Deal Desk", via: "Live research · Crustdata", at: fmtDate(r.requestedAt), locked: false }, suggestion: null, canClaim: false, ownerRule: "ask_first" },
     signals: toSignalGraph(r, now),
   };
 }
@@ -314,17 +309,42 @@ export function placeholderDeal(domain: string): DealData {
 }
 
 /** Signals graph shell for the no-match state: the screen renders "No Crustdata match for <domain>" from it. */
-export function noMatchSignals(domain: string, identify: LiveCall): SignalGraphData {
+export function noMatchSignals(domain: string, identify: LiveCall, requestedAt: string): SignalGraphData {
   return {
     company: { id: domain, name: domain, initial: domain[0]!.toUpperCase(), domain },
     provider: { name: "Crustdata", graphLabel: "The Crustdata Graph", apiVersion: CRUSTDATA_API_VERSION, markUrl: "/logos/tools/crustdata-mark.svg", stats: [], sources: [] },
     eyebrow: "Signals · live research",
     headline: { pre: `No Crustdata match for ${domain}` },
-    requestedAt: new Date().toISOString(),
-    requestedAgo: "just now",
+    requestedAt,
+    requestedAgo: fmtAgo(requestedAt),
     calls: [{ id: "identify", method: identify.method, path: identify.path, body: JSON.stringify(identify.body), ms: identify.ms, icon: "identify", chips: [{ id: "m", field: "matches", value: "[]", path: "[0].matches" }] }],
-    fit: { label: "Signal score", unscored: { reason: "No company matched, so there is nothing to score." }, base: { label: "—", value: 0 }, threshold: { value: 75, label: "Strong" }, bands: { strong: "Strong", maybe: "Possible", weak: "Weak" }, contributions: [], recommendation: { label: "", why: "", actions: [] } },
+    fit: { label: "Signal score", unscored: { reason: "No company matched, so there is nothing to score." }, base: { label: "—", value: null }, bands: { strong: "Strong", maybe: "Possible", weak: "Weak" }, contributions: [], recommendation: { label: "", why: "", actions: [] } },
     timeline: [{ at: 0, type: "query" }],
     frames: [0],
+  };
+}
+
+/* ── Valuation (GET /api/deals/:id/valuation → explainable) ── */
+type Explainable = Record<"low" | "high" | "cap" | "ask" | "returnMultipleLow" | "returnMultipleHigh" | "compsMedianMultiple", F>;
+const fmtX = (v: unknown) => `${n(v)}×`;
+const fmtMoneyOrNum = (v: unknown) => (isMoney(v) ? fmtMoney(v) : String(v));
+
+/** Valuation section: every stat from a ComputedField ("—" + reason on hover when unavailable); no chart without values. */
+export function toValuationSection(x: Explainable): DealSection {
+  const stat = (id: string, label: string, f: F, fmt: (v: unknown) => string) => ({ id, label, value: show(f, fmt), hint: explain(f) });
+  const lo = x.low, hi = x.high;
+  const priced = isOk(lo) && isOk(hi);
+  return {
+    kind: "valuation", id: "valuation", eyebrow: "Valuation",
+    headline: isOk(lo) && isOk(hi) ? { pre: `${fmtMoneyOrNum(lo.value)}–${fmtMoneyOrNum(hi.value)}` } : { pre: "No valuation for this deal yet" },
+    stats: [
+      stat("low", "Low", x.low, fmtMoneyOrNum),
+      stat("high", "High", x.high, fmtMoneyOrNum),
+      stat("ask", "Founder ask", x.ask, fmtMoneyOrNum),
+      stat("rml", "Return multiple (low)", x.returnMultipleLow, fmtX),
+      stat("rmh", "Return multiple (high)", x.returnMultipleHigh, fmtX),
+      stat("comps", "Comps median multiple", x.compsMedianMultiple, fmtX),
+    ],
+    unavailable: priced ? undefined : explain(x.low).replace(/^Unavailable: /, ""),
   };
 }

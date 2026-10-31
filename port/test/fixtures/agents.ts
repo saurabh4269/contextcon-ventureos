@@ -2,8 +2,8 @@
  * v3.2 · Agents, calm Today and the docked assistant. Helio Sensors (seed, Pune) and Northwind Capital (Halyard sell-side buyer).
  * The run is a pure function of a frame number (agentRunAt) so Playwright/Remotion can screenshot any moment (?frame=1..n).
  */
-import type { AgentData, AgentFlowData, AgentRunState, AssistantData, TodayCalmData } from "../types";
-import { ROUTES } from "../routes";
+import type { AgentData, AgentFlowData, AgentRunState, AssistantData, TodayCalmData } from "../../src/types";
+import { ROUTES } from "../../src/routes";
 import { pipelineDeals } from "./pipeline";
 import { workRows, todaySummary } from "./todaysummary";
 
@@ -52,7 +52,7 @@ export const helioAgent: AgentData = {
 
 /** Frames: 1 = step 1 running. Even frames = the dot travelling into the next step (previous step just checked). */
 export const AGENT_FRAMES = helioAgent.steps.length * 2 - 1;
-export function agentRunAt(frame: number): AgentRunState {
+export function agentRunAt(frame: number, steps = helioAgent.steps.length): AgentRunState {
   const f = Math.max(1, Math.min(AGENT_FRAMES, Math.round(frame)));
   return f % 2 === 1 ? { active: (f - 1) / 2, t: 1 } : { active: f / 2, t: 0.5 };
 }

@@ -85,7 +85,7 @@ export function fmtMoney(m: Money | null | undefined, opts: { compact?: boolean 
     return new Intl.NumberFormat("en-US", {
       style: "currency",
       currency: m.currency,
-      ...(compact ? { notation: "compact", maximumFractionDigits: 1 } : { maximumFractionDigits: 0 }),
+      ...(compact ? { notation: "compact", minimumFractionDigits: 0, maximumFractionDigits: 1 } : { minimumFractionDigits: 0, maximumFractionDigits: 0 }),
     }).format(m.amount);
   } catch {
     // unknown currency code: show the code rather than guessing a symbol

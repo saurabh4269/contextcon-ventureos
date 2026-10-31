@@ -1,11 +1,11 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 
-export type Fetched<T> = { state: "loading" } | { state: "ok"; data: T } | { state: "failed"; status: number; body: { status?: string; message?: string } | null };
+export type Fetched<T> = { state: "loading" } | { state: "ok"; data: T } | { state: "failed"; status: number; body: { status?: string; message?: string; reason?: string } | null };
 
 /**
  * GET a same-origin JSON route. Non-2xx responses are surfaced as `failed` with the server's failure body
- * (not_connected / disabled / error) so screens can render the right state — nothing falls back to fixtures.
+ * (not_connected / unavailable / error) so screens can render the right state — nothing falls back to fixtures.
  */
 export function useLiveJson<T>(url: string | null): Fetched<T> & { reload: (fresh?: boolean) => Promise<Fetched<T>> } {
   const [res, setRes] = useState<Fetched<T>>({ state: "loading" });
@@ -36,6 +36,6 @@ export function useLiveJson<T>(url: string | null): Fetched<T> & { reload: (fres
 export function failureMessage(f: Extract<Fetched<unknown>, { state: "failed" }>, what: string): string {
   const m = f.body?.message;
   if (f.body?.status === "not_connected") return m ?? `${what}: not connected.`;
-  if (f.body?.status === "disabled") return m ?? `${what}: live data is off.`;
+  if (f.body?.status === "unavailable") return `${what}: unavailable — ${f.body.reason ?? m ?? "no reason given"}`;
   return m ? `${what}: ${m}` : `${what} failed (HTTP ${f.status}).`;
 }

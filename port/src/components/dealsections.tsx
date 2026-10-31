@@ -247,9 +247,15 @@ export function DealSectionView({ s }: { s: DealSection }) {
       <>
         {head}
         <StatRow stats={s.stats} />
-        <Card title="Football field" right={<span className="text-[12px] text-zinc-500">Pre-money, {s.valuation.currency} {s.valuation.unit}</span>} i={2}>
-          <RangeChart v={s.valuation} w={540} />
-        </Card>
+        {s.valuation ? (
+          <Card title="Football field" right={<span className="text-[12px] text-zinc-500">Pre-money, {s.valuation.currency} {s.valuation.unit}</span>} i={2}>
+            <RangeChart v={s.valuation} w={540} />
+          </Card>
+        ) : (
+          <Card title="Football field" right={<span className="text-[12px] text-zinc-500">Unavailable</span>} i={2}>
+            <p data-testid="valuation-unavailable" className="text-[13px] leading-relaxed text-zinc-500">{s.unavailable ?? "No valuation for this deal."}</p>
+          </Card>
+        )}
         {s.note && <Rise i={3} className="mt-4 flex items-start gap-3 rounded-[16px] bg-[#fbf6f0] px-4 py-3.5 text-[13px] leading-relaxed text-zinc-700 ring-1 ring-[#f1e2d2]"><span className="grid size-6 shrink-0 place-items-center rounded-full bg-[radial-gradient(circle_at_35%_30%,#d27a3e,#9c440f_70%)] text-white"><Sparkles className="size-3" /></span><span><b className="font-medium text-ink">Why the cap. </b>{s.note}</span></Rise>}
       </>
     );

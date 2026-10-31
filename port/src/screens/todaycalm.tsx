@@ -28,7 +28,7 @@ export function TodayCalmScreen({ shell, data, assistant, tone = "warm", overlay
             <h1 className="serif text-[34px] leading-none tracking-[-0.02em]">{data.greeting}</h1>
             <div className="mt-2 text-[12.5px] text-zinc-500">{data.dateLabel}</div>
           </div>
-          <span className="ml-auto"><IconMenu icon={<CalendarDays />} label="Period" title="Show" items={[{ id: "w", label: "This week" }, { id: "m", label: "Last 30 days", hint: "✓" }, { id: "q", label: "This quarter" }]} /></span>
+          <span className="ml-auto"><IconMenu icon={<CalendarDays />} label="Period" title="Show" items={[{ id: "w", label: "This week" }, { id: "m", label: "This month", hint: "✓" }, { id: "q", label: "This quarter" }]} /></span>
         </div>
 
         <div className="mt-7 grid grid-cols-4 gap-3">
