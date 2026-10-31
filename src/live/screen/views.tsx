@@ -329,6 +329,20 @@ export function ResultView({ result }: { result: ScreenResult }) {
   );
 }
 
+/** The blocks of a finished result (count line, summary, three filter cards, a two-row table or two cards) at their
+ *  finished size, shown while the run is pending so the result does not push the page when it arrives. */
+export function ResultSkeleton() {
+  return (
+    <section className="mt-5 space-y-4" aria-busy="true" data-testid="result-placeholder">
+      <div className="h-5"><div className="h-4 w-44 animate-pulse rounded-md bg-zinc-100" /></div>
+      <div className="h-[61px] space-y-2 max-md:h-[85px]"><div className="h-4 animate-pulse rounded-md bg-zinc-100" /><div className="h-4 w-4/5 animate-pulse rounded-md bg-zinc-100" /></div>
+      <div className="grid h-[55.5px] gap-2 sm:grid-cols-3 max-sm:h-[148.5px]">{[0, 1, 2].map((i) => <div key={i} className="animate-pulse rounded-xl border border-zinc-200/80 bg-zinc-100/70" />)}</div>
+      <div className={cx(CARD, "hidden h-[152.5px] !rounded-xl p-3 md:block")}><div className="space-y-2.5">{[0, 1, 2].map((i) => <div key={i} className="h-8 animate-pulse rounded-md bg-zinc-100" />)}</div></div>
+      <ol className="space-y-3 md:hidden">{[0, 1].map((i) => <li key={i} className={cx(CARD, "h-[164px] !rounded-xl p-3.5")}><div className="h-4 w-1/2 animate-pulse rounded-md bg-zinc-100" /><div className="mt-3 h-12 animate-pulse rounded-md bg-zinc-100" /></li>)}</ol>
+    </section>
+  );
+}
+
 /* ───────────── whole run ───────────── */
 
 /** Everything below the input for one ask: timeline while running, then the result or an honest failure. */

@@ -10,7 +10,7 @@ import { cx } from "@port/components/ui";
 import type { ShellData } from "@port/types";
 import { AGENT_EXAMPLES } from "@/lib/sourcing/examples";
 import { useLiveCoverage } from "@/components/datamode";
-import { ScreenRun } from "./screen/views";
+import { ResultSkeleton, ScreenRun } from "./screen/views";
 import { useScreen } from "./screen/useScreen";
 import type { ScreenState } from "./screen/state";
 
@@ -66,6 +66,7 @@ export function AskBody({ state, onAsk, onStop }: { state: ScreenState; onAsk: (
       <div className={cx(state.phase === "done" ? "" : "mx-auto max-w-[760px]")}>
         <ScreenRun state={state} onRetry={() => onAsk(state.query)} />
       </div>
+      {running && <ResultSkeleton />}
       <div className="sticky bottom-0 mx-auto mt-8 max-w-[760px] bg-gradient-to-t from-[#f8f8f7] from-60% to-transparent pt-6 pb-4">
         <AskInput key={state.query} running={running} onAsk={onAsk} onStop={onStop} />
       </div>

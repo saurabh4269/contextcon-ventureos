@@ -108,17 +108,17 @@ export function AgentScreen() {
 
         {state.status !== "idle" && (
           <div className="mt-7">
-            {plan && <Understood items={plan.interpretation} ignored={plan.ignored} />}
+            {plan ? <Understood items={plan.interpretation} ignored={plan.ignored} /> : running && <UnderstoodSkeleton />}
             {state.status === "refused" && <Notice tone="warn" mood="sorry" title="Nothing to search on" body={state.message ?? ""} />}
             {state.status === "redirect" && state.redirect && <Notice tone="ok" mood="happy" title={`Opening ${state.redirect.label}`} body={state.redirect.reason} action={<Link className="font-medium text-rust underline-offset-2 hover:underline" href={state.redirect.href}>Open now</Link>} />}
             {state.status === "error" && <Notice tone="err" mood="sorry" title={state.errorKind === "not_connected" ? "Crustdata not connected" : "The run failed"} body={state.message ?? ""} action={state.errorKind === "not_connected" ? <Link className="font-medium text-rust" href="/settings?section=connectors">Connectors</Link> : <button type="button" className="font-medium text-rust" onClick={() => go(state.q)}>Try again</button>} />}
             {state.status === "stopped" && <Notice tone="warn" mood="sorry" title="Stopped" body="The run was stopped before it finished. Rows shown so far are real, but incomplete." />}
 
-            {(plan || state.steps.length > 1) && (
+            {(plan || state.steps.length > 1 || running) && (
               <div className="mt-5 grid gap-5 lg:grid-cols-[264px_minmax(0,1fr)]">
-                <div className="order-2 lg:order-1"><Trace steps={state.steps} running={running} /></div>
+                <div className="order-2 lg:order-1">{plan || state.steps.length > 0 ? <Trace steps={state.steps} running={running} /> : <TraceSkeleton />}</div>
                 <div className="order-1 min-w-0 lg:order-2">
-                  {state.summary && <Summary state={state} />}
+                  {state.summary ? <Summary state={state} /> : running && <SummarySkeleton />}
                   {state.rows.length > 0 ? <Results rows={state.rows} running={running} /> : running ? <Skeleton /> : state.status === "done" ? <Notice tone="warn" mood="sorry" title="No companies matched" body={state.summary?.sentence ?? ""} /> : null}
                   {state.dropped.length > 0 && <DroppedList items={state.dropped} />}
                 </div>
@@ -350,12 +350,42 @@ function Results({ rows, running }: { rows: AgentRow[]; running: boolean }) {
 function Field({ k, children, wide }: { k: string; children: React.ReactNode; wide?: boolean }) {
   return <div className={cx("min-w-0", wide && "col-span-2")}><div className="text-[10.5px] tracking-[0.04em] text-zinc-400 uppercase">{k}</div><div className="mt-0.5">{children}</div></div>;
 }
+/* Pending placeholders: the blocks the finished run has (Understood, Steps, summary, results), at their finished size
+ * (a three-company result), so nothing moves when the stream lands. */
+function UnderstoodSkeleton() {
+  return (
+    <section aria-busy="true" aria-label="What the agent understood" className="h-[115.3px] max-md:h-[243.3px]">
+      <div className="mb-2 text-[11.5px] font-medium tracking-[0.06em] text-zinc-400 uppercase">Understood</div>
+      <div className="flex flex-wrap gap-1.5">{[170, 120, 210, 150, 130, 180].map((w, i) => <div key={i} className="h-[26px] animate-pulse rounded-full bg-zinc-100/80" style={{ width: w }} />)}</div>
+    </section>
+  );
+}
+function TraceSkeleton() {
+  return (
+    <aside aria-busy="true" className="h-[186.1px] rounded-2xl border border-zinc-200/80 bg-white p-3.5 lg:sticky lg:top-16">
+      <div className="text-[11.5px] font-medium tracking-[0.06em] text-zinc-400 uppercase">Steps</div>
+      <div className="mt-2.5 space-y-2.5">{[0, 1, 2].map((i) => <div key={i} className="h-[44px] animate-pulse rounded-lg bg-zinc-100/80" />)}</div>
+    </aside>
+  );
+}
+function SummarySkeleton() {
+  return (
+    <section aria-busy="true" className="mb-4 h-[126.1px] rounded-2xl border border-zinc-200/80 bg-white p-4 max-md:h-[217.5px]">
+      <div className="h-[26px] w-3/4 animate-pulse rounded-md bg-zinc-100/80" /><div className="mt-2 h-4 w-1/2 animate-pulse rounded-md bg-zinc-100/80" /><div className="mt-3 h-8 w-48 animate-pulse rounded-full bg-zinc-100/80" />
+    </section>
+  );
+}
 function Skeleton() {
   return (
-    <div className="space-y-2" aria-busy="true">
-      <div className="flex items-center gap-3 px-1 pb-1 text-[13px] text-zinc-500"><Mascot size={48} mood="thinking" />Searching and verifying on Crustdata…</div>
-      {[0, 1, 2].map((i) => <div key={i} className="h-14 animate-pulse rounded-2xl bg-zinc-100/80" />)}
-    </div>
+    <section aria-busy="true" data-testid="results-placeholder">
+      <div className="hidden h-[250px] overflow-hidden rounded-2xl border border-zinc-200/80 bg-white md:block">
+        <div className="flex items-center gap-3 px-3 pt-2.5 pb-1 text-[13px] text-zinc-500"><Mascot size={48} mood="thinking" />Searching and verifying on Crustdata…</div>
+        <div className="space-y-2 px-3">{[0, 1].map((i) => <div key={i} className="h-14 animate-pulse rounded-2xl bg-zinc-100/80" />)}</div>
+      </div>
+      <div className="space-y-3 md:hidden">
+        {[0, 1, 2].map((i) => <div key={i} className="h-[314px] animate-pulse rounded-2xl border border-zinc-200/80 bg-zinc-100/80" />)}
+      </div>
+    </section>
   );
 }
 function DroppedList({ items }: { items: { name: string; domain?: string; reason: string }[] }) {
