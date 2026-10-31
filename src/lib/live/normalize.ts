@@ -201,10 +201,13 @@ export function firstMatch<T>(data: unknown): { matchType?: string; confidence?:
  * "https://www.E2B.dev/path" → "e2b.dev"; internationalised hosts → punycode ("bücher.de" → "xn--bcher-kva.de").
  * Returns undefined for things that are not a plausible domain.
  */
+/** Two-label public suffixes people paste by mistake (not an exhaustive list: the registries a startup domain sits under). */
+const PUBLIC_SUFFIXES = new Set(["co.uk", "org.uk", "ac.uk", "gov.uk", "com.au", "net.au", "org.au", "co.in", "net.in", "org.in", "co.nz", "co.jp", "co.kr", "co.za", "com.br", "com.mx", "com.sg", "com.hk", "com.cn", "com.tr", "com.ar", "co.il", "co.id"]);
 export function normalizeDomainInput(raw: string | null | undefined): string | undefined {
   if (!raw) return undefined;
   let d = raw.trim().toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").split(/[/?#]/)[0]!.replace(/\.$/, "");
   if (/[^\x00-\x7f]/.test(d)) d = toAsciiHost(d).replace(/^www\./, "").replace(/\.$/, "");
+  if (PUBLIC_SUFFIXES.has(d)) return undefined; // "co.uk" names a registry, not a company
   return /^(?=.{3,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/.test(d) ? d : undefined;
 }
 
@@ -221,6 +224,6 @@ function toAsciiHost(host: string): string {
 /** Normalize a LinkedIn profile URL; undefined when it isn't one. */
 export function normalizeLinkedInUrl(raw: string | null | undefined): string | undefined {
   if (!raw) return undefined;
-  const m = raw.trim().match(/^(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/in\/([A-Za-z0-9_%-]{1,300})\/?(?:[?#].*)?$/i);
+  const m = raw.trim().match(/^(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/in\/([A-Za-z0-9_%-]{1,300})(?:\/[^?#]*)?(?:[?#].*)?$/i); // sub-pages (/details/…, /recent-activity/…) are the same profile
   return m ? `https://www.linkedin.com/in/${m[1]}` : undefined;
 }
