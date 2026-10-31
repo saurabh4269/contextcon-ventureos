@@ -2,6 +2,9 @@
   "name": "dealdesk-mockups",
   "version": "0.1.0",
   "private": true,
+  "bin": {
+    "dealdesk": "src/cli/index.ts"
+  },
   "scripts": {
     "dev": "next dev -p 3240",
     "dev:demo": "next dev -p 3000",
@@ -15,11 +18,14 @@
     "crustdata:extract-openapi": "node scripts/crustdata-extract-openapi.mjs",
     "crustdata:codegen": "node scripts/crustdata-codegen.mjs",
     "crustdata:smoke": "tsx scripts/crustdata-probe.ts credits",
-    "crustdata:test:live": "CRUSTDATA_LIVE=1 vitest run src/lib/crustdata/live.contract.test.ts"
+    "crustdata:test:live": "CRUSTDATA_LIVE=1 vitest run src/lib/crustdata/live.contract.test.ts",
+    "mcp": "tsx src/mcp/server.ts",
+    "dealdesk": "tsx src/cli/index.ts"
   },
   "dependencies": {
     "@elevenlabs/react": "^1.20.2",
     "@fontsource-variable/newsreader": "^5.2.5",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "clsx": "^2.1.1",
     "framer-motion": "^12.43.0",
     "geist": "^1.4.2",
@@ -30,7 +36,8 @@
     "react-dom": "19.1.0",
     "recharts": "^3.8.0",
     "server-only": "^0.0.1",
-    "tailwind-merge": "^3.7.0"
+    "tailwind-merge": "^3.7.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
