@@ -297,7 +297,7 @@ async function valuation(c: Ctx): Promise<Outcome> {
   const facts: Fact[] = VAL_KEYS.map((k) => {
     const f = d.decisions[k] as ComputedField<unknown> | undefined;
     if (!f) return { label: VAL_LABEL[k], value: "not computed", status: "unknown" };
-    return f.status === "ok" ? { label: VAL_LABEL[k], value: valueText(f.value), status: "info", citation: f.citations[0], note: f.method } : { label: VAL_LABEL[k], value: "unavailable", status: "unknown", note: f.reason };
+    return f.status === "ok" ? { label: VAL_LABEL[k], value: `${valueText(f.value)}${/Multiple/.test(k) && typeof f.value === "number" ? "×" : ""}`, status: "info", citation: f.citations[0], note: f.method } : { label: VAL_LABEL[k], value: "unavailable", status: "unknown", note: f.reason };
   });
   const okN = facts.filter((f) => f.status === "info").length;
   return { status: okN ? "done" : "unavailable", transport: d.source === "crustdata+builder" ? "live" : "local", summary: `${okN}/${VAL_KEYS.length} valuation decisions computed (${d.source}${d.builder ? `, builder ${d.builder.status}` : ""}).`, facts };
