@@ -2,7 +2,7 @@
 # Deal Desk — one-command local setup (macOS / Linux). Windows: run setup.ps1 instead.
 #   ./setup.sh [path/to/dealdesk.env] [--no-start] [--force-env]
 # 1) checks Node ≥ 20  2) npm ci  3) creates .env.local (from dealdesk.env if found, else .env.example + prompts)
-# 4) runs the preflight (key presence + free health pings; values are never printed)  5) starts the app on :3000
+# 4) runs the doctor (read-only checks of Google, Gmail, Calendar, Crustdata, OpenAI; values are never printed)  5) starts the app on :3000
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -28,7 +28,7 @@ if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install 
 
 say "3/5 Environment (.env.local)"
 if [ -z "$BUNDLE" ]; then
-  for c in ./dealdesk.env ../dealdesk.env "$HOME/Downloads/dealdesk.env" "$HOME/Desktop/dealdesk.env"; do
+  for c in ./dealdesk.env ../dealdesk.env ../demo-kit/dealdesk.env "$HOME/Downloads/dealdesk.env" "$HOME/Desktop/dealdesk.env"; do
     if [ -f "$c" ]; then BUNDLE="$c"; break; fi
   done
 fi
@@ -55,8 +55,8 @@ else
   setkey ELEVENLABS_API_KEY "ELEVENLABS_API_KEY (optional, voice)"
 fi
 
-say "4/5 Preflight"
-npx tsx scripts/preflight.ts || echo "Preflight reported a problem (above). The app still starts; fix the ✗ lines for the full demo."
+say "4/5 Doctor (Google token, Gmail read, Calendar read, Crustdata credits, OpenAI; nothing is sent)"
+node scripts/doctor.mjs || node scripts/doctor.mjs || echo "Doctor reported a problem (above). The app still starts; fix the ✗ lines for the full demo."
 
 if [ "$START" -eq 1 ]; then
   say "5/5 Starting Deal Desk on http://localhost:3000  (Ctrl+C to stop)"

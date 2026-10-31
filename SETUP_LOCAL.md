@@ -1,5 +1,15 @@
 # Run Deal Desk on your own computer
 
+## Quick start (Ubuntu / macOS)
+
+1. `tar xzf dealdesk-kit.tar.gz && cd dealdesk-kit/dealdesk` (the kit holds the repo plus `dealdesk.env`)
+2. Node 20 or newer: `node -v` (Ubuntu: `curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs`)
+3. `./setup.sh ../dealdesk.env` (installs, writes `.env.local`, runs the doctor, starts on http://localhost:3000)
+4. Open http://localhost:3000/settings?section=connectors. Gmail and Calendar should read *Connected as you@example.com*
+5. To send for real, set `OUTBOUND_MODE=live` in `.env.local`, then run `npm run dev:demo`. Sends go only to your two addresses, and only after an Approve click
+
+Re-check any time with `npm run doctor`.
+
 This guide takes you from a fresh laptop to the full demo, with real Crustdata data, the AI agent, and Gmail and Calendar on
 **you@example.com**. It works on Windows (PowerShell), macOS and Linux. It takes about 5 minutes; most of that is `npm ci`.
 

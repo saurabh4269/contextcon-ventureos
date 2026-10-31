@@ -52,7 +52,7 @@ if ((Test-Path .env.local) -and -not $ForceEnv) {
 }
 
 Say "4/5 Preflight"
-npx tsx scripts/preflight.ts
+node scripts/doctor.mjs
 if ($LASTEXITCODE -ne 0) { Write-Host "Preflight reported a problem (above). The app still starts; fix the x lines for the full demo." -ForegroundColor Yellow }
 
 if (-not $NoStart) {
