@@ -27,18 +27,24 @@ export type InboxThread = {
 type ThreadList = { threads?: { id: string; snippet?: string }[]; resultSizeEstimate?: number };
 type Thread = { id: string; messages?: { internalDate?: string; labelIds?: string[]; payload?: { headers?: { name: string; value: string }[] } }[] };
 
-/** "Ana Ruiz <ana@x.com>" → { name: "Ana Ruiz", address: "ana@x.com" } */
+/** "Ana Ruiz <ana@x.com>" → { name: "Ana Ruiz", address: "ana@x.com" }. Also bare, legacy "ana@x.com (Ana Ruiz)" and
+ *  a display name that itself contains an address ("ana@x.com" <ana@x.com>). */
 export function parseFrom(v: string): { name: string; address: string | null } {
   const m = /^\s*"?([^"<]*?)"?\s*<([^>]+)>\s*$/.exec(v);
-  if (m) return { name: m[1]!.trim() || m[2]!, address: m[2]! };
-  return { name: v.trim(), address: v.includes("@") ? v.trim() : null };
+  if (m) { const address = m[2]!.trim(); return { name: m[1]!.trim() || address, address }; }
+  const bare = /[^\s<>"(),;]+@[^\s<>"(),;]+/.exec(v);
+  const paren = /\(([^)]*)\)/.exec(v);
+  return { name: (paren?.[1]?.trim() || bare?.[0] || v.trim()), address: bare ? bare[0] : null };
 }
 
 export function toInboxThread(t: Thread, snippet = ""): InboxThread {
   const msgs = t.messages ?? [];
   const last = msgs.at(-1);
   const h = (name: string) => last?.payload?.headers?.find((x) => x.name.toLowerCase() === name.toLowerCase())?.value ?? "";
-  const from = parseFrom(h("From"));
+  // the company is whoever wrote to us: skip the investor's own replies (SENT) when an earlier message is from the other side
+  const theirs = [...msgs].reverse().find((x) => !x.labelIds?.includes("SENT") && !x.labelIds?.includes("DRAFT"));
+  const fromHeader = (theirs ?? last)?.payload?.headers?.find((x) => x.name.toLowerCase() === "from")?.value ?? "";
+  const from = parseFrom(fromHeader || h("From"));
   const subject = h("Subject") || msgs[0]?.payload?.headers?.find((x) => x.name.toLowerCase() === "subject")?.value || "(no subject)";
   return {
     id: t.id,
@@ -111,7 +117,26 @@ export function messageText(p: Part | undefined): string {
   };
   walk(p);
   if (plain.length) return plain.join("\n").trim();
-  return html.join("\n").replace(/<style[\s\S]*?<\/style>/gi, "").replace(/<br\s*\/?>/gi, "\n").replace(/<\/p>/gi, "\n").replace(/<[^>]+>/g, "").replace(/&nbsp;/g, " ").replace(/&amp;/g, "&").replace(/\n{3,}/g, "\n\n").trim();
+  return htmlToText(html.join("\n"));
+}
+
+const ENTITIES: Record<string, string> = { nbsp: " ", amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", ndash: "–", mdash: "—", rsquo: "'", lsquo: "'", ldquo: '"', rdquo: '"', hellip: "…", euro: "€", pound: "£", rupee: "₹" };
+/** HTML mail to plain text: block tags become line breaks (so "60</div><div>engineers" does not fuse), link targets are
+ *  kept as "text (url)" (the company site is often only a link), entities are decoded. */
+export function htmlToText(html: string): string {
+  return html
+    .replace(/<(style|script|head)[\s\S]*?<\/\1>/gi, "")
+    .replace(/<a\b[^>]*?href\s*=\s*["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (_m, href: string, text: string) => (/^https?:/i.test(href) ? `${text} (${href})` : text))
+    .replace(/<br\s*\/?>|<\/(p|div|li|tr|h[1-6]|table|ul|ol|blockquote)>/gi, "\n")
+    .replace(/<\/t[dh]>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e: string) => {
+      if (e[0] === "#") { const cp = e[1]!.toLowerCase() === "x" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10); return Number.isFinite(cp) && cp > 0 && cp < 0x110000 ? String.fromCodePoint(cp) : m; }
+      return ENTITIES[e.toLowerCase()] ?? m;
+    })
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 export async function getMessage(cfg: GoogleConfig, id: string, f: typeof fetch = fetch): Promise<GmailMessage> {
