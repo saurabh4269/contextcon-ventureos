@@ -24,12 +24,15 @@ export interface PipelineCallbacks {
   onUndo?: (activityId: string) => void;
 }
 
-function Toggle2({ board }: { board: boolean }) {
+/** `boardOff` = why the Board layout is not available (live data has no board view): the option stays in place but is not a link. */
+export function Toggle2({ board, boardOff }: { board: boolean; boardOff?: string }) {
   const opt = (on: boolean) => cx("flex h-full items-center gap-1 rounded-md px-2", on ? "bg-white font-medium text-ink shadow-sm" : "text-zinc-500 hover:text-ink");
   return (
     <span role="tablist" aria-label="Layout" className="flex h-8 items-center rounded-lg bg-zinc-200/60 p-0.5 text-[12px]">
       <Link role="tab" aria-selected={!board} aria-label="Table" title="Table" href={ROUTES.pipeline} className={opt(!board)}><Table2 className="size-3.5" /></Link>
-      <Link role="tab" aria-selected={board} aria-label="Board" title="Board" href={ROUTES.pipelineBoard} className={opt(board)}><Columns3 className="size-3.5" /></Link>
+      {boardOff
+        ? <span role="tab" aria-selected={false} aria-disabled="true" aria-label="Board" title={boardOff} className={cx(opt(false), "cursor-not-allowed")}><Columns3 className="size-3.5" /></span>
+        : <Link role="tab" aria-selected={board} aria-label="Board" title="Board" href={ROUTES.pipelineBoard} className={opt(board)}><Columns3 className="size-3.5" /></Link>}
     </span>
   );
 }
@@ -259,6 +262,8 @@ export interface PipelineTableScreenProps extends ScreenStatus, PipelineCallback
   onBulk?: (action: "assign" | "move" | "pass" | "export", dealIds: string[]) => void;
   /** Pre-select rows (screenshots / tests). */
   selected?: string[];
+  /** Live data has no board layout: why, shown on the (inert) Board option. */
+  boardUnavailable?: string;
 }
 export function PipelineTableScreen(p: PipelineTableScreenProps) {
   const { data: d, status = "ready" } = p, h = d.header;
@@ -300,7 +305,7 @@ export function PipelineTableScreen(p: PipelineTableScreenProps) {
             <p className="mt-2 text-[13px] text-zinc-500">{status === "ready" && !empty && <><span className="font-medium text-ok">+{h.newThisWeek}</span> this week · </>}{h.scope} · {h.view}</p>
           </div>
           <div className="flex items-center gap-2">
-            <Toggle2 board={false} />
+            <Toggle2 board={false} boardOff={p.boardUnavailable} />
             <IconMenu icon={<Download />} label="Download" w={230} title="Download this view" items={[
               { id: "xlsx", label: "Excel workbook", hint: ".xlsx", icon: <Table2 />, onSelect: p.onExport },
               { id: "csv", label: "CSV", hint: ".csv", icon: <FileText />, onSelect: p.onExport },

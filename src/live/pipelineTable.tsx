@@ -26,6 +26,6 @@ export function LivePipelineTable({ pipeline, storage, filter, query, onOpenDeal
   // say where stages live only when that matters: not durable on this deploy
   const data = toLivePipeline(liveRows(deals, extra, now), now, { storageNote: storage && !storage.durable ? storage.label.toLowerCase() : undefined });
   const status = known.state === "loading" ? "loading" : known.state === "failed" && !extra.length ? "error" : undefined;
-  return <PipelineTableScreen shell={shell} data={data} status={status} error={known.state === "failed" ? failureMessage(known, "Deals") : undefined} onRetry={known.reload}
+  return <PipelineTableScreen shell={shell} data={data} status={status} boardUnavailable="Board view is not available in this build: live deals are listed as a table with their stage." error={known.state === "failed" ? failureMessage(known, "Deals") : undefined} onRetry={known.reload}
     filter={filter} query={query} onOpenDeal={(id) => { const w = extra.find((d) => d.domain === id)?.workflowId; if (w) router.push(`/workflow?id=${encodeURIComponent(w)}`); else onOpenDeal(id); }} onAddDeal={() => router.push("/deal")} />;
 }
