@@ -132,7 +132,7 @@ describe("modelFromEnv", () => {
     const m = modelFromEnv({ OPENAI_API_KEY: ` ${KEY} ` }, f)!;
     expect(m).toMatchObject({ provider: "openai", model: DEFAULT_OPENAI_MODEL });
     await m.complete({ system: "S", messages: [{ role: "user", text: "q" }], tools: [] });
-    expect(reqs[0]!.body).toMatchObject({ model: DEFAULT_OPENAI_MODEL, reasoning: { effort: "high" } });
+    expect(reqs[0]!.body).toMatchObject({ model: DEFAULT_OPENAI_MODEL, reasoning: { effort: "medium" } });
   });
 
   it("respects OPENAI_MODEL and OPENAI_REASONING_EFFORT", async () => {

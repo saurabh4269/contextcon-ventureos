@@ -49,6 +49,16 @@ describe("exception store", () => {
     expect(s.raiseException(ambiguousMatch(ambiguous)).id).not.toBe(a.id);
   });
 
+  it("re-running the same request does not duplicate open items (run id and row index differ)", () => {
+    const s = store();
+    const base = { kind: "missing_data" as const, title: "Founders not reported", subject: { name: "Acme", domain: "acme.in" } };
+    const a = s.raiseException({ ...base, key: "run1:r0:missing" } as never);
+    const b = s.raiseException({ ...base, key: "run2:r3:missing" } as never);
+    expect(b.id).toBe(a.id);
+    const c = s.raiseException({ ...base, subject: { name: "Other", domain: "other.in" }, key: "run2:r4:missing" } as never);
+    expect(c.id).not.toBe(a.id);
+  });
+
   it("rejects bad resolutions with the right status", () => {
     const s = store();
     const a = s.raiseException(creditThreshold("r", 50, 40));

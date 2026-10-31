@@ -151,6 +151,6 @@ export function modelFromEnv(env: Env = process.env, f: typeof fetch = fetch): M
   const a = env.ANTHROPIC_API_KEY?.trim();
   if (a) return anthropicModel(a, env.DEALDESK_LLM_MODEL?.trim() || "claude-sonnet-5-5", f);
   const o = env.OPENAI_API_KEY?.trim();
-  if (o) return openaiModel(o, env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL, f, { reasoningEffort: env.OPENAI_REASONING_EFFORT?.trim() || "high" });
+  if (o) return openaiModel(o, env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL, f, { reasoningEffort: env.OPENAI_REASONING_EFFORT?.trim() || "medium" });
   return null;
 }
