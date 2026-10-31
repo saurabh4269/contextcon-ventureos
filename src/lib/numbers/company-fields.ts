@@ -13,6 +13,7 @@ const cite = (call: LiveCall, path: string, url?: string): Citation => ({
   endpoint: `${call.method} ${call.path}`,
   path,
   retrievedAt: call.retrievedAt ?? undefined,
+  ...(call.stale ? { stale: true, note: call.note } : {}),
   ...(url ? { url } : {}),
 });
 const missing = (what: string, call: LiveCall) =>

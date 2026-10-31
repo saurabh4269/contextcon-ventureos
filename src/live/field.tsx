@@ -17,6 +17,7 @@ export function FieldDetail({ f }: { f: ComputedField<unknown> | undefined }) {
       {f.citations.map((c, i) => (
         <p key={i} className="font-mono text-[11px] text-zinc-500">
           {[c.source, c.endpoint, c.path].filter(Boolean).join(" · ")}{c.retrievedAt ? ` · retrieved ${fmtDateTime(String(c.retrievedAt))}` : ""}
+          {c.stale ? <span className="text-amber-700"> · {String(c.note ?? `cached at ${fmtDateTime(String(c.retrievedAt))}`)}</span> : null}
           {c.url && <> · <a href={c.url} target="_blank" rel="noreferrer" className="underline">source</a></>}
         </p>
       ))}

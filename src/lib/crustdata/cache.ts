@@ -11,6 +11,9 @@ import path from "node:path";
  *
  * Only response bodies and response metadata are stored. Request headers (and therefore the API key) never are.
  * Errors are never cached.
+ *
+ * Expired entries are kept for `staleMs` (default 7 days) so `getStale` can serve the last good response, labelled
+ * with its original fetch time, when Crustdata is down (see ./stale.ts). Fresh reads never return them.
  */
 export type CachedResponse = {
   data: unknown;
@@ -24,6 +27,8 @@ export type CachedResponse = {
 export interface ResponseCache {
   readonly kind: "memory" | "file";
   get(key: string): Promise<CachedResponse | undefined>;
+  /** Last good response regardless of TTL (within the stale window); only for outage fallback. */
+  getStale?(key: string): Promise<CachedResponse | undefined>;
   set(key: string, value: CachedResponse): Promise<void>;
 }
 
@@ -43,21 +48,34 @@ export function stableStringify(v: unknown): string {
   return JSON.stringify(v);
 }
 
+export const DEFAULT_STALE_MS = 7 * 24 * 60 * 60 * 1000;
+const MAX_MEMORY_ENTRIES = 2_000;
+
 export class MemoryResponseCache implements ResponseCache {
   readonly kind = "memory" as const;
   private readonly entries = new Map<string, CachedResponse>();
-  constructor(private readonly ttlMs: number) {}
+  constructor(
+    private readonly ttlMs: number,
+    private readonly staleMs = DEFAULT_STALE_MS,
+  ) {}
   async get(key: string) {
     const hit = this.entries.get(key);
     if (!hit) return undefined;
-    if (Date.now() - hit.storedAt > this.ttlMs) {
-      this.entries.delete(key);
+    const age = Date.now() - hit.storedAt;
+    if (age > this.ttlMs) {
+      if (age > Math.max(this.ttlMs, this.staleMs)) this.entries.delete(key);
       return undefined;
     }
     return hit;
   }
+  async getStale(key: string) {
+    const hit = this.entries.get(key);
+    return hit && Date.now() - hit.storedAt <= Math.max(this.ttlMs, this.staleMs) ? hit : undefined;
+  }
   async set(key: string, value: CachedResponse) {
+    this.entries.delete(key); // re-insert so Map order is oldest-first
     this.entries.set(key, value);
+    while (this.entries.size > MAX_MEMORY_ENTRIES) this.entries.delete(this.entries.keys().next().value!);
   }
 }
 
@@ -66,12 +84,13 @@ export class FileResponseCache implements ResponseCache {
   constructor(
     private readonly dir: string,
     private readonly ttlMs: number,
+    private readonly staleMs = DEFAULT_STALE_MS,
   ) {}
   private file(key: string) {
     if (!/^[a-f0-9]{64}$/.test(key)) throw new Error(`Invalid cache key ${key}`);
     return path.join(this.dir, `${key}.json`);
   }
-  async get(key: string) {
+  private async read(key: string): Promise<CachedResponse | undefined> {
     const f = this.file(key);
     let raw: string;
     try {
@@ -80,9 +99,20 @@ export class FileResponseCache implements ResponseCache {
       if ((e as NodeJS.ErrnoException).code === "ENOENT") return undefined;
       throw e;
     }
-    const hit = JSON.parse(raw) as CachedResponse;
-    if (Date.now() - hit.storedAt > this.ttlMs) return undefined;
-    return hit;
+    try {
+      const hit = JSON.parse(raw) as CachedResponse;
+      return typeof hit?.storedAt === "number" ? hit : undefined;
+    } catch {
+      return undefined; // a truncated/corrupt cache file is a miss, never a crash
+    }
+  }
+  async get(key: string) {
+    const hit = await this.read(key);
+    return hit && Date.now() - hit.storedAt <= this.ttlMs ? hit : undefined;
+  }
+  async getStale(key: string) {
+    const hit = await this.read(key);
+    return hit && Date.now() - hit.storedAt <= Math.max(this.ttlMs, this.staleMs) ? hit : undefined;
   }
   async set(key: string, value: CachedResponse) {
     await fs.promises.mkdir(this.dir, { recursive: true });

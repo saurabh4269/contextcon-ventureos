@@ -89,6 +89,8 @@ export type LiveCall<T = unknown> = {
   /** observed latency of the original network call (cache hits report the original latency) */
   ms: number;
   cached: boolean;
+  /** Crustdata was unavailable; this is the last good cached response and `note` says when it was fetched (IST) */
+  stale?: boolean;
   /** ISO time the upstream response was fetched (null when no call was made) */
   retrievedAt: string | null;
   creditsUsed: string | null;

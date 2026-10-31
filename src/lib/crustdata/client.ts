@@ -3,6 +3,8 @@ import { buildWatchCompanyBody } from "./watch-body";
 import { CrustdataConfigError } from "./mode";
 import { crustdataFetch, RateLimiter, CRUSTDATA_BASE_URL, CRUSTDATA_API_VERSION } from "./http";
 import { cacheKey, type ResponseCache } from "./cache";
+import { staleFallback } from "./stale";
+import { CircuitBreaker } from "@/lib/resilience/breaker";
 import type {
   CompanyEnrichRequest,
   CompanyEnrichResponse,
@@ -24,6 +26,8 @@ export type CrustdataClientOptions = {
   fetchImpl?: typeof fetch;
   /** Cache for successful live responses (read-only calls only; never watch create/delete). */
   cache?: ResponseCache;
+  /** Per-route circuit breaker (tests inject one with a small threshold). */
+  breaker?: CircuitBreaker;
   /** Called once per live network call (not for cache hits). Never receives the API key. */
   onLiveCall?: (e: { method: string; path: string; status: "ok" | "error"; creditsUsed: string | null; latencyMs: number; error?: string }) => void;
 };
@@ -38,6 +42,7 @@ export class CrustdataClient {
   private readonly limiter = new RateLimiter();
   private readonly cache?: ResponseCache;
   private readonly onLiveCall?: CrustdataClientOptions["onLiveCall"];
+  private readonly breaker: CircuitBreaker;
 
   constructor(opts: CrustdataClientOptions = {}) {
     const key = (opts.apiKey ?? process.env.CRUSTDATA_API_KEY)?.trim();
@@ -46,6 +51,7 @@ export class CrustdataClient {
     this.fetchImpl = opts.fetchImpl;
     this.cache = opts.cache;
     this.onLiveCall = opts.onLiveCall;
+    this.breaker = opts.breaker ?? new CircuitBreaker();
   }
 
   get baseUrl() {
@@ -56,7 +62,10 @@ export class CrustdataClient {
     return CRUSTDATA_API_VERSION;
   }
 
-  /** One live call: cache lookup (when `cacheable`), rate-limited fetch, cache store on success. */
+  /**
+   * One live call: cache lookup (when `cacheable`), rate-limited fetch with retries/breaker, cache store on success.
+   * When Crustdata is down, a cacheable read falls back to its last good response (meta.stale + "cached at …" note).
+   */
   private async live<T>(
     method: "GET" | "POST" | "DELETE",
     path: string,
@@ -80,7 +89,7 @@ export class CrustdataClient {
         path,
         { method, ...(body === undefined ? {} : { body: JSON.stringify(body) }) },
         this.limiter,
-        { timeoutMs, retries, fetchImpl: this.fetchImpl },
+        { timeoutMs, retries, fetchImpl: this.fetchImpl, breaker: this.breaker },
       );
       const latencyMs = Date.now() - t0;
       this.onLiveCall?.({ method, path, status: "ok", creditsUsed, latencyMs });
@@ -88,6 +97,8 @@ export class CrustdataClient {
       return { data, meta: { path, creditsUsed, requestId, asOf: today(), retrievedAt: new Date().toISOString(), latencyMs, cached: false } };
     } catch (e) {
       this.onLiveCall?.({ method, path, status: "error", creditsUsed: null, latencyMs: Date.now() - t0, error: e instanceof Error ? e.message : String(e) });
+      const stale = await staleFallback(this.cache, key, path, e);
+      if (stale) return { data: stale.data as T, meta: stale.meta };
       throw e;
     }
   }
