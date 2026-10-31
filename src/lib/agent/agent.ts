@@ -50,7 +50,7 @@ export const SUBMIT_SPEC: ToolSpec = {
             applied: { type: "string", enum: ["server", "client", "unavailable"] },
             field: { type: "string" },
             detail: { type: "string" },
-            relaxed: { type: "string" },
+            relaxed: { type: "string", description: "Only when this requirement was relaxed: what changed and why. Omit otherwise." },
           },
           required: ["requirement", "applied", "detail"],
         },
@@ -111,6 +111,9 @@ type SubmitInput = {
   caveats?: string[];
 };
 
+/** Models fill "relaxed" with "None"/"n/a" for untouched requirements; only a real description counts. */
+const isRelaxed = (v: unknown) => typeof v === "string" && v.trim() !== "" && !/^\s*(none|no|n\/a|na|not relaxed|-)(\b|[.;,]|$)/i.test(v);
+
 const scalar = (v: unknown): ScreenCell["value"] => (v == null ? null : typeof v === "string" || typeof v === "number" || typeof v === "boolean" ? v : JSON.stringify(v).slice(0, 200));
 
 /** Resolve one cited value against the ledger + raw responses. */
@@ -153,7 +156,7 @@ export function verifyAnswer(input: SubmitInput, ledger: LedgerCall[], raw: Map<
   const citationStats = { verified: all.filter((c) => c.status === "verified").length, corrected: all.filter((c) => c.status === "corrected").length, unavailable: all.filter((c) => c.status === "unavailable").length };
   const filters: AppliedFilter[] = (input.filters ?? [])
     .filter((f) => f?.requirement)
-    .map((f) => ({ requirement: String(f.requirement), applied: (["server", "client", "unavailable"] as const).includes(f.applied) ? f.applied : "unavailable", ...(f.field ? { field: String(f.field) } : {}), detail: String(f.detail ?? ""), ...(f.relaxed ? { relaxed: String(f.relaxed) } : {}) }));
+    .map((f) => ({ requirement: String(f.requirement), applied: (["server", "client", "unavailable"] as const).includes(f.applied) ? f.applied : "unavailable", ...(f.field ? { field: String(f.field) } : {}), detail: String(f.detail ?? ""), ...(isRelaxed(f.relaxed) ? { relaxed: String(f.relaxed) } : {}) }));
   return { summary: String(input.summary ?? ""), columns, rows, filters, caveats: (input.caveats ?? []).map(String), citationStats, ...(typeof input.requested === "number" ? { requested: input.requested } : {}) };
 }
 

@@ -460,3 +460,24 @@ describe("runScreenAgent — model failures", () => {
     await expect(runScreenAgent({ query: "q", model, client, now: NOW })).rejects.toBeInstanceOf(ModelApiError);
   });
 });
+
+describe("verifyAnswer filters", () => {
+  it("keeps a real relaxation note and drops 'None'-style placeholders", async () => {
+    const { verifyAnswer } = await import("./agent");
+    const out = verifyAnswer(
+      {
+        summary: "s",
+        columns: [],
+        rows: [],
+        filters: [
+          { requirement: "a", applied: "server", detail: "d", relaxed: "None" },
+          { requirement: "b", applied: "client", detail: "d", relaxed: "None; scope includes X" },
+          { requirement: "c", applied: "server", detail: "d", relaxed: "Lowered growth from 50% to 30%: only 4 matches" },
+        ],
+      },
+      [],
+      new Map(),
+    );
+    expect(out.filters.map((f) => f.relaxed)).toEqual([undefined, undefined, "Lowered growth from 50% to 30%: only 4 matches"]);
+  });
+});
