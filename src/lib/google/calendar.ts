@@ -55,13 +55,17 @@ export async function busyIntervals(cfg: GoogleConfig, from: Date, to: Date, f: 
 }
 
 const IST_OFFSET_MS = 330 * 60_000;
+export const WORK_HOURS = { startHour: 10, endHour: 19 } as const;
+const hh = (h: number) => `${String(h).padStart(2, "0")}:00`;
+/** Human label of the slot window, from WORK_HOURS (shown by the slots route and the outreach panel). */
+export const workingHoursLabel = (startHour: number = WORK_HOURS.startHour, endHour: number = WORK_HOURS.endHour) => `${hh(startHour)}–${hh(endHour)} IST, Mon–Fri`;
 /**
- * First `count` free slots of `minutes` length, on the half hour, inside working hours (IST, default 10:00–19:00,
+ * First `count` free slots of `minutes` length, on the half hour, inside working hours (IST, default WORK_HOURS,
  * Mon–Fri), starting at least `leadMinutes` from now and avoiding every busy interval. Pure (tested).
  */
 export function freeSlots(busy: { start: string; end: string }[], opts: { now: Date; minutes: number; count: number; days: number; startHour?: number; endHour?: number; leadMinutes?: number }): { start: string; end: string }[] {
   const { minutes, count, days } = opts;
-  const startHour = opts.startHour ?? 10, endHour = opts.endHour ?? 19, lead = (opts.leadMinutes ?? 60) * 60_000;
+  const startHour = opts.startHour ?? WORK_HOURS.startHour, endHour = opts.endHour ?? WORK_HOURS.endHour, lead = (opts.leadMinutes ?? 60) * 60_000;
   const step = 30 * 60_000, len = minutes * 60_000;
   const spans = busy.map((b) => [Date.parse(b.start), Date.parse(b.end)] as const);
   let t = Math.ceil((opts.now.getTime() + lead) / step) * step;

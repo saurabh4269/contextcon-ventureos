@@ -46,10 +46,10 @@ export function Outreach({ dealId, summary }: { dealId: string; summary: string 
   };
   const findSlots = async () => {
     const r = await fetch("/api/connectors/calendar/slots?minutes=30&count=3&days=5");
-    const j = (await r.json().catch(() => null)) as { slots?: Slot[]; message?: string } | null;
+    const j = (await r.json().catch(() => null)) as { slots?: Slot[]; message?: string; window?: { hours?: string } } | null;
     if (!r.ok || !j?.slots) return say(false, j?.message ?? `Couldn’t read the calendar (HTTP ${r.status})`);
     setSlots(j.slots);
-    if (!j.slots.length) say(false, "No free 30-minute slot in the next 5 working days (10:00–19:00 IST).");
+    if (!j.slots.length) say(false, `No free slot of that length in the window searched${j.window?.hours ? ` (${j.window.hours})` : ""}.`);
   };
   const event = (s: Slot) => ({ summary: `Deal Desk follow-up · ${dealId}`, start: s.start, end: s.end, attendees: [to.trim()], description: `Follow-up on the IC memo for ${dealId}.` });
   const previewSlot = async (s: Slot) => {

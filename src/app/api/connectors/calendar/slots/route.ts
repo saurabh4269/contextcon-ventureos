@@ -1,7 +1,7 @@
 // GET /api/connectors/calendar/slots?minutes=30&count=3&days=5 → { status:"ok", slots:[{start,end}], busyCount, window }
 // Free slots on the connected primary calendar (freeBusy), working hours 10:00–19:00 IST, Mon–Fri. Read only.
 import { NextResponse } from "next/server";
-import { busyIntervals, freeSlots } from "@/lib/google/calendar";
+import { busyIntervals, freeSlots, workingHoursLabel } from "@/lib/google/calendar";
 import { NO_STORE, withGoogle } from "@/lib/google/route";
 
 export const runtime = "nodejs";
@@ -15,6 +15,6 @@ export async function GET(req: Request) {
   return withGoogle(async (cfg) => {
     const now = new Date(), to = new Date(now.getTime() + days * 86_400_000);
     const busy = await busyIntervals(cfg, now, to);
-    return NextResponse.json({ status: "ok", slots: freeSlots(busy, { now, minutes, count, days }), busyCount: busy.length, window: { from: now.toISOString(), to: to.toISOString(), hours: "10:00–19:00 IST, Mon–Fri" } }, { headers: NO_STORE });
+    return NextResponse.json({ status: "ok", slots: freeSlots(busy, { now, minutes, count, days }), busyCount: busy.length, window: { from: now.toISOString(), to: to.toISOString(), hours: workingHoursLabel() } }, { headers: NO_STORE });
   });
 }

@@ -34,10 +34,22 @@ describe("no demo data mode", () => {
   });
 });
 
-describe("no email sending", () => {
-  it("production code never calls Gmail users.messages.send / drafts.send", () => {
-    const bad = production.filter((f) => /messages\/send|drafts\/send|messages\.send/.test(fs.readFileSync(f, "utf8")));
+describe("email sending only behind the approval gate", () => {
+  const GMAIL = "src/lib/google/gmail.ts", ROUTE = "src/app/api/outbound/email/route.ts";
+  it("only lib/google/gmail.ts calls the Gmail send endpoints", () => {
+    const bad = production.filter((f) => rel(f) !== GMAIL && /messages\/send|drafts\/send/.test(fs.readFileSync(f, "utf8")));
     expect(bad.map(rel)).toEqual([]);
+  });
+  it("only /api/outbound/email calls sendMessage, after the allowlist check and approval consume", () => {
+    const callers = production.filter((f) => rel(f) !== GMAIL && /\bsendMessage\s*\(/.test(fs.readFileSync(f, "utf8")));
+    expect(callers.map(rel)).toEqual([ROUTE]);
+    const src = fs.readFileSync(path.join(ROOT, ROUTE), "utf8");
+    const send = src.indexOf("sendMessage(cfg");
+    expect(src.indexOf("checkRecipients(")).toBeGreaterThan(-1);
+    expect(src.indexOf("checkRecipients(")).toBeLessThan(send);
+    expect(src.indexOf("consumeApproval(")).toBeGreaterThan(-1);
+    expect(src.indexOf("consumeApproval(")).toBeLessThan(send);
+    expect(src.indexOf('mode === "dry_run"', src.indexOf("consumeApproval("))).toBeLessThan(send);
   });
 });
 
