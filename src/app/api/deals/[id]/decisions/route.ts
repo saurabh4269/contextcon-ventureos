@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const r = await resolveDealNumbers((await ctx.params).id);
   if (!r.ok) return r.response;
-  const decided = await withBuilder(localDecisions(r.id, r.fields, r.explainable));
+  const decided = await withBuilder(localDecisions(r.id, r.fields, r.explainable, r.screenerVerdict));
   // Person-entered values from /review fill decisions (cited to the review item); open gaps are routed there.
   // ?review=0 reads without recording the run (e.g. scripts).
   const body: DecisionsResponse = withReview(decided, exceptionStore(), { raise: new URL(req.url).searchParams.get("review") !== "0" });

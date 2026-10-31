@@ -79,6 +79,7 @@ export function normalizeCompany(company: CompanyEnrichData, requestedDomain: st
       lastDate: day(company.funding?.last_fundraise_date),
       investors: (company.funding?.investors ?? []).map((x) => clean(x)).filter((x): x is string => !!x),
     },
+    revenue: { lowUsd: num(company.revenue?.estimated?.lower_bound_usd), highUsd: num(company.revenue?.estimated?.upper_bound_usd) },
     web: {
       domain: t?.domain ?? (t ? domain : undefined),
       monthlyVisitors: num(t?.monthly_visitors),

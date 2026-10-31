@@ -14,7 +14,8 @@ const g = globalThis as unknown as { __dealdeskCrustdata?: { key: string; drill?
  * Throws NotConnectedError without a key. There is no fixture mode: every response is a real Crustdata response.
  */
 export function liveCrustdataClient(): CrustdataClient {
-  const key = process.env.CRUSTDATA_API_KEY?.trim();
+  // CRUSTDATA_API_KEY_BACKUP is used only when the primary key is not set (it is never logged)
+  const key = process.env.CRUSTDATA_API_KEY?.trim() || process.env.CRUSTDATA_API_KEY_BACKUP?.trim();
   if (!key) throw new NotConnectedError("Crustdata is not connected: CRUSTDATA_API_KEY is not set on the server.");
   const drill = simulatedOutage(); // outage drill (src/lib/resilience/simulate.ts): every call answers 503
   if (g.__dealdeskCrustdata?.key === key && !!g.__dealdeskCrustdata.drill === drill) return g.__dealdeskCrustdata.client;

@@ -67,7 +67,7 @@ export function liveDealValuation(): DealValuation {
   return {
     low: unavailable(v),
     high: unavailable(v),
-    cap: unavailable(v),
+    cap: unavailable("A valuation cap comes from the round's term sheet (SAFE/note), which this build does not ingest."),
     ask: unavailable("The founder's ask comes from the pitch/term sheet, which this build does not ingest."),
     returnMultipleLow: unavailable(REASONS.returnMultipleLow),
     returnMultipleHigh: unavailable(REASONS.returnMultipleHigh),

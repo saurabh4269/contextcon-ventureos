@@ -44,8 +44,7 @@ export type DecisionsResponse = {
   review?: { runId: string; href: string; open: { id: string; key: string; kind: string }[]; resolved: { id: string; key: string; status: string }[] };
 };
 
-const SCREENER =
-  "The screener verdict needs the firm thesis gates and an inbound pitch (builder backend: screener + firm mandate); not available in this build.";
+const SCREENER = "The screener verdict is computed from the fit score against the firm mandate; it was not computed for this deal.";
 
 const moneyText = (v: unknown) => (isMoney(v) ? fmtMoney(v) : String(v));
 
@@ -58,10 +57,10 @@ function rangeField(low: ComputedField<unknown>, high: ComputedField<unknown>): 
   ]);
 }
 
-export function localDecisions(domain: string, numbers: DealNumbers, valuation: DealValuation): DecisionsResponse {
+export function localDecisions(domain: string, numbers: DealNumbers, valuation: DealValuation, screener?: ComputedField<unknown>): DecisionsResponse {
   const fields: DecisionFields = {
     ...numbers,
-    screenerVerdict: unavailable(SCREENER),
+    screenerVerdict: screener ?? unavailable(SCREENER),
     valuationRange: rangeField(valuation.low, valuation.high),
     valuationLow: valuation.low,
     valuationHigh: valuation.high,
