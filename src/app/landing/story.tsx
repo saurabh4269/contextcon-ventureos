@@ -122,7 +122,7 @@ function Flow({ d, moving }: { d: LandingStory["flow"]; moving: boolean }) {
           </ol>
         </div>
         <div className="mt-8 flex flex-wrap items-center gap-3 border-t border-zinc-100 pt-5">
-          <p className="min-w-0 flex-1 text-[13px] text-zinc-500">{d.note}</p>
+          <p className="min-w-0 flex-1 basis-[260px] text-[13px] text-zinc-500">{d.note}</p>
           <Link href={d.open.href} className="inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-[13px] font-medium text-zinc-700 ring-1 ring-zinc-200 hover:bg-zinc-50 hover:text-ink">{d.open.label}<ArrowUpRight className="size-3.5" /></Link>
           <Link href={askHref(d.request)} className="group inline-flex h-10 items-center gap-1.5 rounded-full bg-ink px-4 text-[13px] font-medium text-white shadow-[0_8px_18px_-10px_rgba(9,9,11,.6)] hover:bg-zinc-800">{d.try}<ArrowRight className="size-3.5 text-[#f0b48a] transition-transform group-hover:translate-x-0.5" /></Link>
         </div>
