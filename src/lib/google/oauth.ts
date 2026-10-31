@@ -24,6 +24,9 @@ const g = globalThis as unknown as { __dealdeskGoogleTokens?: Map<string, Cached
 const cache = () => (g.__dealdeskGoogleTokens ??= new Map());
 export const clearGoogleTokenCache = () => cache().clear();
 
+/** Every Google call is bounded: a hung connection becomes a "network" GoogleApiError instead of a stuck request. */
+const GOOGLE_TIMEOUT_MS = 15_000;
+
 export async function getAccessToken(cfg: GoogleConfig, f: typeof fetch = fetch, now: () => number = Date.now): Promise<string> {
   const key = cfg.clientId;
   const hit = cache().get(key);
@@ -34,6 +37,7 @@ export async function getAccessToken(cfg: GoogleConfig, f: typeof fetch = fetch,
       method: "POST",
       headers: { "content-type": "application/x-www-form-urlencoded" },
       body: new URLSearchParams({ client_id: cfg.clientId, client_secret: cfg.clientSecret, refresh_token: cfg.refreshToken, grant_type: "refresh_token" }),
+      signal: AbortSignal.timeout(GOOGLE_TIMEOUT_MS),
     });
   } catch (e) {
     throw new GoogleApiError("network", `Google token endpoint unreachable: ${e instanceof Error ? e.message : String(e)}`);
@@ -54,12 +58,18 @@ export async function googleJson<T>(cfg: GoogleConfig, url: string, init: Reques
   const token = await getAccessToken(cfg, f);
   let r: Response;
   try {
-    r = await f(url, { ...init, headers: { ...(init.headers ?? {}), authorization: `Bearer ${token}`, ...(init.body ? { "content-type": "application/json" } : {}) } });
+    r = await f(url, { signal: AbortSignal.timeout(GOOGLE_TIMEOUT_MS), ...init, headers: { ...(init.headers ?? {}), authorization: `Bearer ${token}`, ...(init.body ? { "content-type": "application/json" } : {}) } });
   } catch (e) {
     throw new GoogleApiError("network", `Google API unreachable: ${e instanceof Error ? e.message : String(e)}`);
   }
-  const text = await r.text();
-  const body = text ? (JSON.parse(text) as unknown) : null;
+  const text = await r.text().catch(() => "");
+  let body: unknown = null;
+  try {
+    body = text ? (JSON.parse(text) as unknown) : null;
+  } catch {
+    // an HTML error page or a truncated body: say so instead of surfacing a raw SyntaxError
+    throw new GoogleApiError("http", `Google API returned a response that is not JSON (${r.status}).`, r.status);
+  }
   if (!r.ok) {
     const msg = (body as { error?: { message?: string } } | null)?.error?.message ?? r.statusText;
     if (r.status === 401) { cache().delete(cfg.clientId); throw new GoogleApiError("expired", `Google rejected the access token (401): ${msg}`, 401); }
