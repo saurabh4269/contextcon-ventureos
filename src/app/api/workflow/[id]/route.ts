@@ -9,7 +9,7 @@ import { sendMessage } from "@/lib/google/gmail";
 import { insertEvent } from "@/lib/google/calendar";
 import { workflowStore } from "@/lib/workflow/store";
 import { isRunningHere, runInBackground } from "@/lib/workflow/server";
-import { applyAction, invalidAction, type Action } from "@/lib/workflow/actions";
+import { dispatchAction } from "@/lib/workflow/dispatch";
 import { toPublicDeal } from "@/lib/workflow/public";
 import { isRunningNow } from "@/lib/workflow/types";
 
@@ -27,23 +27,14 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 
 export async function POST(req: Request, ctx: { params: Promise<{ id: string }> }) {
   const id = (await ctx.params).id;
-  const d = await workflowStore.get(id);
-  if (!d) return NextResponse.json({ status: "error", message: "no such deal" }, { status: 404, headers: NO_STORE });
-  if (isRunningHere(id) || isRunningNow(d)) return NextResponse.json({ status: "error", message: "The deal is still running; try again when it stops." }, { status: 409, headers: NO_STORE });
-  const a = (await req.json().catch(() => null)) as Action | null;
-  if (!a || typeof a !== "object" || Array.isArray(a) || typeof a.action !== "string") return NextResponse.json({ status: "error", message: "body must be {action, …}" }, { status: 400, headers: NO_STORE });
-  const invalid = invalidAction(a);
-  if (invalid) return NextResponse.json({ status: "error", message: invalid }, { status: 400, headers: NO_STORE });
+  if (!(await workflowStore.get(id))) return NextResponse.json({ status: "error", message: "no such deal" }, { status: 404, headers: NO_STORE });
+  if (isRunningHere(id)) return NextResponse.json({ status: "error", message: "The deal is still running; try again when it stops." }, { status: 409, headers: NO_STORE });
+  const a = await req.json().catch(() => null);
   const g = googleConfig();
-  try {
-    const r = await applyAction(d, a, { sendMessage: g ? (m) => sendMessage(g, m) : undefined, insertEvent: g ? (e) => insertEvent(g, e) : undefined }, new Date());
-    if (!r.ok) return NextResponse.json({ status: "error", message: r.message }, { status: 400, headers: NO_STORE });
-  } catch (e) {
-    return NextResponse.json({ status: "error", message: e instanceof Error ? e.message : String(e) }, { status: 502, headers: NO_STORE });
-  }
-  d.running = false; // a stale run (its instance died) no longer counts
-  d.updatedAt = new Date().toISOString();
-  await workflowStore.save(d);
-  runInBackground(d);
-  return NextResponse.json({ ...toPublicDeal(d), running: true }, { headers: NO_STORE });
+  // read → check → apply → claim the run → save is one atomic step per deal (dispatch.ts): a double click or a second tab
+  // cannot send twice or decide twice. The claim marks the deal running, so no other action passes until it stops.
+  const r = await dispatchAction(workflowStore, id, a, { sendMessage: g ? (m) => sendMessage(g, m) : undefined, insertEvent: g ? (e) => insertEvent(g, e) : undefined }, new Date());
+  if (!r.ok) return NextResponse.json({ status: "error", message: r.message }, { status: r.status, headers: NO_STORE });
+  runInBackground(r.deal);
+  return NextResponse.json({ ...toPublicDeal(r.deal), running: true }, { headers: NO_STORE });
 }

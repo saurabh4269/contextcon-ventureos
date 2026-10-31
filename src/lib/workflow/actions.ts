@@ -1,8 +1,8 @@
 // Person actions on a deal. Each mutates the deal; the API then resumes advance(). approve() is the only place a send
 // can happen: live only when outboundMode()==="live" AND no recipient is blocked; otherwise it records the dry run.
 import { blockedRecipients, checkRecipients, dryRun, outboundMode } from "@/lib/outbound";
-import { userName } from "@/lib/deals/stage";
-import { stepOf, type Deal } from "./types";
+import { isClosed, userName } from "@/lib/deals/stage";
+import { isRunningNow, stepOf, type Deal } from "./types";
 
 export type Senders = {
   sendMessage?: (m: { to: string[]; subject: string; body: string }) => Promise<{ id: string }>;
@@ -33,6 +33,8 @@ export async function applyAction(deal: Deal, a: Action, send: Senders, now: Dat
   if (!a || typeof a !== "object") return { ok: false, message: "body must be {action, …}" };
   const at = now.toISOString();
   const BY = personName(env);
+  // Passed / Portfolio are terminal: nothing but a resume (to finish a failed memory write) may touch the deal
+  if (isClosed(deal.stage) && a.action !== "resume") return { ok: false, message: `The deal is closed (${deal.stage}); no further actions.` };
   switch (a.action) {
     case "approve": {
       if (a.step !== "dataroom" && a.step !== "schedule") return { ok: false, message: 'approve needs step "dataroom" or "schedule"' };
@@ -40,8 +42,9 @@ export async function applyAction(deal: Deal, a: Action, send: Senders, now: Dat
       const d = step.draft;
       if (!d) return { ok: false, message: `No ${a.step} draft yet.` };
       if (d.approved) return { ok: true };
+      if (d.channel === "gmail.send" && !d.to.length) return { ok: false, message: "This draft has no recipient (no founder address and DEMO_RECIPIENT_ALLOWLIST is empty); nothing to approve." };
+      if (d.channel === "calendar.insert" && !(Date.parse(d.start ?? "") > now.getTime())) return { ok: false, message: "The proposed meeting time has passed; use Resume to propose a new slot." };
       const blocked = blockedRecipients(d.to, env);
-      d.blocked = blocked;
       // the Approve click is the explicit approval; a live send also needs every recipient on DEMO_RECIPIENT_ALLOWLIST
       if (outboundMode(env) === "live" && blocked.length === 0) {
         if (d.channel === "gmail.send") {
@@ -60,6 +63,7 @@ export async function applyAction(deal: Deal, a: Action, send: Senders, now: Dat
         const rec = dryRun(d.channel, { to: d.to, subject: d.subject, start: d.start, end: d.end });
         d.approved = { at, by: BY, transport: "dry_run", result: `${rec.label} (${why})` };
       }
+      d.blocked = blocked;
       step.status = "done";
       step.transport = d.approved.transport;
       step.summary = d.approved.transport === "live" ? `Approved and ${d.channel === "gmail.send" ? "sent" : "created"} (${d.approved.id}).` : `Approved — ${d.approved.result}.`;
@@ -68,6 +72,7 @@ export async function applyAction(deal: Deal, a: Action, send: Senders, now: Dat
     case "transcript": {
       const text = typeof a.text === "string" ? a.text.trim() : "";
       if (!text) return { ok: false, message: "transcript text is empty" };
+      if (deal.decision) return { ok: false, message: "The IC decision is already recorded; a transcript can no longer change the memo." };
       deal.transcript = { text: text.slice(0, 200_000), source: a.source === "upload" ? "upload" : "paste", name: a.name?.slice(0, 200), at };
       const s = stepOf(deal, "transcript");
       s.status = "pending";
@@ -77,16 +82,21 @@ export async function applyAction(deal: Deal, a: Action, send: Senders, now: Dat
     }
     case "skip_transcript": {
       const s = stepOf(deal, "transcript");
+      if (deal.transcript) return { ok: false, message: "A transcript was already provided." };
+      if (s.status !== "waiting" || s.needs !== "transcript") return { ok: false, message: "The deal is not waiting for a transcript." };
       Object.assign(s, { status: "unavailable", needs: undefined, transport: "person", summary: "Continued without a transcript (no note-taker connected; none pasted).", finishedAt: at });
       return { ok: true };
     }
     case "override_screen": {
+      const sc = stepOf(deal, "screen");
+      if (sc.status !== "waiting" || sc.needs !== "approve_screen") return { ok: false, message: "The screen is not waiting for an override." };
       deal.screenOverride = { by: BY, at };
-      stepOf(deal, "screen").status = "pending";
+      sc.status = "pending";
       return { ok: true };
     }
     case "decide": {
       if (a.verdict !== "invest" && a.verdict !== "pass") return { ok: false, message: "verdict must be invest or pass" };
+      if (deal.decision) return { ok: false, message: `Already decided (${deal.decision.verdict} by ${deal.decision.by}).` };
       if (stepOf(deal, "pipeline").needs !== "ic_decision") return { ok: false, message: "The deal is not at IC yet." };
       deal.decision = { verdict: a.verdict, by: BY, at, note: a.note?.slice(0, 1000) };
       stepOf(deal, "pipeline").status = "pending";
@@ -95,14 +105,20 @@ export async function applyAction(deal: Deal, a: Action, send: Senders, now: Dat
     case "regenerate_memo": {
       const s = stepOf(deal, "memo");
       if (s.status !== "done") return { ok: false, message: "No memo to regenerate yet." };
+      if (deal.decision) return { ok: false, message: "The IC decision is already recorded; the memo is final." };
       s.status = "pending";
       return { ok: true };
     }
-    case "resume":
+    case "resume": {
+      if (isRunningNow(deal, now.getTime())) return { ok: false, message: "The deal is still running; resume when it stops." };
+      // a meeting proposal nobody approved before its time passed is proposed again
+      const sch = stepOf(deal, "schedule");
+      if (sch.draft && !sch.draft.approved && !(Date.parse(sch.draft.start ?? "") > now.getTime())) { sch.status = "pending"; sch.draft = undefined; }
       // error / stale running steps retry; an "unavailable" step (a failed Crustdata or Gmail call) retries too, except
       // one a person chose to skip
       for (const s of deal.steps) if (s.status === "error" || s.status === "running" || (s.status === "unavailable" && s.transport !== "person")) s.status = "pending";
       return { ok: true };
+    }
     default:
       return { ok: false, message: "unknown action" };
   }

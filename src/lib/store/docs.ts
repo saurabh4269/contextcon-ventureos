@@ -48,6 +48,26 @@ export interface DocStore {
   put<T>(ns: string, id: string, doc: T): Promise<void>;
   putMany<T>(ns: string, rows: { id: string; doc: T }[]): Promise<void>;
   remove(ns: string, id: string): Promise<void>;
+  /**
+   * Atomic read-modify-write of one document. `fn` gets the current document (null when absent) and returns the new
+   * one, or undefined to leave it untouched. Updates of the same (ns, id) never interleave: memory and file stores
+   * serialise them in this process; Postgres runs them in a transaction holding `select ... for update`. Returns the
+   * document as stored afterwards (null when absent and unchanged).
+   */
+  update<T>(ns: string, id: string, fn: (cur: T | null) => Promise<T | undefined> | T | undefined): Promise<T | null>;
+}
+
+/** In-process per-key promise-chain mutex (the memory and file stores' atomic update). */
+export function createKeyedMutex() {
+  const tails = new Map<string, Promise<unknown>>();
+  return function run<R>(key: string, fn: () => Promise<R>): Promise<R> {
+    const prev = tails.get(key) ?? Promise.resolve();
+    const next = prev.catch(() => undefined).then(fn);
+    const tail = next.catch(() => undefined);
+    tails.set(key, tail);
+    void tail.then(() => { if (tails.get(key) === tail) tails.delete(key); });
+    return next;
+  };
 }
 
 const NS = /^[a-z][a-z0-9_]{0,40}$/;
@@ -66,8 +86,19 @@ export function createMemoryDocStore(label = "process memory (DEALDESK_STORE=mem
     if (i >= 0) xs[i] = { ...xs[i]!, doc: copy(doc), updatedAt: at };
     else xs.push({ id, doc: copy(doc), createdAt: at, updatedAt: at });
   };
+  const lock = createKeyedMutex();
   return {
     info: () => ({ kind: "memory", durable: false, label, note: `Kept in this server process only (${label}); lost on restart.` }),
+    update<T>(ns: string, id: string, fn: (cur: T | null) => Promise<T | undefined> | T | undefined) {
+      return lock(`${ns}/${id}`, async () => {
+        const r = rows(ns).find((x) => x.id === id);
+        const cur = r ? (copy(r.doc) as T) : null;
+        const next = await fn(cur);
+        if (next === undefined) return cur;
+        upsert(ns, id, next, new Date().toISOString());
+        return copy(next);
+      });
+    },
     async list<T>(ns: string) { return copy(rows(ns)) as DocRow<T>[]; },
     async get<T>(ns: string, id: string) { const r = rows(ns).find((x) => x.id === id); return r ? (copy(r.doc) as T) : null; },
     async put(ns, id, doc) { upsert(ns, id, doc, new Date().toISOString()); },
@@ -121,6 +152,7 @@ export function createFileDocStore(dir: string, opts: { serverless?: boolean } =
     }
     write(ns, rows);
   };
+  const lock = createKeyedMutex();
   const shown = path.relative(process.cwd(), dir);
   const where = shown && !shown.startsWith("..") ? shown : dir;
   return {
@@ -134,6 +166,17 @@ export function createFileDocStore(dir: string, opts: { serverless?: boolean } =
     async put(ns, id, doc) { upsert(ns, [{ id, doc }]); },
     async putMany(ns, list) { if (list.length) upsert(ns, list); },
     async remove(ns, id) { const rows = read(ns).filter((r) => r.id !== id); write(ns, rows); },
+    // atomic within this process (the files have no cross-process lock; Postgres is the multi-instance store)
+    update<T>(ns: string, id: string, fn: (cur: T | null) => Promise<T | undefined> | T | undefined) {
+      return lock(`${ns}/${id}`, async () => {
+        const r = read(ns).find((x) => x.id === id);
+        const cur = r ? (copy(r.doc) as T) : null;
+        const next = await fn(cur);
+        if (next === undefined) return cur;
+        upsert(ns, [{ id, doc: next }]);
+        return copy(next);
+      });
+    },
   };
 }
 
@@ -185,6 +228,23 @@ export function createPostgresDocStore(url: string, envName: string, opts: { max
     put: (ns, id, doc) => upsert(ns, [{ id, doc }]),
     putMany: (ns, list) => upsert(ns, list),
     async remove(ns, id) { await ensure(); await sql`delete from ${sql(DOCS_TABLE)} where ns = ${checkNs(ns)} and id = ${id}`; },
+    async update<T>(ns: string, id: string, fn: (cur: T | null) => Promise<T | undefined> | T | undefined) {
+      await ensure();
+      checkNs(ns);
+      return (await sql.begin(async (tx) => {
+        // insert-if-absent first so the row exists to lock (two first writers serialise on the primary key)
+        await tx`insert into ${tx(DOCS_TABLE)} (ns, id, doc) values (${ns}, ${id}, 'null'::jsonb) on conflict (ns, id) do nothing`;
+        const [r] = await tx<PgRow[]>`select id, doc, created_at, updated_at from ${tx(DOCS_TABLE)} where ns = ${ns} and id = ${id} for update`;
+        const cur = r && r.doc !== null ? copy(r.doc as T) : null;
+        const next = await fn(cur);
+        if (next === undefined) {
+          if (cur === null) await tx`delete from ${tx(DOCS_TABLE)} where ns = ${ns} and id = ${id} and doc = 'null'::jsonb`;
+          return cur;
+        }
+        await tx`update ${tx(DOCS_TABLE)} set doc = ${tx.json(copy(next) as postgres.JSONValue)}, updated_at = now() where ns = ${ns} and id = ${id}`;
+        return copy(next);
+      })) as T | null;
+    },
     end: () => sql.end({ timeout: 5 }),
   };
 }

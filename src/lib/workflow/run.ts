@@ -11,7 +11,9 @@ import type { MemoryEvent, MemoryEventInput } from "@/lib/memory/types";
 import { blockedRecipients } from "@/lib/outbound";
 import { fmtDateTime, fmtMoney, isMoney, money } from "@/lib/format";
 import { firmMandate, unsetMandateFields, type Mandate } from "@/lib/settings/mandate";
-import { companyDomainFrom, extractClaims, type Claim } from "./extract";
+import { isClosed, RANK } from "@/lib/deals/stage";
+import { companyDomainFrom, extractClaims } from "./extract";
+import { checkClaims, type Check } from "./claims";
 import { criterionCheckSize, criterionGeo, criterionSector, criterionStage } from "@/lib/numbers/local";
 import { STEPS, stepOf, type Deal, type Fact, type Stage, type Step, type StepId } from "./types";
 
@@ -43,12 +45,27 @@ type Outcome = Partial<Step> & { status: Step["status"] };
 
 const iso = (d: WorkflowDeps) => d.now().toISOString();
 
+/** Mirror the deal's current stage into the deal-stage store; a failure is kept on the deal and retried by the next run. */
+async function syncStage(c: Ctx, by: string, actor: "user" | "agent") {
+  const { deal } = c;
+  try {
+    await c.deps.onStage?.(deal, deal.stage, by, actor);
+    deal.stageSyncError = undefined;
+  } catch (e) {
+    deal.stageSyncError = `stage ${deal.stage} not mirrored to the deal-stage store: ${e instanceof Error ? e.message : String(e)}`;
+  }
+}
+
+/** Forward only: a retry or a re-run of an earlier step never moves the deal back, and Passed / Portfolio are final. */
 async function setStage(c: Ctx, stage: Stage, by: string, at: string, actor: "user" | "agent" = "agent") {
   const { deal } = c;
-  if (deal.stage === stage) return;
+  if (isClosed(deal.stage) || RANK[stage] <= RANK[deal.stage]) {
+    if (deal.stageSyncError) { const last = deal.stageHistory.at(-1); await syncStage(c, last?.by ?? by, isClosed(deal.stage) ? "user" : "agent"); }
+    return;
+  }
   deal.stage = stage;
   deal.stageHistory.push({ stage, at, by });
-  await c.deps.onStage?.(deal, stage, by, actor).catch(() => undefined);
+  await syncStage(c, by, actor);
 }
 
 const round2 = (n: number) => Math.round(n * 100) / 100;
@@ -104,7 +121,7 @@ async function intake(c: Ctx): Promise<Outcome> {
     ...claims.map((cl): Fact => ({ label: `Claim: ${cl.key}`, value: cl.text, status: "info", citation: cite })),
   ];
   if (!domain) return { status: "error", transport: "read_only", summary: "Could not tell which company the email is about.", facts, error: "no company domain in sender or body" };
-  return { status: "done", transport: "read_only", summary: `Read "${msg.subject}" from ${msg.from}; ${claims.length} checkable claim(s).`, facts };
+  return { status: "done", transport: "read_only", summary: `Read "${msg.subject}" from ${msg.from}; ${claims.length} claim(s) found (checked at the research step).`, facts };
 }
 
 // ---------- step 2: screen ----------
@@ -138,6 +155,8 @@ async function screen(c: Ctx): Promise<Outcome> {
   const { credits, cached } = billedCredits(r);
   const failed = gs.filter((g) => g.result === "fail");
   const summary = `${co.name} vs the firm mandate: ${gs.filter((g) => g.result === "pass").length} pass, ${failed.length} fail, ${gs.filter((g) => g.result === "unknown").length} unknown.`;
+  // nothing could be evaluated (every criterion unknown): that is a gap, not a pass
+  if (!gs.some((g) => g.result !== "unknown")) return { status: "unavailable", transport: "live", summary: `${summary} No criterion could be evaluated, so the screen is not a pass.`, facts, credits, creditsCached: cached };
   if (failed.length && !deal.screenOverride) return { status: "waiting", needs: "approve_screen", transport: "live", summary: `${summary} Failed: ${failed.map((g) => g.label).join("; ")}. A partner can override and continue.`, facts, credits, creditsCached: cached };
   return { status: "done", transport: "live", summary: deal.screenOverride && failed.length ? `${summary} Overridden by ${deal.screenOverride.by}.` : summary, facts, credits, creditsCached: cached };
 }
@@ -175,26 +194,8 @@ async function dataroom(c: Ctx): Promise<Outcome> {
 }
 
 // ---------- step 4: research ----------
-/** How far a claim may be from Crustdata and still count as verified (share of the claimed value). */
-export const CLAIM_TOLERANCE = { headcount: 0.1, raised: 0.1, growth: 0.25 } as const;
-type Check = { claim: Claim; actual?: number; path: string; status: "verified" | "contradicted" | "unverifiable"; shown: string };
-export function checkClaims(claims: Claim[], co: LiveCompany | undefined): Check[] {
-  return claims.map((cl) => {
-    const map: Record<Claim["key"], [number | undefined, string, number, (v: number) => string]> = {
-      // relative tolerance (Crustdata's index lags a little); a claim outside it is contradicted, e.g. "team of 60" vs 46
-      growth_mom: [co?.headcount.growth.mom, "headcount.growth_percent.mom", CLAIM_TOLERANCE.growth, pct],
-      growth_6m: [co?.headcount.growth.six_months, "headcount.growth_percent.six_months", CLAIM_TOLERANCE.growth, pct],
-      growth_yoy: [co?.headcount.growth.yoy, "headcount.growth_percent.yoy", CLAIM_TOLERANCE.growth, pct],
-      headcount: [co?.headcount.total, "headcount.total", CLAIM_TOLERANCE.headcount, (v) => String(v)],
-      founded: [co?.yearFounded, "basic_info.year_founded", 0, (v) => String(v)],
-      raised: [co?.funding.totalUsd, "funding.total_investment_usd", CLAIM_TOLERANCE.raised, usd],
-    };
-    const [actual, path, tol, fmt] = map[cl.key];
-    if (actual === undefined || !co) return { claim: cl, path, status: "unverifiable", shown: "Crustdata has no value" };
-    const okv = tol === 0 ? actual === cl.value : Math.abs(actual - cl.value) <= Math.max(Math.abs(cl.value) * tol, cl.key.startsWith("growth") ? 2 : 1);
-    return { claim: cl, actual, path, status: okv ? "verified" : "contradicted", shown: `Crustdata ${path}: ${fmt(actual)}${cl.key.startsWith("growth") ? " (headcount growth — proxy for the claimed growth)" : ""}` };
-  });
-}
+// claim checking lives in ./claims (re-exported so existing imports keep working)
+export { checkClaims, CLAIM_TOLERANCE, CLAIM_FLOOR, type Check } from "./claims";
 
 const claimSource = (deal: Deal) => [deal.email ? `${deal.email.subject}\n${deal.email.body}` : "", deal.transcript?.text ?? ""].join("\n");
 
@@ -206,10 +207,12 @@ async function research(c: Ctx): Promise<Outcome> {
   const co = r.company;
   const claims = deal.email ? extractClaims(`${deal.email.subject}\n${deal.email.body}`) : [];
   const checks = checkClaims(claims, co);
-  const facts: Fact[] = checks.map((k) => ({ label: `Claim "${k.claim.text}"`, value: k.shown, status: k.status, citation: crustCite(r, k.path) }));
+  const facts: Fact[] = checks.map((k) => ({ label: `Claim "${k.claim.text}"`, value: k.shown, status: k.status, ...(k.path ? { citation: crustCite(r, k.path) } : {}) })); // no Crustdata field to point at (revenue): no citation
   if (!claims.length) facts.push({ label: "Founder claims", value: deal.email ? "no checkable numbers in the email" : "no founder email (started from /ask)", status: "unverifiable" });
   facts.push({ label: "Headcount", value: co.headcount.total !== undefined ? String(co.headcount.total) : "unknown", status: co.headcount.total !== undefined ? "info" : "unknown", citation: crustCite(r, "headcount.total"), note: "Crustdata index; \"verified\" is used only for a founder claim checked against it" });
-  facts.push({ label: "Headcount growth", value: `MoM ${pct(co.headcount.growth.mom)} · 6m ${pct(co.headcount.growth.six_months)} · YoY ${pct(co.headcount.growth.yoy)}`, status: "info", citation: crustCite(r, "headcount.growth_percent") });
+  const gr = co.headcount.growth;
+  if (gr.mom === undefined && gr.six_months === undefined && gr.yoy === undefined) facts.push({ label: "Headcount growth", value: "unknown", status: "unknown", note: "Crustdata has no headcount growth for this company" });
+  else facts.push({ label: "Headcount growth", value: `MoM ${pct(gr.mom)} · 6m ${pct(gr.six_months)} · YoY ${pct(gr.yoy)}`, status: "info", citation: crustCite(r, "headcount.growth_percent") });
   if (co.headcount.monthly.length) facts.push({ label: "Headcount by month", value: co.headcount.monthly.map((p) => `${p.date.slice(0, 7)}: ${p.v}`).join(" · "), status: "info", citation: crustCite(r, "headcount.timeseries") });
   facts.push({ label: "Total funding", value: usd(co.funding.totalUsd), status: co.funding.totalUsd !== undefined ? "info" : "unknown", citation: crustCite(r, "funding.total_investment_usd") });
   const people: LivePerson[] = r.calls.founders.status === "ok" ? (r.calls.founders.data?.people ?? []) : [];
@@ -221,7 +224,8 @@ async function research(c: Ctx): Promise<Outcome> {
 
 // ---------- step 5: schedule ----------
 const IST_MS = 330 * 60_000;
-export function nextFreeSlot(now: Date, busy: { start: string; end: string | null }[]): { start: Date; end: Date } {
+/** null when every slot in the next three weeks is taken (never a clashing or weekend fallback). */
+export function nextFreeSlot(now: Date, busy: { start: string; end: string | null }[]): { start: Date; end: Date } | null {
   // walk 30-minute slots from 11:00 to 16:30 IST, weekdays, starting tomorrow (IST)
   const ist = new Date(now.getTime() + IST_MS);
   const day0 = Date.UTC(ist.getUTCFullYear(), ist.getUTCMonth(), ist.getUTCDate()) - IST_MS; // IST midnight in UTC ms
@@ -235,8 +239,7 @@ export function nextFreeSlot(now: Date, busy: { start: string; end: string | nul
       if (!clash) return { start: new Date(s), end: new Date(e) };
     }
   }
-  const s = day0 + 86_400_000 + 11 * 3_600_000;
-  return { start: new Date(s), end: new Date(s + 1_800_000) };
+  return null;
 }
 const fmtIst = (d: Date) => fmtDateTime(d.toISOString());
 
@@ -255,6 +258,7 @@ async function schedule(c: Ctx): Promise<Outcome> {
     try { busy = await deps.listUpcoming(deps.now()); calNote = `Checked ${busy.length} upcoming event(s) on your primary calendar.`; } catch (e) { calNote = `Calendar read failed: ${e instanceof Error ? e.message : String(e)}`; }
   }
   const slot = nextFreeSlot(deps.now(), busy);
+  if (!slot) return { status: "unavailable", transport: "dry_run", summary: `No free 30-minute slot (weekdays 11:00-17:00 IST) in the next three weeks. ${calNote}` };
   const founder = deal.email?.fromAddress ?? null;
   const name = deal.company.name ?? deal.company.domain ?? "company";
   const draft = {
@@ -285,9 +289,9 @@ async function transcript(c: Ctx): Promise<Outcome> {
   const facts: Fact[] = [
     { label: "Transcript", value: `${words} words, ${t.source}${t.name ? ` ${t.name}` : ""}`, status: "info", citation: cite },
     { label: "Excerpt", value: t.text.trim().slice(0, 280) + (t.text.length > 280 ? "…" : ""), status: "info", citation: cite },
-    ...checks.map((k): Fact => ({ label: `Said in meeting: "${k.claim.text}"`, value: k.shown, status: k.status, citation: crustCite(c.research, k.path) })),
+    ...checks.map((k): Fact => ({ label: `Said in meeting: "${k.claim.text}"`, value: k.shown, status: k.status, ...(k.path ? { citation: crustCite(c.research, k.path) } : {}) })),
   ];
-  return { status: "done", transport: "person", summary: `Transcript received (${words} words); ${claims.length} checkable claim(s), ${checks.filter((k) => k.status === "contradicted").length} contradicted by Crustdata.`, facts };
+  return { status: "done", transport: "person", summary: `Transcript received (${words} words); ${claims.length} claim(s) checked: ${checks.filter((k) => k.status === "verified").length} verified, ${checks.filter((k) => k.status === "contradicted").length} contradicted, ${checks.filter((k) => k.status === "unverifiable").length} unverifiable (Crustdata).`, facts };
 }
 
 // ---------- step 7: valuation ----------
@@ -393,7 +397,9 @@ async function memory(c: Ctx): Promise<Outcome> {
   const { deal, deps } = c;
   const contradicted = [...(stepOf(deal, "research").facts ?? []), ...(stepOf(deal, "transcript").facts ?? [])].filter((f) => f.status === "contradicted").map((f) => f.label);
   const features = Object.fromEntries((stepOf(deal, "screen").facts ?? []).filter((f) => f.status === "pass" || f.status === "fail" || f.status === "unknown").map((f) => [f.label, `${f.status}: ${f.value}`]));
-  const ev = await deps.memory.append({
+  // a retry after a run that died between the append and the save must not write the decision twice
+  const dup = deal.decision ? (await Promise.resolve().then(() => deps.memory.list(500)).catch(() => [] as MemoryEvent[])).find((e) => e.kind === "workflow.decision" && (e.data as { dealId?: string } | null)?.dealId === deal.id && (e.data as { verdict?: string } | null)?.verdict === deal.decision!.verdict) : undefined;
+  const ev = dup ?? await deps.memory.append({
     kind: "workflow.decision",
     actor: { type: "user", name: deal.decision?.by ?? deps.person ?? "partner" },
     subject: { type: "company", id: deal.company.domain ?? deal.id, label: deal.company.name ?? deal.company.domain },
@@ -411,6 +417,7 @@ export async function advance(deal: Deal, deps: WorkflowDeps): Promise<Deal> {
   const c: Ctx = { deal, deps, m: deps.mandate ?? (await firmMandate()) };
   deal.running = true;
   try {
+    if (deal.stageSyncError) await syncStage(c, deal.stageHistory.at(-1)?.by ?? "Pipeline", isClosed(deal.stage) ? "user" : "agent");
     for (const def of STEPS) {
       const step = stepOf(deal, def.id);
       if (step.status === "done" || step.status === "unavailable") continue;
@@ -427,11 +434,16 @@ export async function advance(deal: Deal, deps: WorkflowDeps): Promise<Deal> {
       } catch (e) {
         out = { status: "error", error: e instanceof Error ? e.message : String(e), summary: `Failed: ${e instanceof Error ? e.message : String(e)}` };
       }
-      Object.assign(step, { needs: undefined, error: undefined }, out);
+      // the new outcome replaces the old one entirely: facts, memo and numbers of an earlier run must not survive a run
+      // that ends unavailable / in error (only an approved draft is kept: it records what was sent)
+      const approvedDraft = step.draft?.approved ? step.draft : undefined;
+      Object.assign(step, { needs: undefined, error: undefined, summary: undefined, transport: undefined, facts: undefined, memo: undefined, credits: undefined, creditsCached: undefined, draft: approvedDraft }, out);
       step.finishedAt = iso(deps);
       deal.updatedAt = iso(deps);
       await deps.save(deal);
       if ((step.status as Step["status"]) === "waiting" || (step.status as Step["status"]) === "error") break;
+      // without the founder email nothing downstream means anything (no recipient, no claims): stop until it is read
+      if (def.id === "intake" && (step.status as Step["status"]) === "unavailable") break;
     }
   } finally {
     deal.running = false;

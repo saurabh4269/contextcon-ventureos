@@ -79,8 +79,8 @@ describe("workflow run", () => {
     expect(stepOf(deal, "transcript").needs).toBe("transcript");
     expect(deal.stage).toBe("diligence");
     const claims = stepOf(deal, "research").facts!.filter((f) => f.label.startsWith("Claim"));
-    expect(claims.map((f) => f.status)).toEqual(["contradicted", "verified", "verified", "verified"]); // 20% MoM vs 5%
-    expect(claims[0]!.citation).toMatchObject({ source: "Crustdata", path: "headcount.growth_percent.mom" });
+    expect(claims.map((f) => f.status)).toEqual(["verified", "unverifiable", "verified", "verified"]); // "growing 20% MoM" does not say it is headcount growth: no proxy check
+    expect(claims[1]!.citation).toMatchObject({ source: "Crustdata", path: "headcount.growth_percent.mom" });
 
     expect((await applyAction(deal, { action: "transcript", text: "Sample transcript: we now have 45 employees." }, {}, deps.now(), DRY)).ok).toBe(true);
     await advance(deal, deps);
@@ -195,11 +195,25 @@ describe("claims and credits", () => {
     const { deps } = fakes(research({ total: 46 }));
     const deal = newDeal({ type: "ask", domain: "acme.ai" });
     await advance(deal, deps);
-    await applyAction(deal, { action: "transcript", text: "Founder: we are a team of 60 and grew 50% in the last 6 months." }, {}, deps.now(), DRY);
+    await applyAction(deal, { action: "transcript", text: "Founder: we are a team of 60 and the team grew 50% in the last 6 months." }, {}, deps.now(), DRY);
     await advance(deal, deps);
     const said = stepOf(deal, "transcript").facts!.filter((f) => f.label.startsWith("Said in meeting"));
-    expect(said.map((f) => [f.label, f.status])).toEqual([['Said in meeting: "50% in the last 6 months"', "verified"], ['Said in meeting: "team of 60"', "contradicted"]]);
-    expect(said[1]!.citation).toMatchObject({ source: "Crustdata", path: "headcount.total" });
+    expect(said.map((f) => [f.label, f.status])).toEqual([['Said in meeting: "team of 60"', "contradicted"], ['Said in meeting: "grew 50% in the last 6 months"', "verified"]]);
+    expect(said[0]!.citation).toMatchObject({ source: "Crustdata", path: "headcount.total" });
+  });
+  it("transcript summary counts what was checked, and an unverifiable claim does not cite a path it has no value at", async () => {
+    const { deps } = fakes(research({ total: 46 }));
+    const deal = newDeal({ type: "ask", domain: "acme.ai" });
+    await advance(deal, deps);
+    await applyAction(deal, { action: "transcript", text: "Founder: we are a team of 60, and ARR is $2M." }, {}, deps.now(), DRY);
+    await advance(deal, deps);
+    const t = stepOf(deal, "transcript");
+    expect(t.summary).toContain("1 contradicted");
+    expect(t.summary).toContain("1 unverifiable");
+    expect(t.summary).not.toMatch(/checkable/);
+    const rev = t.facts!.find((f) => f.label.includes("ARR"))!;
+    expect(rev.status).toBe("unverifiable");
+    expect(rev.citation).toBeUndefined();
   });
   it("billed credits: uncached calls only, rounded to 2 decimals; all cached → 0 and flagged", () => {
     const r = research() as Extract<ResearchResult, { status: "ok" }>;
@@ -243,7 +257,7 @@ describe("public view and running state", () => {
 describe("helpers", () => {
   it("next free slot is a weekday 11:00–17:00 IST from tomorrow, avoiding busy events", () => {
     const now = new Date("2026-10-30T06:00:00Z"); // Fri 11:30 IST → Mon 2 Nov
-    const s = nextFreeSlot(now, [{ start: "2026-11-02T05:30:00Z", end: "2026-11-02T06:30:00Z" }]);
+    const s = nextFreeSlot(now, [{ start: "2026-11-02T05:30:00Z", end: "2026-11-02T06:30:00Z" }])!;
     expect(s.start.toISOString()).toBe("2026-11-02T06:30:00.000Z"); // 12:00 IST
   });
   it("memo validation drops unknown citations and flags uncited numbers", () => {

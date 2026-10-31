@@ -14,10 +14,14 @@ type Env = Record<string, string | undefined>;
 
 export async function moveStage(m: MoveInput, docs: DocStore = docStore(), env: Env = process.env): Promise<StageRecord> {
   const id = m.domain.trim().toLowerCase();
-  const prev = await docs.get<StageRecord>(NS_STAGES, id);
-  const next = applyMove(prev, m, env);
-  if (JSON.stringify(prev) !== JSON.stringify(next)) await docs.put(NS_STAGES, id, next);
-  return next;
+  // atomic read-modify-write: two moves of one domain never interleave (no lost history entry)
+  let out!: StageRecord;
+  await docs.update<StageRecord>(NS_STAGES, id, (prev) => {
+    const next = applyMove(prev, m, env);
+    out = next;
+    return JSON.stringify(prev) !== JSON.stringify(next) ? next : undefined;
+  });
+  return out;
 }
 
 export async function listStages(docs: DocStore = docStore()): Promise<StageRecord[]> {

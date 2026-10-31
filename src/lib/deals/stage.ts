@@ -22,7 +22,7 @@ type Env = Record<string, string | undefined>;
 /** The operator's name for "owner" and "by" (no sign-in in this build). Null when unset. */
 export const userName = (env: Env = process.env): string | null => env.DEALDESK_USER_NAME?.trim() || null;
 
-const RANK: Record<DealStage, number> = { sourced: 0, screening: 1, diligence: 2, ic: 3, portfolio: 4, passed: 4 };
+export const RANK: Record<DealStage, number> = { sourced: 0, screening: 1, diligence: 2, ic: 3, portfolio: 4, passed: 4 };
 
 export type MoveInput = { domain: string; stage: DealStage; by: string; actor: "user" | "agent"; name?: string; workflowId?: string; note?: string; at?: string; /** only move later in the pipeline (never back, never out of a closed stage) */ forwardOnly?: boolean };
 

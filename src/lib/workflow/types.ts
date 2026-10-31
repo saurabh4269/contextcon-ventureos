@@ -79,10 +79,18 @@ export type Deal = {
   screenOverride?: { by: string; at: string };
   /** true while a run is advancing this deal (persisted, so every server instance sees it; stale after RUN_STALE_MS) */
   running?: boolean;
+  /** set when mirroring the stage into the deal-stage store failed; the next run retries and clears it */
+  stageSyncError?: string;
+  /** write counter: every guarded save expects the stored value, so a writer holding an old copy cannot overwrite */
+  rev?: number;
 };
 
 export const newSteps = (): Step[] => STEPS.map((s) => ({ id: s.id, status: "pending" }));
 export const stepOf = (d: Deal, id: StepId): Step => d.steps.find((s) => s.id === id)!;
 /** A run that stopped saving for this long died with its server instance; it no longer blocks actions. */
 export const RUN_STALE_MS = 6 * 60_000;
-export const isRunningNow = (d: Deal, now = Date.now()) => !!d.running && now - Date.parse(d.updatedAt) < RUN_STALE_MS;
+/** Stale both ways: a writer that stopped long ago, and a timestamp far in the future (a skewed clock must not pin it). */
+export const isRunningNow = (d: Deal, now = Date.now()) => {
+  const age = now - Date.parse(d.updatedAt);
+  return !!d.running && age < RUN_STALE_MS && age > -RUN_STALE_MS;
+};

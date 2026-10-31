@@ -50,11 +50,11 @@ export function serverDeps(): WorkflowDeps {
     demoRecipient: recipientAllowlist()[0] ?? null,
     memory: firmMemory(),
     onStage: async (deal, stage, by, actor) => {
-      if (deal.company.domain) await moveStage({ domain: deal.company.domain, name: deal.company.name, stage, by, actor, workflowId: deal.id });
+      if (deal.company.domain) await moveStage({ domain: deal.company.domain, name: deal.company.name, stage, by, actor, workflowId: deal.id, forwardOnly: true });
     },
     person: personName(),
     now: () => new Date(),
-    save: (d) => workflowStore.save(d),
+    save: (d) => workflowStore.saveGuarded(d), // a copy that another writer superseded stops instead of overwriting
   };
 }
 
