@@ -9,12 +9,14 @@ import type { LoadStatus, PersonTab, ShellData } from "@port/types";
 import { toLivePerson } from "@/lib/adapters/person";
 import type { LiveCall, LivePerson } from "@/lib/live/types";
 import { useEffect, useRef } from "react";
+import { useLiveCoverage } from "@/components/datamode";
 import { recordEvent } from "./memory";
 import { failureMessage, useLiveJson } from "./useLiveJson";
 
 type Res = { status: "ok"; person: LivePerson; call: LiveCall } | { status: "no_match"; linkedinUrl: string; call: LiveCall };
 
 export function LivePerson({ shell, linkedin, domain, tab }: { shell: ShellData; linkedin?: string; domain?: string; tab?: PersonTab }) {
+  useLiveCoverage(linkedin ? "Live · Crustdata" : null);
   const router = useRouter();
   const res = useLiveJson<Res>(linkedin ? `/api/live/person?linkedin=${encodeURIComponent(linkedin)}` : null);
   const opened = useRef(false);

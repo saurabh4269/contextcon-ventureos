@@ -9,6 +9,7 @@ import { Orb } from "@port/components/assistant";
 import { cx } from "@port/components/ui";
 import type { ShellData } from "@port/types";
 import { AGENT_EXAMPLES } from "@/lib/sourcing/examples";
+import { useLiveCoverage } from "@/components/datamode";
 import { ScreenRun } from "./screen/views";
 import { useScreen } from "./screen/useScreen";
 import type { ScreenState } from "./screen/state";
@@ -81,6 +82,7 @@ export function autorunOnce(done: { current: boolean }, q: string | undefined, a
 
 /** `initialQuery` (from /ask?q=…) is run once on mount — the dock, sidebar search and voice hand questions over this way. */
 export function LiveAsk({ shell, initialQuery }: { shell: ShellData; initialQuery?: string }) {
+  useLiveCoverage("Live · Crustdata");
   const { state, ask, stop } = useScreen();
   const autoran = useRef(false);
   // Deferred a tick and cancelled on cleanup: StrictMode's mount, unmount, mount (dev) would otherwise abort the run it
