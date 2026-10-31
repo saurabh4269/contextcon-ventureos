@@ -16,7 +16,7 @@ where each fact came from. Record at 1440×900, browser zoom 100 %, one tab, not
 | 0:58–1:15 | Results table. Hover a growth cell, click it: citation opens with `POST /company/enrich` · `headcount.timeseries[…]` · retrieved time (IST) <!-- VERIFY --> | "Growth isn't taken on trust: it's recomputed from the headcount history, and here are the two data points it used." |
 | 1:15–1:30 | Click a company name → `/deal?domain=…`. Click **Open roles** or **Total raised**: method + citation | "Every company opens into a full diligence page. Every number has a method and a source, or it says unavailable and why." |
 | 1:30–1:42 | Back. Type a messy request: *"b2b saas in bangalor foundd 2024 grew 300% hirng"* <!-- VERIFY --> → chips show what was understood and what was dropped; or a deal for `zz9-no-such-startup-qx7.com` → "No Crustdata match" | "Messy input gets an honest reading, not a confident guess. Unknown companies are 'no match', never invented." |
-| 1:42–1:52 | Click **Export memo** and **CSV** <!-- VERIFY -->; show the markdown memo with source links | "The finished work: a memo and a sheet, every row cited." |
+| 1:42–1:52 | Open **Review** (exceptions count in the nav) <!-- VERIFY -->: one item, e.g. an ambiguous company match, with its reason. Click **Approve**; then **Export memo** / **CSV** | "A person only steps in for exceptions like this one. Everything else finished on its own: a memo and a sheet, every row cited." |
 | 1:52–2:00 | Click **Read summary** <!-- VERIFY -->; ElevenLabs speaks a two-sentence summary | "And a spoken summary for the partner on the move. Built on Crustdata." |
 
 Recording rules:
@@ -45,7 +45,7 @@ Recording rules:
 | 0:20–2:30 | Live: a request from the audience or a judge (any sector, any country) → chips → trace → table → citation → deal page |
 | 2:30–3:15 | Robustness: messy input, an impossible filter (relaxation disclosed), an unknown domain |
 | 3:15–3:50 | Finished work: memo + CSV export, spoken summary |
-| 3:50–4:30 | How it's built: architecture slide (`docs/assets/architecture.png`), where Crustdata is called, no LLM |
+| 3:50–4:30 | How it's built: architecture slide (`docs/assets/architecture.png`), where Crustdata is called, where the model plans |
 | 4:30–5:00 | What's next: Track on Crustdata watchers, decision engine, warm forward |
 
 ## Likely Q&A
@@ -53,7 +53,8 @@ Recording rules:
 | Question | Answer |
 | --- | --- |
 | Who pays? | VC funds first (replaces associate hours on sourcing and first-pass diligence), then banks and diligence firms. Per seat, Crustdata credits passed through. |
-| Why no LLM? | No key at the event, and it turned out to be a feature: the parser's reading is shown as chips you can edit, and every sentence of the memo comes from cited data, so nothing is hallucinated. An LLM can later phrase text under "add no facts" rules. |
+| Where is the model? | The agent loop plans with an OpenAI model (GPT-6.1 Sol) calling Crustdata tools; every value it shows must resolve to a cited path in a Crustdata response, or it is shown as unavailable. With no model key, the deterministic parser still runs and is labelled as such. <!-- VERIFY once feature/nl-screener is merged --> |
+| What does a failure look like? | Crustdata 5xx or timeout: retried with backoff; if still down, the last good response is shown labelled "cached at <IST time>", or the step says what failed. Never invented. |
 | What failed? | Fixture/demo mode (removed: nobody could tell real from fake); enrich without `fields` (basic_info only); one denied field 403s the whole call; `hiring.*` null on our plan (used `/job/search`); every builder search body 400'd until rewritten to the documented filter tree; live web search is slow and noisy. |
 | Hardest case? | Requests the filters can't satisfy exactly. We relax one filter at a time and disclose it, instead of padding the list. Also: "no match" vs "error" must never be confused. |
 | How did you test? | vitest on captured live responses through an injected fetch (no network), guard tests that fail on demo data, hard-coded numbers or email-send code; an opt-in live contract suite; a click-through of every route with DOM-vs-API number checks. |
