@@ -3,216 +3,210 @@
 > ## 🚀 Live demo: **[contextcon.ventureos.xyz](https://contextcon.ventureos.xyz)**
 > Try it now: [Today inbox](https://contextcon.ventureos.xyz/today) · [Ask](https://contextcon.ventureos.xyz/ask) · [Detailed system diagram](docs/architecture/SYSTEM_DIAGRAM.md)
 
-**An agentic OS for venture investors, built on Crustdata: type or say a sourcing request, get a ranked, cited shortlist and a memo.**
+**Deal Desk is an agentic OS for venture investors. It uses live Crustdata to check a founder's claims and turn them into a cited investment decision and IC memo.**
 
-> **The trust rule:** every number on screen is live, computed and cited (value, method, inputs, source), or it says
-> "unavailable" and why. No demo data, no fixtures, no invented fallbacks, and nothing leaves the firm (outbound is dry-run).
+Team **thExplorers**: Saurabh Gupta, Shiwani Mishra · ContextCon 03 @ IIT Bombay (Techfest), 31 Oct 2026 · Theme: **Investing**
 
-ContextCon @ IIT Bombay (Techfest), 31 Oct 2026 · Theme: **Investing** · Team: Saurabh Gupta, Shiwani Mishra
+> **Trust rule:** Each number shows its value, method, inputs and source. If a number has no source, the screen shows "unavailable" and the reason.
 
-![How Deal Desk works](docs/assets/architecture.png)
+## 1. The service
 
-## Quick start
+**The service:** Deal Desk does the work of a VC analyst or associate. This work is deal sourcing, screening, diligence and the IC memo.
 
-Full local setup on Windows, Mac or Linux (one command, keys checked before start): [SETUP_LOCAL.md](SETUP_LOCAL.md). Project context for contributors and judges: [docs/context/](docs/context/README.md).
+**Who does it today:** Analysts and associates at early-stage VC funds do this work. Some funds pay outside research firms to do part of it.
 
-```bash
-npm ci
-cp .env.example .env.local     # add CRUSTDATA_API_KEY at minimum; anything missing shows "not connected"
-npm run dev                    # http://localhost:3240
-```
+**The job today:**
 
-| Try this | What happens |
-| --- | --- |
-| `/ask` → "Find ten Indian B2B software companies founded since 2023 whose team grew by half in the last six months, and tell me who founded each and what they did before" | Research agent (LLM): plan → live Crustdata tool calls → server-side verification → ranked table; click any value for its citation |
-| `/agent` → the same request (or say it with the mic) | Sourcing agent (deterministic, no model): "Understood" chips → live step trace with credits → ranked, cited table → copy memo / CSV / read aloud |
-| `/review` | Exception queue: items an `/agent` run could not settle on its own, each with its reason; approve, reject or edit |
-| `/deal?domain=e2b.dev` | Live research: identify → enrich → founders, open roles, web, comparables. Click any number for its method and citation. |
-| `/deal?domain=zz9-no-such-startup-qx7.com` | Honest "No Crustdata match" (not an error, not a fake company) |
-| `/settings` → Connectors | Real health checks (Crustdata `GET /account/credits`, ElevenLabs, Gmail, Calendar) |
-| `/today` | Gmail + Calendar read, spoken greeting (ElevenLabs) |
+- An analyst reads founder emails and finds companies that fit the fund thesis.
+- The analyst searches company data and checks the founder's claims (team size, growth, funding).
+- The analyst finds the founders and their work history.
+- The analyst writes a memo with sources for the partners.
+- This work takes many days for each deal.
 
-`npm test` (vitest, no network; 664 passing, 5 skipped that need a live key or Postgres) · `npm run typecheck` · Details for contributors: [AGENTS.md](AGENTS.md) · state of play: [docs/HANDOFF.md](docs/HANDOFF.md).
+**Who pays:** The fund pays. The money comes from the fund's management fee. One seat of Deal Desk must save more analyst hours than it costs. Crustdata credits pass through at cost. We did not test this price with a customer.
 
----
+## 2. What it does now
 
-## 1. The service, and who pays
+Deal Desk does these steps from start to end:
 
-**The job:** a venture fund's associate spends days a week on sourcing and first-pass diligence: find companies that fit
-the thesis, check the growth claims, find the founders and their background, and write it up with sources for the partners.
-Deal Desk does that job end to end and hands back a decision-ready, cited shortlist and memo.
-
-| Who pays | Why |
-| --- | --- |
-| Early-stage VC funds (partners, associates, scouts) | Replaces associate hours on sourcing and first-pass diligence; every claim is checkable before IC |
-| Growth / PE / investment banks (analysts) | Same screen-and-verify work on targets and comparables |
-| Diligence and research firms | Sell the output (a sourced, cited list or memo) as a service |
-
-It is a **service, not a tool** (the deck's distinction): the output is the finished shortlist with reasons and
-sources, not a search box.
-
-**Pricing (unvalidated hypothesis, not yet tested with customers):** per seat per month for the fund team, plus Crustdata credits
-passed through at cost (a fresh single-company diligence costs about 5.6 credits; repeats are free from cache). The test a
-fund applies: does one seat replace enough associate hours on sourcing and first-pass diligence to pay for itself? We
-have not run that test with a paying customer yet.
-
-**What is new**
-
-- Outcome, not a tool: the output is a finished, cited shortlist or memo.
-- Every fact carries its source (Crustdata endpoint + JSON path + retrieved time in IST) or says "unavailable" and why.
-- A person is pulled in only for exceptions (ambiguous match, missing or conflicting data, credit threshold, any outbound
-  send); everything else completes on its own.
-
-## 2. What it does now, and where a person is still needed
-
-| Step | Done by Deal Desk (live) | Person needed |
+| Step | What Deal Desk does | Code |
 | --- | --- | --- |
-| Understand a free-text request | `/ask`: the model plans and picks Crustdata tools. `/agent`: a deterministic parser shows what it understood as read-only chips (each with the phrase it came from; unused phrases struck through) | Rewords the request and re-runs if a chip is wrong |
-| Find candidates | Crustdata `/company/search` filter tree; if too few match, relaxes one constraint at a time and says which | — (relaxation is disclosed in the trace and per row) |
-| Verify growth | `/company/enrich` headcount; growth recomputed from `headcount.timeseries`, both points cited (`/agent`); `/ask` checks every value against the cited response (verified / corrected / unavailable) | — |
-| Founders and their past | `/person/search` founders → `/person/enrich` past employers | — |
-| Rank, cite, export | Ranked table, each cell cited to endpoint + JSON path; `/agent` copies a markdown memo and downloads CSV | Decides who to meet |
-| Exceptions | `/agent` runs route ambiguous matches, missing or conflicting data and credit-threshold items to `/review` with their reason; the run finishes when the last item is resolved | Approves, edits or rejects |
-| Single-company diligence | `/deal?domain=`: headcount, growth (6m/QoQ/YoY), funding, web traffic, open roles, founders, live web, comparables | Judgement on fit |
-| Inbox and calendar | Gmail threads + Calendar events (read only), spoken daily greeting | Replies, meetings |
-| Voice | ElevenLabs speech-to-text mic on the `/agent` request box, "Read aloud" run summary, Today greeting, context orb; a conversational voice session (when `ELEVENLABS_AGENT_ID` is set) that can start a sourcing run or open a company | — |
-| Contacting anyone | **Never automatic.** Calendar invites are built and shown as "Dry run — not sent" | Sends it themselves |
-| Fit score, verdict, valuation, IC memo numbers | `GET /api/deals/:id/decisions` (`src/lib/numbers/decisions.ts`): valuation from the deal's cited Crustdata numbers where the inputs exist; fit score, screener verdict and IC-memo figures from the decision engine (`DEALDESK_BUILDER_URL`), re-cited to our own calls. Without that backend they show **unavailable with the reason** and raise a `/review` item | Partner decides; fills missing inputs in `/review` (cited back to the review item) |
+| 1. Request intake | Reads a plain-English request (`/ask`, `/agent`, or voice). Reads founder emails and calendar events from Gmail and Google Calendar (read only) on `/today`. | `src/live/ask.tsx`, `src/lib/sourcing`, `src/lib/google` |
+| 2. Screening | Finds companies with Crustdata search. If too few companies match, it relaxes one filter and tells you which filter. | `src/lib/sourcing/run.ts`, `src/lib/agent` |
+| 3. Research and claim checks | Gets headcount, growth, funding, web traffic, open roles and founders from Crustdata. It recalculates growth from the headcount time series. The server checks each value against the cited Crustdata response. | `src/lib/live/research.ts`, `src/lib/numbers` |
+| 4. Founders | Finds founders and their past employers. | `src/lib/crustdata/person-queries.ts` |
+| 5. Ranked, cited table | Ranks the companies. Each cell shows its Crustdata endpoint and JSON path. Exports a memo (markdown) and CSV. | `src/live/agent`, `src/live/screen` |
+| 6. Valuation and IC memo | Calculates a valuation from the deal's cited Crustdata numbers when the inputs exist. Fit score, verdict and IC-memo figures come from a separate decision engine. | `src/lib/numbers/decisions.ts`, `GET /api/deals/:id/decisions` |
+| 7. Exceptions | Sends unclear matches, missing data, conflicting data and high credit cost to a review queue. | `/review`, `src/lib/exceptions` |
+| 8. Firm memory | Records each action in an append-only event log. | `src/lib/memory`, `/api/memory/*` |
 
-## 3. What comes next, and why not now
+**Where it still needs a person:**
 
-| Next | What | Why not now |
+- A partner approves each email and each calendar booking before it goes out.
+- A partner makes the Invest or Pass decision.
+- A partner sets up the fund mandate (`/mandates`, `/api/settings/mandate`, or `MANDATE_JSON`).
+- A person resolves each item in the `/review` queue.
+
+**Limits of this build (honest):**
+
+- **Data mode.** `DEALDESK_DATA_MODE` is `demo` when it is not set. In demo mode, most screens show sample data from `port/src/fixtures` with a "Demo data" badge, and `/api/live/*` is off. Set `DEALDESK_DATA_MODE=live` to use live Crustdata.
+- **Outbound is dry run.** Deal Desk builds emails and invites but does not send them. It sends only when `OUTBOUND_MODE=live`, the recipient is on `DEMO_RECIPIENT_ALLOWLIST`, and a person clicks Approve.
+- **Gmail is read only.** Deal Desk does not start a deal automatically from a new email.
+- **No meeting note-taker is connected.** Fireflies shows status only.
+- **Decision engine.** If `DEALDESK_BUILDER_URL` is not set, fit score, verdict and IC-memo figures show "unavailable" with the reason.
+
+## 3. What it could do next
+
+| Next | What it does | Why not now |
 | --- | --- | --- |
-| **Track: "not yet, keep watching"** | A verdict that is a clear no for this round, with 2–4 measurable milestones (e.g. team ≥ 50, next round raised). Crustdata `/watch/company` webhooks fire when a milestone is hit; Deal Desk re-scores and asks "re-review?" | Needs a public HTTPS webhook URL, HMAC verification and a deal store to attach the watch to. Watch creation is already in the client (`watchCompany`, documented body, live-verified create/delete) but nothing calls it, by design: the old code created one watch per page view and never deleted it. |
-| **Decision engine as a hosted service** | Fit score against the firm mandate, verdict advance / track / pass, IC memo from the builder pipeline (screener, data room, pricing) | The contract and client are merged (`/api/deals/:id/decisions`), but the builder service is not deployed for the event, so those fields show "unavailable" with the reason instead of a guess. |
-| **Warm forward** | On a thesis-mismatch pass, suggest 2–3 co-investors (inferred from Crustdata funding data, cited), double opt-in, drafts only | Event rule: agents may contact only the team, Crustdata and Techfest. Also needs founder consent flows. |
-| Hiring signal at scale | `/job/search` counts as a sourcing filter, not just on the deal page | Credit cost per candidate; added after the core flow was proven |
-| Crustdata MCP server | Let any agent (Claude, Cursor) drive Deal Desk's sourcing with the same tools | Not needed for a single app; no time to harden |
-| Slack / AgentMail / Fireflies | Post decisions, send founder notes, ingest call transcripts | Outbound is locked during the event |
-| `/ask` → exception queue | Research-agent runs raise their exceptions to `/review` like `/agent` runs do | The seam exists (`fromScreenResult`); not wired before freeze |
-| Model-written memo prose | Memo text from the model under "add no facts" rules | The memo is composed deterministically from cited rows; prose adds risk without new facts |
+| Live Gmail intake | Each new founder email starts a deal automatically. | It needs Gmail write scopes and a privacy review of founder data. |
+| Meeting note-taker | Records the partner call and checks each claim in the transcript against Crustdata. | It needs founder consent to record. The event rules limit contact to the team, Crustdata and Techfest. |
+| Better comparables for valuation | Uses more real comparable deals for the valuation range. | It needs more data access and more Crustdata credits per deal. |
+| Firm memory that learns | Uses past Invest and Pass decisions to rank new deals. | It needs many real decisions. A few hackathon decisions are not enough data. |
+| Real sends | Sends data-room requests and meeting invites. | Trust comes first. Each send must stay behind a person's approval until the output is proven. |
+| Track with Crustdata watches | Tells the partner when a company reaches a milestone (`/watch/company`). | It needs a public webhook URL with HMAC checks and a deal store. |
+
+We kept these out of the hackathon scope. Each one sends data out of the firm or acts for the partner. Approval gates and privacy rules must come first.
 
 ## 4. How to run it, and how it is built
 
-**Stack:** Next.js 15 (App Router, route handlers on Node), React 19, Tailwind 4, TypeScript, vitest. Postgres (`postgres`
-driver) for organizational memory. No other backend.
+### Run it
 
-**Models.** The research agent (`/ask`) is LLM-driven: OpenAI Responses API with function tools, default `gpt-6.1-sol`
-at reasoning effort `medium` (override with `OPENAI_REASONING_EFFORT`; `high` measured >280 s per run) (see "Research agent" below). Everything else (the Sourcing agent, ranking, memo and spoken
-summaries) is deterministic code over live data, and the Sourcing agent is the no-model fallback. ElevenLabs:
-`eleven_flash_v2_5` for text-to-speech, Scribe (`scribe_v2`) for speech-to-text, and an optional Conversational AI agent
-(created by `scripts/voice-agent-setup.mjs`, LLM `ELEVENLABS_AGENT_LLM`, default `gemini-2.5-flash`) whose client tools only
-navigate (`run_sourcing` → `/agent?q=`, `open_company`, `open_screen`). The Today greeting can be rephrased by the
-configured model from the same facts, adding none.
+1. Clone the repo: `git clone https://github.com/saurabh4269/contextcon-ventureos.git && cd contextcon-ventureos`
+2. Install the packages: `npm install`
+3. Copy the environment file: `cp .env.example .env.local`
+4. Add your keys to `.env.local`. Use placeholders such as `CRUSTDATA_API_KEY=<your-key>`. Do not commit this file.
+5. To use live data, set `DEALDESK_DATA_MODE=live`.
+6. Start the app: `npm run dev:demo`. Open http://localhost:3000.
+7. Run the tests: `npm test` (vitest, no network). Run the type check: `npm run typecheck`.
+8. Check your keys: `npm run doctor`.
 
-**Agents** (code, not prompts; each step is a function with a typed input and a cited output):
+For full setup on Windows, Mac or Linux, read [SETUP_LOCAL.md](SETUP_LOCAL.md). For project context, read [docs/context/](docs/context/README.md).
 
-| Agent | Does | Code |
+**Try these (live mode):**
+
+| Go to | What happens |
+| --- | --- |
+| `/ask` | The research agent plans, calls Crustdata, checks each value and shows a ranked, cited table. |
+| `/agent` | The sourcing agent (no model) shows what it understood, runs live Crustdata steps and shows credits used. |
+| `/deal?domain=e2b.dev` | Live research on one company. Click a number to see its method and source. |
+| `/deal?domain=zz9-no-such-startup-qx7.com` | Shows "No Crustdata match". It does not show a fake company. |
+| `/review` | The exception queue. Approve, edit or reject each item. |
+| `/settings` | Real connector health checks. |
+
+### How it is built
+
+- **App:** Next.js 15 (App Router), React 19, TypeScript, Tailwind 4. It runs on Vercel.
+- **Models:** OpenAI GPT models through the Responses API with function tools. The research agent (`/ask`) uses a model to plan and call Crustdata tools (`OPENAI_MODEL`, `OPENAI_REASONING_EFFORT`). If no model key is set, `/ask` offers the deterministic sourcing agent (`/agent`). Anthropic is used instead when `ANTHROPIC_API_KEY` is set.
+- **Deterministic code:** The sourcing agent, ranking, numbers and memo text are code over live data. They do not use a model.
+- **Data:** Crustdata API for company, person, job and web data. Gmail and Google Calendar through Google OAuth (read; calendar insert only after approval). ElevenLabs for voice.
+- **Firm memory:** Postgres (`DATABASE_URL`). If it is not set, the memory panel says "memory store not configured".
+- **Trust layer:** Each number is a `ComputedField` (value, method, inputs, citations) or "unavailable" with a reason (`src/lib/fields.ts`).
+
+**Agents:**
+
+| Agent | What it does | Code |
 | --- | --- | --- |
-| Research (LLM) | Any natural-language request → model plans, calls Crustdata tools, verifies rows vs the ask, relaxes/re-queries (disclosed) → ranked table; every value checked against its cited response | `src/lib/agent`, `POST /api/live/screen`, `src/live/ask.tsx` + `src/live/screen` |
-| Sourcing | Request → filters → search → verify → founders → ranked, cited table; streams its trace as NDJSON. Deterministic; the no-model fallback | `src/lib/sourcing`, `POST /api/sourcing/run`, `src/live/agent` |
-| Research | identify → enrich, then founders, jobs, web, comparables in parallel; one failing call never hides the others | `src/lib/live/research.ts` |
-| People | Founders by company id; full profile by LinkedIn URL | `src/lib/crustdata/person-queries.ts` |
-| Numbers | Turns raw responses into `ComputedField`s (method, inputs, citations) | `src/lib/numbers/*` |
-| Inbox | Gmail threads, Calendar events (read) | `src/lib/google/*` |
-| Voice | Greeting, context orb, mic (STT), run summary (TTS) | `src/lib/voice/*`, `src/live/voice/*` |
-| Memory | Appends every action to an event log, streamed live | `src/lib/memory/*` |
-| Health | Real connector checks (free calls), never timers | `src/lib/live/integrations.ts` |
-
-**Data:** Crustdata (company, person, job, web), Gmail and Google Calendar (read), ElevenLabs. Nothing is seeded.
-
-### Architecture
-
-![Architecture](docs/architecture/architecture.svg)
-
-PNG fallback: [docs/architecture/architecture.png](docs/architecture/architecture.png) · Mermaid source: [architecture.mmd](docs/architecture/architecture.mmd)
-
-### The stack (bottom to top)
-
-| Layer | What's in it |
-|---|---|
-| **05 · You decide** | Ask (research agent) · Agent (sourcing) · Today · Deal · Person · IC memo · Review queue · voice. The partner makes the call. |
-| **04 · Trust layer** | Every value comes with method, inputs and citations, or "unavailable" plus a reason. ISO currency, UTC stored and shown in IST, outbound dry run by default. |
-| **03 · Firm memory** | Append-only Postgres event log: `GET/POST /api/memory/events`, SSE `/api/memory/stream` |
-| **02 · Agents** | Specialists running in parallel per request (table below) |
-| **01 · Sources** | Live only: Crustdata API `2025-11-01`, Gmail (read-only), Google Calendar |
+| Research (LLM) | Plans, calls Crustdata tools, checks each value against its cited response. | `src/lib/agent`, `POST /api/live/screen` |
+| Sourcing (no model) | Request → filters → search → verify → founders → ranked, cited table. | `src/lib/sourcing`, `POST /api/sourcing/run` |
+| Company research | Identify → enrich, then founders, jobs, web and comparables in parallel. | `src/lib/live/research.ts` |
+| Numbers | Turns raw responses into cited fields and a valuation. | `src/lib/numbers` |
+| Inbox | Reads Gmail threads and Calendar events. | `src/lib/google` |
+| Voice | Greeting, speech-to-text, read-aloud summary. | `src/lib/voice`, `src/live/voice` |
+| Memory | Records each action in the event log. | `src/lib/memory` |
 
 ### Where it calls Crustdata
 
-All calls go through one client (`src/lib/crustdata/client.ts` → `http.ts`): header `x-api-version: 2025-11-01`, per-route
-rate limiter, bounded 429 retry (≤ 15 s total), response cache (no credits on repeat), one log line per billed call.
+All calls go through one client: `src/lib/crustdata/client.ts` → `src/lib/crustdata/http.ts`. It calls `https://api.crustdata.com` with a bearer token and the header `x-api-version: 2025-11-01`. The client has a rate limiter per route, capped retries, a cache and a backup key (`CRUSTDATA_API_KEY_BACKUP`).
 
-| Endpoint | File | Screen | Credits (live-measured / documented) |
-| --- | --- | --- | --- |
-| `POST /company/identify` | `src/lib/live/research.ts` `lookupCompany`; `src/lib/live/resolve.ts` (domain anywhere, did-you-mean); sourcing name lookup; agent tool `identify_company` | Deal, Agent, Ask | 0 |
-| `POST /company/enrich` | `research.ts` `lookupCompany`; `src/lib/sourcing/run.ts` verify step; agent tools `enrich_companies`, `company_signals` | Deal, Agent, Ask | 2 per company |
-| `POST /company/search` | `research.ts` `searchComps` + `src/lib/crustdata/company-queries.ts`; `run.ts` search + relax steps; agent tool `search_companies` | Deal (comparables), Agent, Ask | 0.03/row base, ≈0.23/row with funding fields |
-| `POST /person/search` | `research.ts` `searchFounders` + `person-queries.ts`; `run.ts` founders step; agent tools `search_people`, `find_founders` | Deal, Agent, Ask | ≈0.13/row (experience filter), ≈0.23/row with history |
-| `POST /person/enrich` | `research.ts` `enrichPerson`; `run.ts` past-employers step; agent tool `enrich_person` | Person, Agent, Ask | 1 per profile |
-| `POST /job/search` | `research.ts` `searchJobs` + `job-queries.ts`; agent tool `search_jobs` | Deal (open roles), Ask | 0.03/row |
-| `POST /web/search/live` | `research.ts` `searchNews`; agent tool `web_search` | Deal (live web), Ask | 1 |
-| `GET /account/credits` | `src/lib/live/integrations.ts` | Settings › Connectors | 0 |
-| `POST/GET/DELETE /watch/company…` | `client.ts` `watchCompany` / `deleteWatch` / `getWatchRuns` | none yet (Track is next) | 0 to create, 5 per notification |
-
-A fresh deal research run on e2b.dev cost **5.56 credits** (measured). A sourcing run shows its own credit total in
-the step trace (cache hits cost 0). Full audit: [docs/CRUSTDATA_USAGE.md](docs/CRUSTDATA_USAGE.md).
-
-### Robustness
-
-Crustdata calls: timeout per call, a request-scoped deadline (40 s, 55 s for research), retry on 429 (capped) and on
-5xx / timeouts / malformed JSON for read endpoints (jittered backoff), a per-route circuit breaker, and a stale-cache
-fallback labelled "cached at <IST time>". Writes are replayed only if they provably never reached Crustdata. Unknown or typo'd domains return "no match" with
-"did you mean" suggestions, never an auto-picked company. Outage drill: `DEALDESK_SIMULATE_CRUSTDATA_OUTAGE=1`.
-Model calls: fallback model and malformed tool-JSON repair; no model key → `/agent`. Details: [docs/ROBUSTNESS.md](docs/ROBUSTNESS.md).
-
-### Research agent (LLM screener)
-
-`/ask` (also reached from the assistant dock, the sidebar Search row and `/ask?q=<text>`, which runs the text once) streams
-`POST /api/live/screen {"query"}` as NDJSON: `start`, `plan`, `tool_call`, `tool_result`, `verify`, `final`. The model
-(env `OPENAI_MODEL`, default `gpt-6.1-sol`; `OPENAI_REASONING_EFFORT`, default `high`; `ANTHROPIC_API_KEY` +
-`DEALDESK_LLM_MODEL` take precedence when set) picks tools from the registry in `src/lib/agent/tools.ts` (+ `tools/*.ts`),
-within a 60-credit / 14-turn cap. Its final answer cites a tool call and JSON path for every value; the server resolves
-each one and marks it verified, corrected (Crustdata's value shown) or unavailable. Each requirement is reported as applied
-server-side, client-side or unavailable. **No model key:** the route returns one `model_unavailable` event (HTTP 503),
-nothing is searched, and `/ask` offers a one-tap link to the deterministic Sourcing agent with the same text
-(`/agent?q=…`). Live runs: India B2B founders example ≈54 credits / 143 s; US fintech ≈51 / 92 s; EU climate ex-Google
-founders ≈20 / 119 s.
-
-## 5. Approaches tried: what worked, what failed
-
-| Tried | Result | What we did |
+| Crustdata endpoint | Code that calls it | API routes that use it |
 | --- | --- | --- |
-| A demo/fixture data mode next to live mode | Worked for UI work, but a judge (or partner) can't tell which numbers are real | **Removed it** (`ccf42bf`); a guard test now fails `npm test` if production code imports fixtures or adds a data-mode switch |
-| `/company/enrich` without `fields` | Returns only `basic_info` and still costs 2 credits | Always send the permitted field groups (`enrich-fields.ts`) |
-| Asking for one field the plan doesn't allow (`technographics`, `years_of_experience_raw`) | **403 for the whole call**, not a partial response | Allow-list of permitted groups; never request denied fields |
-| `hiring.*` from enrich as the hiring signal | All null for our test companies; `open_jobs_timeseries` absent | Open roles come from `/job/search` `total_count`; engineering share from `job_details.category` |
-| Builder's person/job/company search bodies | 400 `filter_shape` on every one | Rewrote to the documented filter tree (`{op, conditions:[{field,type,value}]}`), live-verified |
-| `/web/search/live` for company news | 4–7 s and noisy (other companies with the same name, redirect URLs) | Kept, but results that don't mention the company are dropped and it's marked as the slow step |
-| Unknown domains | Crustdata returns 200 with `matches: []`; old code showed "verified" | Treated as an explicit `no_match` state, never as a company |
-| 429 rate limits | No `Retry-After` header; old client could stall ~50 s | Sliding-window limiter per route; 429 retry capped at 15 s, then fail loudly |
-| Watch created on every research run | Leaked watches, cost per notification | Watch creation removed from page loads; needs an explicit webhook URL |
-| A deterministic parser as the only way in | Auditable, but unusual phrasings miss constraints | Kept as `/agent` (the no-model fallback, chips show what it understood); added the LLM research agent `/ask` with server-side citation checks |
-| Voice: ElevenLabs Conversational AI agent vs STT + TTS | Both shipped | STT (Scribe) on the request box + TTS for summaries keep every spoken fact tied to cited data; the conversational agent's tools only navigate (open a screen or company, start a run) and its prompt forbids facts not on screen or from a tool |
-| Browser autoplay for the spoken greeting | Can be blocked without a user gesture | The greeting tries to play, and if blocked says so and waits for a tap (checked in the verify run) |
+| `POST /company/identify` | `src/lib/live/research.ts`, `src/lib/live/resolve.ts`, agent tool `identify_company` | `/api/live/company`, `/api/live/research`, `/api/live/screen`, `/api/sourcing/run` |
+| `POST /company/enrich` | `src/lib/live/research.ts`, `src/lib/sourcing/run.ts`, `src/lib/crustdata/enrich-fields.ts` | `/api/live/company`, `/api/live/research`, `/api/live/screen`, `/api/sourcing/run`, `/api/deals/[id]/numbers`, `/api/deals/[id]/valuation`, `/api/deals/[id]/decisions` |
+| `POST /company/search` | `src/lib/crustdata/company-queries.ts`, `src/lib/sourcing/run.ts` | `/api/live/comps`, `/api/live/screen`, `/api/sourcing/run` |
+| `POST /person/search` | `src/lib/crustdata/person-queries.ts`, `src/lib/crustdata/person-search.ts` | `/api/live/people`, `/api/live/screen`, `/api/sourcing/run` |
+| `POST /person/enrich` | `src/lib/live/research.ts` | `/api/live/person`, `/api/sourcing/run` |
+| `POST /job/search` | `src/lib/crustdata/job-queries.ts` | `/api/live/jobs`, `/api/live/screen` |
+| `POST /web/search/live` | `src/lib/live/research.ts`, `src/lib/agent/tools/web-search.ts` | `/api/live/news`, `/api/live/screen` |
+| `GET /account/credits` | `src/lib/live/integrations.ts` | `/api/integrations/connectors` |
+| `/watch/company` | `src/lib/crustdata/client.ts` (`watchCompany`, not called yet) | none yet |
 
-**Testing:** vitest suites for the Crustdata client (captured live responses through an injected fetch), request bodies,
-rate-limit headers, numbers, formatting (IST, money), memory (against a real Postgres when `MEMORY_TEST_DATABASE_URL` is set), Google, outbound, voice and the
-trust guards (`src/test/guards.test.ts`). An opt-in live contract suite: `npm run crustdata:test:live`.
+A fresh research run on one company (e2b.dev) used 5.56 credits. Full audit: [docs/CRUSTDATA_USAGE.md](docs/CRUSTDATA_USAGE.md). Robustness details: [docs/ROBUSTNESS.md](docs/ROBUSTNESS.md).
 
----
+### Architecture
 
-## Trust rules (enforced in code)
+This diagram shows the build in this branch. The [detailed system diagram](docs/architecture/SYSTEM_DIAGRAM.md) shows the full target workflow.
+
+```mermaid
+flowchart TB
+  subgraph S["01 · Sources (live only)"]
+    CD["Crustdata API v2025-11-01<br/>/company/identify · /company/enrich · /company/search<br/>/person/search · /person/enrich · /job/search · /web/search/live"]
+    GM["Gmail<br/>threads.list / get (read only)"]
+    GC["Google Calendar<br/>events.list / insert"]
+  end
+  subgraph A["02 · Agents (parallel)"]
+    R["Research<br/>identify → enrich, comps"]
+    P["People<br/>founders + history"]
+    SG["Signals<br/>hiring, live press"]
+    N["Numbers<br/>method · inputs · citations"]
+    I["Inbox<br/>pitches, your week"]
+    V["Voice<br/>ElevenLabs briefings"]
+    H["Health<br/>real calls, not timers"]
+  end
+  subgraph M["03 · Firm memory"]
+    MEM[("Append-only event log (Postgres)<br/>GET /api/memory/events · SSE /api/memory/stream")]
+  end
+  subgraph T["04 · Trust layer"]
+    TR["Value + method + inputs + citations, or 'unavailable' + reason<br/>ISO currency · UTC → IST · outbound dry run by default"]
+  end
+  subgraph Y["05 · You decide"]
+    U["Today · Deal · Person · IC memo · Firm brain · Voice orb<br/>pass · meet · track · invest"]
+  end
+  subgraph NX["Coming next (not in this build)"]
+    F["Fit scoring"]:::next
+    D["Diligence tie-outs"]:::next
+    IC["IC memo + pricing"]:::next
+    TK["Track · Crustdata /watch/company"]:::next
+    OB["Slack · AgentMail · Fireflies"]:::next
+  end
+  CD --> R & P & SG
+  GM --> I
+  GC --> I
+  R & P & SG --> N
+  R & P & SG & N & I & V & H --> MEM
+  MEM --> V
+  MEM --> TR --> U
+  classDef next stroke-dasharray: 5 5,fill:#fff,color:#52525b
+```
+
+## 5. The approaches we tried
+
+| We tried | What happened | What we chose, and why |
+| --- | --- | --- |
+| Demo/fixture data next to live data | At 12:22 IST we removed fixture mode (`ccf42bf`). A judge or partner could not tell sample numbers from real numbers. Later, a demo mode came back as the default UI (`641074d`), with a "Demo data" badge. | Live mode follows the trust rule. Demo mode is labelled on screen, so a user can see that the data is sample data. |
+| One deterministic request parser (no model) | It was easy to audit. But it missed constraints in unusual wording. | We kept it as `/agent`, the no-model fallback. We added the LLM research agent `/ask`. The server checks each value that the model cites. |
+| Model answers without checks | A model can invent numbers. | The server resolves each cited value. It marks the value verified, corrected or unavailable. |
+| The builder's full backend | Its search request bodies failed with 400 `filter_shape`. It needed its own database. | We ported only the Crustdata client. We rewrote each request to the documented shape and tested it live. |
+| `/company/enrich` without `fields` | It returned only basic data and still cost 2 credits. One denied field caused a 403 for the full call. | We always send an allow-list of permitted fields. |
+| `hiring.*` from enrich as the hiring signal | The values were null for our test companies. | Open roles come from `/job/search`. |
+| Many features at the same time | Parallel work caused README conflicts near the freeze. | One owner for the README. One problem: the analyst's path from request to cited decision. |
+| Send emails from agents | The event rules allow contact only with the team, Crustdata and Techfest. | Outbound is dry run by default. A person must approve each send. |
+| A voice agent that answers from its own model | Its spoken facts would have no source. | Speech-to-text feeds the request box. Text-to-speech reads a summary of cited data. The voice agent can only open screens or start a run. |
+| A watch on each research run | It left watches open and cost credits for each notification. | We removed watch creation from page loads. Track is in "next". |
+
+Decision log: [docs/DECISIONS.md](docs/DECISIONS.md).
+
+## Trust rules (in code)
 
 | Rule | Where |
 | --- | --- |
-| No demo data or fixtures in production paths | `src/test/guards.test.ts` |
-| Every number is a `ComputedField` (value, method, inputs, citations) or `unavailable` + reason | `src/lib/fields.ts`, `src/live/field.tsx` |
-| No hard-coded amounts, %, dates or counts in screens | `src/test/guards.test.ts` (literal scan) |
-| Money is `{amount, currency}`; never converted without a cited FX rate | `src/lib/format` |
-| Times stored UTC, shown in IST | `src/lib/format` (`fmtDateTime` → "… IST") |
-| Outbound is dry-run unless `OUTBOUND_MODE=live`; email can be sent only through the gated `/api/outbound/email` (recipient allowlist `DEMO_RECIPIENT_ALLOWLIST` + a person's approval before send) | `src/lib/outbound.ts`, guard test |
-| Secrets are server-side only; status shows env var names, never values | route handlers, `src/lib/live/integrations.ts` |
-| Errors are never shown as "no match", and "no match" is never shown as a company | `src/lib/live/research.ts` |
+| Each number is a `ComputedField` or "unavailable" with a reason | `src/lib/fields.ts`, `src/live/field.tsx` |
+| No hard-coded amounts, percentages, dates or counts in live screens | `src/test/guards.test.ts` |
+| Money is `{amount, currency}`. No conversion without a cited FX rate | `src/lib/format` |
+| Times are stored in UTC and shown in IST | `src/lib/format` |
+| Outbound is dry run unless `OUTBOUND_MODE=live`, an allowlisted recipient and a person's approval | `src/lib/outbound.ts` |
+| Secrets stay on the server. Status shows env var names, not values | route handlers, `src/lib/live/integrations.ts` |
+| An error never shows as "no match". "No match" never shows as a company | `src/lib/live/research.ts` |
 
 ## Team
 
